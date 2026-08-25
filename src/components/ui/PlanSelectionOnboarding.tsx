@@ -138,8 +138,7 @@ export default function PlanSelectionOnboarding() {
                 </div>
                 
                 <button
-                  onClick={() => handleSelectPlan(plan.id)}
-                  disabled={submitting}
+                  onClick={() => handleSelectPlan(plan.id, plan.price)}                  disabled={submitting}
                   className={`w-full text-center py-3 font-bold rounded-xl text-xs block transition-all mt-6 ${
                     plan.badge || plan.price !== '₦0' 
                       ? 'bg-gradient-to-r from-[#E2C06A] to-[#7A5E1E] text-zinc-950 hover:opacity-90' 

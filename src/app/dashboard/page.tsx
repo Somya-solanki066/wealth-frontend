@@ -590,7 +590,7 @@ function DashboardContent() {
     } catch (err: any) {
       console.error("AI analysis failed:", err);
       if (err.response?.data?.limitExceeded) {
-        triggerPaywall("AI Chapter Analyzer");
+          openPaywall("AI Chapter Analyzer");
       } else {
         triggerToast(err.response?.data?.error || "AI Analysis failed.");
       }
