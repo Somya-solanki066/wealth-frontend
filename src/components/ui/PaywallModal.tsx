@@ -5,6 +5,7 @@ import Modal from "./Modal";
 import Button from "./Button";
 import { Sparkles, Check, Loader2 } from "lucide-react";
 import axios from "axios";
+import { getBackendApiUrl } from "@/lib/backendUrl";
 import { useAuth } from "@/context/AuthContext";
 
 interface PaywallModalProps {
@@ -35,7 +36,7 @@ export default function PaywallModal({
   const fetchPlans = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/settings`);
+      const response = await axios.get(`${getBackendApiUrl()}/settings`);
       const allPlans = response.data.data.plans || [];
       // Filter out the free plan
       setPlans(allPlans.filter((p: any) => p.id !== 'free' && p.id !== 'plan_free'));
@@ -57,7 +58,7 @@ export default function PaywallModal({
       const token = await user.getIdToken();
       
       await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/user/simulate-upgrade`,
+        `${getBackendApiUrl()}/user/simulate-upgrade`,
         { planId },
         { headers: { Authorization: `Bearer ${token}` } }
       );

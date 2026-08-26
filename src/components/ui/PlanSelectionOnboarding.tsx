@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { getBackendApiUrl } from "@/lib/backendUrl";
 import { Check, X, Star, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -17,7 +18,7 @@ export default function PlanSelectionOnboarding() {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/settings`);
+        const response = await axios.get(`${getBackendApiUrl()}/settings`);
         if (response.data?.data?.plans) {
           const allPlans = response.data.data.plans;
           setPlans(allPlans);
@@ -45,7 +46,7 @@ export default function PlanSelectionOnboarding() {
       if (isFree) {
         // Free plan logic: update directly
         await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/user/select-plan`,
+          `${getBackendApiUrl()}/user/select-plan`,
           { planId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -53,7 +54,7 @@ export default function PlanSelectionOnboarding() {
       } else {
         // Paid plan logic: redirect to Stripe Checkout
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/stripe/create-checkout-session`,
+          `${getBackendApiUrl()}/stripe/create-checkout-session`,
           { planId, userId: user.uid, email: user.email },
           { headers: { Authorization: `Bearer ${token}` } }
         );

@@ -5,6 +5,7 @@ import { Upload, FileText, CheckCircle, ChevronDown, ChevronUp, AlertCircle, Loa
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import PaywallModal from "@/components/ui/PaywallModal";
+import { getBackendApiUrl } from "@/lib/backendUrl";
 
 interface EditCheck {
   name: string;
@@ -51,7 +52,7 @@ export default function SmartEditSuite() {
       if (user) formData.append("userId", user.uid);
 
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/ai/smart-edit`,
+        `${getBackendApiUrl()}/ai/smart-edit`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },

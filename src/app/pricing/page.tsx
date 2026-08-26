@@ -8,6 +8,7 @@ import { Check, X, Star } from "lucide-react";
 import { useContent } from "@/hooks/useContent";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import { getBackendApiUrl } from "@/lib/backendUrl";
 
 export default function PricingPage() {
   const { content } = useContent("pricing");
@@ -22,7 +23,7 @@ export default function PricingPage() {
   React.useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/settings");
+        const response = await axios.get(`${getBackendApiUrl()}/settings`);
         if (response.data?.data?.plans) {
           const allPlans = response.data.data.plans;
           setPlans(allPlans);
@@ -60,14 +61,14 @@ export default function PricingPage() {
       
       if (isFree) {
         await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/user/select-plan`,
+          `${getBackendApiUrl()}/user/select-plan`,
           { planId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
         window.location.href = "/dashboard";
       } else {
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/stripe/create-checkout-session`,
+          `${getBackendApiUrl()}/stripe/create-checkout-session`,
           { planId, userId: user.uid, email: user.email },
           { headers: { Authorization: `Bearer ${token}` } }
         );
