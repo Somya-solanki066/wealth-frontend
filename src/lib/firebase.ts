@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, initializeFirestore } from "firebase/firestore";
+import { getFirestore, initializeFirestore, type Firestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 function env(value?: string) {
@@ -20,7 +20,7 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 
 // Long polling avoids some WebChannel/proxy timeouts that surface as "client is offline".
-let db;
+let db: Firestore;
 try {
   db = initializeFirestore(app, { experimentalForceLongPolling: true });
 } catch {

@@ -158,6 +158,19 @@ function WorldHeroTitle({ world }: { world: ActiveWorld }) {
 }
 
 function PhoneMockup({ world, displayName }: { world: ActiveWorld; displayName: string }) {
+  type PhoneNavItem = [icon: string, label: string, active?: boolean];
+
+  const renderPhoneNav = (items: PhoneNavItem[]) =>
+    items.map((item) => {
+      const [icon, label, active] = item;
+      return (
+        <div key={label} className="pm-ni">
+          <span className="pm-ni-icon">{icon}</span>
+          <span className={`pm-ni-lbl${active ? " on" : ""}`}>{label}</span>
+        </div>
+      );
+    });
+
   const nameWithIcon =
     world === "writer"
       ? `${displayName} ✍️`
@@ -188,14 +201,13 @@ function PhoneMockup({ world, displayName }: { world: ActiveWorld; displayName: 
             ))}
           </div>
           <div className="pm-nav">
-            {[["🏠", "Home", true], ["✍️", "Write"], ["🔍", "Analyze"], ["💰", "WEALTH"], ["👤", "Profile"]].map((entry) => {
-              const icon = entry[0];
-              const lbl = entry[1];
-              const on = entry[2] === true;
-              return (
-                <div key={lbl} className="pm-ni"><span className="pm-ni-icon">{icon}</span><span className={`pm-ni-lbl${on ? " on" : ""}`}>{lbl}</span></div>
-              );
-            })}
+            {renderPhoneNav([
+              ["🏠", "Home", true],
+              ["✍️", "Write"],
+              ["🔍", "Analyze"],
+              ["💰", "WEALTH"],
+              ["👤", "Profile"],
+            ])}
           </div>
         </div>
       </div>
@@ -224,14 +236,13 @@ function PhoneMockup({ world, displayName }: { world: ActiveWorld; displayName: 
             ))}
           </div>
           <div className="pm-nav">
-            {[["🏠", "Home", true], ["📝", "Script"], ["🏭", "Industry"], ["🤝", "Community"], ["👤", "Profile"]].map((entry) => {
-              const icon = entry[0];
-              const lbl = entry[1];
-              const on = entry[2] === true;
-              return (
-                <div key={lbl} className="pm-ni"><span className="pm-ni-icon">{icon}</span><span className={`pm-ni-lbl${on ? " on" : ""}`}>{lbl}</span></div>
-              );
-            })}
+            {renderPhoneNav([
+              ["🏠", "Home", true],
+              ["📝", "Script"],
+              ["🏭", "Industry"],
+              ["🤝", "Community"],
+              ["👤", "Profile"],
+            ])}
           </div>
         </div>
       </div>
@@ -266,14 +277,13 @@ function PhoneMockup({ world, displayName }: { world: ActiveWorld; displayName: 
         </div>
         <div className="pm-card" style={{ marginTop: 4 }}><div className="pm-card-icon">🏆</div><div><div className="pm-card-title">Today&apos;s Challenge</div><div className="pm-card-meta">Organic Chemistry — 1 question · 2 minutes</div></div></div>
         <div className="pm-nav">
-          {[["🏠", "Home", true], ["📚", "Practice"], ["🏫", "Uni"], ["📊", "Progress"], ["👤", "Profile"]].map((entry) => {
-            const icon = entry[0];
-            const lbl = entry[1];
-            const on = entry[2] === true;
-            return (
-              <div key={lbl} className="pm-ni"><span className="pm-ni-icon">{icon}</span><span className={`pm-ni-lbl${on ? " on" : ""}`}>{lbl}</span></div>
-            );
-          })}
+          {renderPhoneNav([
+            ["🏠", "Home", true],
+            ["📚", "Practice"],
+            ["🏫", "Uni"],
+            ["📊", "Progress"],
+            ["👤", "Profile"],
+          ])}
         </div>
       </div>
     </div>
