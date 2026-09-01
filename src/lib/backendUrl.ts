@@ -17,8 +17,5 @@ export function getBackendOrigin(): string {
  * Server: direct backend URL for SSR / server-side fetches.
  */
 export function getBackendApiUrl(): string {
-  if (typeof window !== "undefined") {
-    return "/api";
-  }
   return `${getBackendOrigin()}/api`;
 }
