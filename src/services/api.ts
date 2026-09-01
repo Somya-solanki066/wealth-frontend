@@ -11,6 +11,7 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     config.baseURL = getBackendApiUrl();
+    console.log("🔥 API BASE URL:", config.baseURL);
     try {
       const currentUser = auth.currentUser;
       if (currentUser) {
@@ -21,6 +22,7 @@ api.interceptors.request.use(
       console.error("Error setting Firebase Auth token in request interceptor:", error);
     }
     return config;
+    
   },
   (error) => Promise.reject(error)
 );
