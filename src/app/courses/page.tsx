@@ -133,7 +133,7 @@ export default function CoursesPage() {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[110] bg-[#1a1200] border border-[#7A5E1E] text-[#C9A84C] font-semibold text-xs px-6 py-3 rounded-xl shadow-2xl transition-all duration-300">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[110] bg-[#1a1200] border border-[var(--gm)] text-[var(--gd)] font-semibold text-xs px-6 py-3 rounded-xl shadow-2xl transition-all duration-300">
           {toastMessage}
         </div>
       )}
@@ -144,12 +144,12 @@ export default function CoursesPage() {
         {/* HERO SECTION */}
         <section className="relative overflow-hidden bg-radial-gradient-hero text-center py-20 px-6 border-b border-[#242424]">
           <div className="max-w-4xl mx-auto space-y-6">
-            <span className="inline-flex items-center gap-1.5 px-4.5 py-1.5 rounded-full text-[10px] font-bold tracking-widest text-[#C9A84C] bg-[#C9A84C]/10 border border-[#7A5E1E]/30 uppercase">
+            <span className="inline-flex items-center gap-1.5 px-4.5 py-1.5 rounded-full text-[10px] font-bold tracking-widest text-[var(--gd)] bg-[var(--gd)]/10 border border-[var(--gm)]/30 uppercase">
               Ink2Wealth Academy
             </span>
             <h1 className="font-serif text-4xl md:text-6xl font-black text-white leading-tight">
               Learn to Write.<br />
-              <span className="text-[#C9A84C] italic">Learn to Earn.</span>
+              <span className="text-[var(--gd)] italic">Learn to Earn.</span>
             </h1>
             <p className="text-[#909090] text-sm md:text-base leading-relaxed max-w-2xl mx-auto">
               Two flagship courses by Coach Victor Daniels. Master serialized fiction or screenwriting — then use the Ink2Wealth platform to put it all into practice.
@@ -158,13 +158,13 @@ export default function CoursesPage() {
             <div className="flex flex-wrap justify-center gap-4 pt-4">
               <button 
                 onClick={() => handleEnrollClick("WIT-WEB Academy")}
-                className="px-8 py-4 bg-gradient-to-r from-[#E2C06A] to-[#7A5E1E] hover:from-[#E2C06A]/90 hover:to-[#7A5E1E]/90 text-zinc-950 font-bold rounded-xl text-sm transition-all hover:scale-[1.02]"
+                className="px-8 py-4 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] hover:from-[var(--gl)]/90 hover:to-[var(--gm)]/90 text-zinc-950 font-bold rounded-xl text-sm transition-all hover:scale-[1.02]"
               >
                 Enroll Now — ₦35,000
               </button>
               <Link 
                 href="/login"
-                className="px-8 py-4 border border-[#7A5E1E] hover:bg-[#C9A84C]/5 text-[#C9A84C] font-bold rounded-xl text-sm transition-all"
+                className="px-8 py-4 border border-[var(--gm)] hover:bg-[var(--gd)]/5 text-[var(--gd)] font-bold rounded-xl text-sm transition-all"
               >
                 Preview Free Lessons
               </Link>
@@ -172,19 +172,19 @@ export default function CoursesPage() {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-12 border-t border-[#242424]/80 max-w-3xl mx-auto text-center">
               <div>
-                <span className="font-serif text-2xl md:text-3xl font-black text-[#C9A84C] block">12</span>
+                <span className="font-serif text-2xl md:text-3xl font-black text-[var(--gd)] block">12</span>
                 <span className="text-[10px] text-[#606060] font-bold uppercase tracking-wider">Modules</span>
               </div>
               <div>
-                <span className="font-serif text-2xl md:text-3xl font-black text-[#C9A84C] block">48+</span>
+                <span className="font-serif text-2xl md:text-3xl font-black text-[var(--gd)] block">48+</span>
                 <span className="text-[10px] text-[#606060] font-bold uppercase tracking-wider">Lessons</span>
               </div>
               <div>
-                <span className="font-serif text-2xl md:text-3xl font-black text-[#C9A84C] block">9</span>
+                <span className="font-serif text-2xl md:text-3xl font-black text-[var(--gd)] block">9</span>
                 <span className="text-[10px] text-[#606060] font-bold uppercase tracking-wider">Platforms</span>
               </div>
               <div>
-                <span className="font-serif text-2xl md:text-3xl font-black text-[#C9A84C] block">∞</span>
+                <span className="font-serif text-2xl md:text-3xl font-black text-[var(--gd)] block">∞</span>
                 <span className="text-[10px] text-[#606060] font-bold uppercase tracking-wider">Lifetime Access</span>
               </div>
             </div>
@@ -197,13 +197,13 @@ export default function CoursesPage() {
             {/* WIT-WEB Course */}
             <div 
               onClick={() => handleEnrollClick("WIT-WEB Academy")}
-              className="bg-[#0f0f0f] border border-[#242424] hover:border-[#7A5E1E] rounded-3xl p-8 text-left cursor-pointer transition-all duration-300 hover:-translate-y-1 shadow-2xl flex flex-col justify-between"
+              className="bg-[#0f0f0f] border border-[#242424] hover:border-[var(--gm)] rounded-3xl p-8 text-left cursor-pointer transition-all duration-300 hover:-translate-y-1 shadow-2xl flex flex-col justify-between"
             >
               <div>
-                <div className="w-14 h-14 bg-gradient-to-br from-[#1e1500] to-[#2e2000] rounded-2xl border border-[#7A5E1E] flex items-center justify-center text-3xl mb-6">
+                <div className="w-14 h-14 bg-gradient-to-br from-[var(--bg1)] to-[var(--bg2)] rounded-2xl border border-[var(--gm)] flex items-center justify-center text-3xl mb-6">
                   📖
                 </div>
-                <span className="text-[10px] font-bold tracking-widest text-[#C9A84C] uppercase block mb-2">
+                <span className="text-[10px] font-bold tracking-widest text-[var(--gd)] uppercase block mb-2">
                   WIT-WEB Academy
                 </span>
                 <h3 className="font-serif text-xl md:text-2xl font-black text-white mb-3">
@@ -213,12 +213,12 @@ export default function CoursesPage() {
                   Write, publish, and earn from serialized fiction on PocketFM, Dreame, GoodNovel, and 6 more platforms.
                 </p>
                 <div className="flex flex-wrap gap-2 mb-6">
-                  <span className="text-[9px] font-bold px-2.5 py-1 rounded bg-[#C9A84C]/10 border border-[#7A5E1E]/20 text-[#C9A84C]">9 Platforms</span>
+                  <span className="text-[9px] font-bold px-2.5 py-1 rounded bg-[var(--gd)]/10 border border-[var(--gm)]/20 text-[var(--gd)]">9 Platforms</span>
                   <span className="text-[9px] font-bold px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">12 Modules</span>
                   <span className="text-[9px] font-bold px-2.5 py-1 rounded bg-sky-500/10 border border-sky-500/20 text-sky-400">Lifetime Access</span>
                 </div>
               </div>
-              <button className="w-full py-3 bg-gradient-to-r from-[#E2C06A] to-[#7A5E1E] hover:from-[#E2C06A]/90 hover:to-[#7A5E1E]/90 text-zinc-950 font-bold rounded-xl text-xs transition-all">
+              <button className="w-full py-3 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] hover:from-[var(--gl)]/90 hover:to-[var(--gm)]/90 text-zinc-950 font-bold rounded-xl text-xs transition-all">
                 View Course →
               </button>
             </div>
@@ -258,7 +258,7 @@ export default function CoursesPage() {
         <section className="bg-[#0f0f0f] border-y border-[#242424] py-16 px-6">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-12">
-              <span className="text-[10px] font-bold tracking-widest text-[#C9A84C] uppercase block mb-2">Full Curriculum</span>
+              <span className="text-[10px] font-bold tracking-widest text-[var(--gd)] uppercase block mb-2">Full Curriculum</span>
               <h2 className="font-serif text-3xl md:text-4xl font-black text-white">
                 12 Modules. 48 Lessons.<br />Everything Covered.
               </h2>
@@ -277,7 +277,7 @@ export default function CoursesPage() {
                       className="w-full flex items-center justify-between p-5 text-left focus:outline-none hover:bg-zinc-900/40"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-gradient-to-br from-[#1e1500] to-[#2e2000] border border-[#7A5E1E] rounded-xl flex items-center justify-center text-xs font-bold text-[#C9A84C] shrink-0">
+                        <div className="w-10 h-10 bg-gradient-to-br from-[var(--bg1)] to-[var(--bg2)] border border-[var(--gm)] rounded-xl flex items-center justify-center text-xs font-bold text-[var(--gd)] shrink-0">
                           {m.num}
                         </div>
                         <div>
@@ -285,7 +285,7 @@ export default function CoursesPage() {
                           <span className="text-[10px] text-[#606060] font-bold block mt-1">{m.meta}</span>
                         </div>
                       </div>
-                      <ChevronDown className={`h-5 w-5 text-[#606060] transition-transform duration-200 ${isOpen ? "transform rotate-180 text-[#C9A84C]" : ""}`} />
+                      <ChevronDown className={`h-5 w-5 text-[#606060] transition-transform duration-200 ${isOpen ? "transform rotate-180 text-[var(--gd)]" : ""}`} />
                     </button>
 
                     {isOpen && (
@@ -299,7 +299,7 @@ export default function CoursesPage() {
                             {les.free ? (
                               <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded uppercase tracking-wider">Free Preview</span>
                             ) : (
-                              <span className="text-[9px] font-bold text-[#C9A84C] bg-[#C9A84C]/5 border border-[#7A5E1E]/30 px-2 py-0.5 rounded uppercase tracking-wider">Enrolled</span>
+                              <span className="text-[9px] font-bold text-[var(--gd)] bg-[var(--gd)]/5 border border-[var(--gm)]/30 px-2 py-0.5 rounded uppercase tracking-wider">Enrolled</span>
                             )}
                           </div>
                         ))}
@@ -314,7 +314,7 @@ export default function CoursesPage() {
 
         {/* WHAT YOU LEARN GRID */}
         <section className="max-w-5xl mx-auto px-6 py-16 text-center">
-          <span className="text-[10px] font-bold tracking-widest text-[#C9A84C] uppercase block mb-2">What You Will Learn</span>
+          <span className="text-[10px] font-bold tracking-widest text-[var(--gd)] uppercase block mb-2">What You Will Learn</span>
           <h2 className="font-serif text-3xl md:text-4xl font-black text-white mb-12">
             Everything a Serialized<br />Fiction Writer Needs
           </h2>
@@ -367,12 +367,12 @@ export default function CoursesPage() {
         {/* INSTRUCTOR BIO BIO */}
         <section className="bg-[#0f0f0f] border-t border-[#242424] py-16 px-6">
           <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-10">
-            <div className="w-40 h-40 rounded-full border-4 border-[#C9A84C] bg-gradient-to-br from-[#1e1500] to-[#2a1e00] flex items-center justify-center text-6xl shadow-2xl shrink-0">
+            <div className="w-40 h-40 rounded-full border-4 border-[var(--gd)] bg-gradient-to-br from-[var(--bg1)] to-[#2a1e00] flex items-center justify-center text-6xl shadow-2xl shrink-0">
               👨‍🏫
             </div>
             <div className="space-y-4 text-left">
               <h3 className="font-serif text-3xl font-black text-white leading-tight">Victor Daniels</h3>
-              <span className="text-xs font-bold text-[#C9A84C] uppercase tracking-wider block">
+              <span className="text-xs font-bold text-[var(--gd)] uppercase tracking-wider block">
                 Writing Coach · Serialized Fiction Expert · Founder of Ink2Wealth
               </span>
               <p className="text-xs md:text-sm text-[#909090] leading-relaxed">
@@ -380,15 +380,15 @@ export default function CoursesPage() {
               </p>
               <div className="flex gap-8 pt-2">
                 <div>
-                  <span className="font-serif text-2xl font-black text-[#C9A84C] block">2,400+</span>
+                  <span className="font-serif text-2xl font-black text-[var(--gd)] block">2,400+</span>
                   <span className="text-[9px] text-[#606060] font-bold uppercase tracking-wider">Students</span>
                 </div>
                 <div>
-                  <span className="font-serif text-2xl font-black text-[#C9A84C] block">9</span>
+                  <span className="font-serif text-2xl font-black text-[var(--gd)] block">9</span>
                   <span className="text-[9px] text-[#606060] font-bold uppercase tracking-wider">Platforms</span>
                 </div>
                 <div>
-                  <span className="font-serif text-2xl font-black text-[#C9A84C] block">YouTube</span>
+                  <span className="font-serif text-2xl font-black text-[var(--gd)] block">YouTube</span>
                   <span className="text-[9px] text-[#606060] font-bold uppercase tracking-wider">@CoachVictorDaniels</span>
                 </div>
               </div>
@@ -398,18 +398,18 @@ export default function CoursesPage() {
 
         {/* PRICING PLANS DETAILS */}
         <section id="pricing" className="max-w-4xl mx-auto px-6 py-16 text-center">
-          <span className="text-[10px] font-bold tracking-widest text-[#C9A84C] uppercase block mb-2">Enroll Today</span>
+          <span className="text-[10px] font-bold tracking-widest text-[var(--gd)] uppercase block mb-2">Enroll Today</span>
           <h2 className="font-serif text-3xl md:text-4xl font-black text-white mb-12">Choose Your Access</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
             {/* Standard Enrollment */}
             <div 
               onClick={() => handleEnrollClick("Standard Enrollment")}
-              className="bg-[#0f0f0f] border border-[#242424] hover:border-[#7A5E1E] rounded-3xl p-8 text-center transition-all duration-300 hover:-translate-y-1 shadow-2xl flex flex-col justify-between"
+              className="bg-[#0f0f0f] border border-[#242424] hover:border-[var(--gm)] rounded-3xl p-8 text-center transition-all duration-300 hover:-translate-y-1 shadow-2xl flex flex-col justify-between"
             >
               <div>
                 <span className="text-[10px] font-bold text-[#606060] uppercase tracking-widest block mb-2">Standard Enrollment</span>
-                <span className="font-serif text-4xl md:text-5xl font-black text-[#C9A84C] block mb-2">₦35,000</span>
+                <span className="font-serif text-4xl md:text-5xl font-black text-[var(--gd)] block mb-2">₦35,000</span>
                 <span className="text-[10px] text-[#606060] font-bold uppercase block mb-6">One-time payment · Lifetime access</span>
                 
                 <div className="space-y-3.5 text-left border-t border-[#242424] pt-6 mb-8 text-xs text-[#909090]">
@@ -435,7 +435,7 @@ export default function CoursesPage() {
                   </div>
                 </div>
               </div>
-              <button className="w-full py-3 bg-[#161616] border border-[#7A5E1E] hover:bg-[#C9A84C]/5 text-[#C9A84C] font-bold rounded-xl text-xs transition-all">
+              <button className="w-full py-3 bg-[#161616] border border-[var(--gm)] hover:bg-[var(--gd)]/5 text-[var(--gd)] font-bold rounded-xl text-xs transition-all">
                 Enroll — ₦35,000
               </button>
             </div>
@@ -443,38 +443,38 @@ export default function CoursesPage() {
             {/* Bundle Premium Enrollment */}
             <div 
               onClick={() => handleEnrollClick("WIT-WEB + App Bundle")}
-              className="bg-gradient-to-br from-[#1a1200] to-[#0f0f0f] border border-[#7A5E1E] rounded-3xl p-8 text-center transition-all duration-300 hover:-translate-y-1 shadow-2xl flex flex-col justify-between"
+              className="bg-gradient-to-br from-[#1a1200] to-[#0f0f0f] border border-[var(--gm)] rounded-3xl p-8 text-center transition-all duration-300 hover:-translate-y-1 shadow-2xl flex flex-col justify-between"
             >
               <div>
-                <span className="inline-block px-3 py-1 bg-gradient-to-r from-[#E2C06A] to-[#7A5E1E] text-zinc-950 font-bold text-[9px] rounded-full uppercase tracking-wider mb-4">Best Value</span>
-                <span className="text-[10px] font-bold text-[#C9A84C] uppercase tracking-widest block mb-2">WIT-WEB + App Bundle</span>
-                <span className="font-serif text-4xl md:text-5xl font-black text-[#C9A84C] block mb-2">₦55,000</span>
+                <span className="inline-block px-3 py-1 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] text-zinc-950 font-bold text-[9px] rounded-full uppercase tracking-wider mb-4">Best Value</span>
+                <span className="text-[10px] font-bold text-[var(--gd)] uppercase tracking-widest block mb-2">WIT-WEB + App Bundle</span>
+                <span className="font-serif text-4xl md:text-5xl font-black text-[var(--gd)] block mb-2">₦55,000</span>
                 <span className="text-[10px] text-[#606060] font-bold uppercase block mb-6">One-time payment · Course + 1 Year App</span>
                 
-                <div className="space-y-3.5 text-left border-t border-[#7A5E1E]/30 pt-6 mb-8 text-xs text-[#909090]">
+                <div className="space-y-3.5 text-left border-t border-[var(--gm)]/30 pt-6 mb-8 text-xs text-[#909090]">
                   <div className="flex items-center gap-2.5">
-                    <span className="text-[#C9A84C] font-bold">✓</span>
+                    <span className="text-[var(--gd)] font-bold">✓</span>
                     <span className="text-white">Everything in Standard access</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-[#C9A84C] font-bold">✓</span>
+                    <span className="text-[var(--gd)] font-bold">✓</span>
                     <span className="text-white">1 Year Ink2Wealth Premium App Access</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-[#C9A84C] font-bold">✓</span>
+                    <span className="text-[var(--gd)] font-bold">✓</span>
                     <span>Priority support directly from Coach Victor</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-[#C9A84C] font-bold">✓</span>
+                    <span className="text-[var(--gd)] font-bold">✓</span>
                     <span>One private 30-min strategy session</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-[#C9A84C] font-bold">✓</span>
+                    <span className="text-[var(--gd)] font-bold">✓</span>
                     <span>Early access to newly released modules</span>
                   </div>
                 </div>
               </div>
-              <button className="w-full py-3 bg-gradient-to-r from-[#E2C06A] to-[#7A5E1E] hover:from-[#E2C06A]/90 hover:to-[#7A5E1E]/90 text-zinc-950 font-bold rounded-xl text-xs transition-all">
+              <button className="w-full py-3 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] hover:from-[var(--gl)]/90 hover:to-[var(--gm)]/90 text-zinc-950 font-bold rounded-xl text-xs transition-all">
                 Get the Bundle — ₦55,000
               </button>
             </div>
@@ -490,10 +490,10 @@ export default function CoursesPage() {
           <p className="text-[10px] text-[#606060] font-medium">12 modules · Lifetime access · Certificate included</p>
         </div>
         <div className="flex items-center gap-4">
-          <span className="font-serif text-lg font-black text-[#C9A84C]">₦35,000</span>
+          <span className="font-serif text-lg font-black text-[var(--gd)]">₦35,000</span>
           <button 
             onClick={() => handleEnrollClick("WIT-WEB Academy")}
-            className="px-6 py-2.5 bg-gradient-to-r from-[#E2C06A] to-[#7A5E1E] hover:from-[#E2C06A]/90 hover:to-[#7A5E1E]/90 text-zinc-950 font-bold rounded-xl text-xs transition-all"
+            className="px-6 py-2.5 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] hover:from-[var(--gl)]/90 hover:to-[var(--gm)]/90 text-zinc-950 font-bold rounded-xl text-xs transition-all"
           >
             Enroll Now →
           </button>
@@ -511,7 +511,7 @@ export default function CoursesPage() {
               ✕
             </button>
             <div className="text-center space-y-2">
-              <span className="text-[9px] font-bold text-[#C9A84C] uppercase tracking-widest block">Complete Signup</span>
+              <span className="text-[9px] font-bold text-[var(--gd)] uppercase tracking-widest block">Complete Signup</span>
               <h3 className="font-serif text-xl font-bold text-white">Enroll in {selectedCourse}</h3>
               <p className="text-xs text-[#909090] leading-relaxed">
                 Enter your details to create an account and unlock lifetime access keys to the training portal.
@@ -524,7 +524,7 @@ export default function CoursesPage() {
                 <input 
                   type="email" 
                   placeholder="name@email.com"
-                  className="w-full bg-[#161616] border border-[#242424] rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-[#7A5E1E]" 
+                  className="w-full bg-[#161616] border border-[#242424] rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-[var(--gm)]" 
                 />
               </div>
               <div>
@@ -532,7 +532,7 @@ export default function CoursesPage() {
                 <input 
                   type="text" 
                   placeholder="e.g. Writer Pen"
-                  className="w-full bg-[#161616] border border-[#242424] rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-[#7A5E1E]" 
+                  className="w-full bg-[#161616] border border-[#242424] rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-[var(--gm)]" 
                 />
               </div>
               <button 
@@ -540,7 +540,7 @@ export default function CoursesPage() {
                   setIsEnrollModalOpen(false);
                   triggerToast("Enrollment successful! Check your email to set account password.");
                 }}
-                className="w-full py-3.5 bg-gradient-to-r from-[#E2C06A] to-[#7A5E1E] text-zinc-950 font-bold rounded-xl text-xs transition-all"
+                className="w-full py-3.5 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] text-zinc-950 font-bold rounded-xl text-xs transition-all"
               >
                 Proceed to Payment
               </button>

@@ -40,7 +40,7 @@ export default function BottomSheet({ isOpen, onClose, title, children }: Bottom
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#242424] pb-3 mb-4">
           {title && (
-            <h3 className="font-serif text-base font-bold text-[#C9A84C]">
+            <h3 className="font-serif text-base font-bold text-[var(--gd)]">
               {title}
             </h3>
           )}

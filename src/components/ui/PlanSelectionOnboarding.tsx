@@ -3,11 +3,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { getBackendApiUrl } from "@/lib/backendUrl";
+import { isFreePlan } from "@/lib/plans";
 import { Check, X, Star, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useWorld } from "@/context/WorldContext";
 
 export default function PlanSelectionOnboarding() {
   const { user, token } = useAuth();
+  const { world } = useWorld();
   const [plans, setPlans] = useState<any[]>([]);
   const [yearlyPlans, setYearlyPlans] = useState<any[]>([]);
   const [monthlyPlans, setMonthlyPlans] = useState<any[]>([]);
@@ -21,9 +24,15 @@ export default function PlanSelectionOnboarding() {
         const response = await axios.get(`${getBackendApiUrl()}/settings`);
         if (response.data?.data?.plans) {
           const allPlans = response.data.data.plans;
-          setPlans(allPlans);
-          setYearlyPlans(allPlans.filter((p: any) => !p.type || p.type === 'yearly'));
-          setMonthlyPlans(allPlans.filter((p: any) => p.type === 'monthly'));
+          const activeWorld = world === "neutral" ? "writer" : world;
+          const filtered = allPlans.filter(
+            (p: any) => (p.world || "writer") === activeWorld
+          );
+          setPlans(filtered);
+          setYearlyPlans(
+            filtered.filter((p: any) => p.type === "yearly" || p.type === "free" || !p.type)
+          );
+          setMonthlyPlans(filtered.filter((p: any) => p.type === "monthly"));
         }
       } catch (err) {
         console.error("Failed to fetch plans", err);
@@ -33,29 +42,25 @@ export default function PlanSelectionOnboarding() {
       }
     };
     fetchPlans();
-  }, []);
+  }, [world]);
 
-  const handleSelectPlan = async (planId: string, planPrice: string) => {
+  const handleSelectPlan = async (plan: any) => {
     if (!user || !token) return;
     setSubmitting(true);
     setError("");
 
     try {
-      const isFree = planPrice === '₦0' || planPrice.toLowerCase() === 'free';
-      
-      if (isFree) {
-        // Free plan logic: update directly
+      if (isFreePlan(plan)) {
         await axios.post(
           `${getBackendApiUrl()}/user/select-plan`,
-          { planId },
+          { planId: plan.id },
           { headers: { Authorization: `Bearer ${token}` } }
         );
         window.location.reload();
       } else {
-        // Paid plan logic: redirect to Stripe Checkout
         const response = await axios.post(
           `${getBackendApiUrl()}/stripe/create-checkout-session`,
-          { planId, userId: user.uid, email: user.email },
+          { planId: plan.id, email: user.email },
           { headers: { Authorization: `Bearer ${token}` } }
         );
         
@@ -68,7 +73,7 @@ export default function PlanSelectionOnboarding() {
       }
     } catch (err: any) {
       console.error("Failed to select plan:", err);
-      setError("Failed to process plan selection. Please try again.");
+      setError(err.response?.data?.error || "Failed to process plan selection. Please try again.");
       setSubmitting(false);
     }
   };
@@ -77,11 +82,11 @@ export default function PlanSelectionOnboarding() {
     <div className="fixed inset-0 z-[9999] bg-[#080808] text-[#F0EBE0] overflow-y-auto">
       <div className="max-w-7xl mx-auto px-6 lg:px-12 py-16 space-y-12">
         <div className="text-center space-y-4 max-w-3xl mx-auto">
-          <span className="text-[10px] font-bold tracking-widest text-[#C9A84C] uppercase">
+          <span className="text-[10px] font-bold tracking-widest text-[var(--gd)] uppercase">
             Welcome to Ink2Wealth
           </span>
           <h1 className="font-serif text-4xl md:text-5xl font-black text-white">
-            Choose Your <span className="text-[#C9A84C]">Plan</span>
+            Choose Your <span className="text-[var(--gd)]">Plan</span>
           </h1>
           <p className="text-[#909090] text-sm md:text-base leading-relaxed">
             Please select a plan to continue. You can always upgrade later.
@@ -91,32 +96,32 @@ export default function PlanSelectionOnboarding() {
 
         {loading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="animate-spin text-[#C9A84C]" size={40} />
+            <Loader2 className="animate-spin text-[var(--gd)]" size={40} />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto items-stretch relative">
             {submitting && (
               <div className="absolute inset-0 bg-[#080808]/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-3xl">
-                <Loader2 className="animate-spin text-[#C9A84C]" size={40} />
+                <Loader2 className="animate-spin text-[var(--gd)]" size={40} />
               </div>
             )}
             
             {yearlyPlans.map((plan) => (
               <div
                 key={plan.id}
-                className={`bg-[#161616] ${plan.badge ? 'border-2 border-[#7A5E1E] shadow-2xl' : 'border border-[#242424]'} rounded-3xl p-8 flex flex-col justify-between relative text-left overflow-hidden`}
+                className={`bg-[#161616] ${plan.badge ? 'border-2 border-[var(--gm)] shadow-2xl' : 'border border-[#242424]'} rounded-3xl p-8 flex flex-col justify-between relative text-left overflow-hidden`}
               >
                 {plan.badge && (
-                  <div className="absolute top-4 right-4 bg-gradient-to-r from-[#E2C06A] to-[#7A5E1E] text-zinc-950 font-black text-[9px] uppercase tracking-wider px-3 py-1 rounded-full flex items-center gap-1">
+                  <div className="absolute top-4 right-4 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] text-zinc-950 font-black text-[9px] uppercase tracking-wider px-3 py-1 rounded-full flex items-center gap-1">
                     <Star className="h-3 w-3 fill-current" /> {plan.badge}
                   </div>
                 )}
                 
                 <div>
-                  <h4 className={`text-[11px] font-bold uppercase tracking-widest ${plan.badge ? 'text-[#C9A84C]' : 'text-[#909090]'} mb-3`}>
+                  <h4 className={`text-[11px] font-bold uppercase tracking-widest ${plan.badge ? 'text-[var(--gd)]' : 'text-[#909090]'} mb-3`}>
                     {plan.name}
                   </h4>
-                  <div className="font-serif text-4xl font-black text-[#C9A84C] mb-1">{plan.price}</div>
+                  <div className="font-serif text-4xl font-black text-[var(--gd)] mb-1">{plan.price}</div>
                   <p className="text-[10px] text-[#606060] mb-2">{plan.period}</p>
                   
                   {plan.discount && (
@@ -124,7 +129,7 @@ export default function PlanSelectionOnboarding() {
                   )}
                   {!plan.discount && <div className="mb-6 h-4"></div>}
 
-                  <div className={`space-y-3.5 border-t ${plan.badge ? 'border-[#7A5E1E]/30' : 'border-[#242424]'} pt-6 mb-8 text-xs text-[#909090]`}>
+                  <div className={`space-y-3.5 border-t ${plan.badge ? 'border-[var(--gm)]/30' : 'border-[#242424]'} pt-6 mb-8 text-xs text-[#909090]`}>
                     {plan.features.map((feature: any, idx: number) => (
                       <div key={idx} className={`flex items-center gap-2 ${!feature.included ? 'text-[#606060]' : ''}`}>
                         {feature.included ? (
@@ -139,10 +144,10 @@ export default function PlanSelectionOnboarding() {
                 </div>
                 
                 <button
-                  onClick={() => handleSelectPlan(plan.id, plan.price)}                  disabled={submitting}
+                  onClick={() => handleSelectPlan(plan)}                  disabled={submitting}
                   className={`w-full text-center py-3 font-bold rounded-xl text-xs block transition-all mt-6 ${
                     plan.badge || plan.price !== '₦0' 
-                      ? 'bg-gradient-to-r from-[#E2C06A] to-[#7A5E1E] text-zinc-950 hover:opacity-90' 
+                      ? 'bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] text-zinc-950 hover:opacity-90' 
                       : 'border border-[#242424] hover:bg-[#1c1c1c] text-[#F0EBE0]'
                   }`}
                 >
@@ -168,26 +173,26 @@ export default function PlanSelectionOnboarding() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto items-stretch relative justify-center">
               {submitting && (
                 <div className="absolute inset-0 bg-[#080808]/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-3xl">
-                  <Loader2 className="animate-spin text-[#C9A84C]" size={40} />
+                  <Loader2 className="animate-spin text-[var(--gd)]" size={40} />
                 </div>
               )}
               
               {monthlyPlans.map((plan) => (
                 <div
                   key={plan.id}
-                  className={`bg-[#161616] ${plan.badge ? 'border-2 border-[#7A5E1E] shadow-2xl' : 'border border-[#242424]'} rounded-3xl p-8 flex flex-col justify-between relative text-left overflow-hidden`}
+                  className={`bg-[#161616] ${plan.badge ? 'border-2 border-[var(--gm)] shadow-2xl' : 'border border-[#242424]'} rounded-3xl p-8 flex flex-col justify-between relative text-left overflow-hidden`}
                 >
                   {plan.badge && (
-                    <div className="absolute top-4 right-4 bg-gradient-to-r from-[#E2C06A] to-[#7A5E1E] text-zinc-950 font-black text-[9px] uppercase tracking-wider px-3 py-1 rounded-full flex items-center gap-1">
+                    <div className="absolute top-4 right-4 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] text-zinc-950 font-black text-[9px] uppercase tracking-wider px-3 py-1 rounded-full flex items-center gap-1">
                       <Star className="h-3 w-3 fill-current" /> {plan.badge}
                     </div>
                   )}
                   
                   <div>
-                    <h4 className={`text-[11px] font-bold uppercase tracking-widest ${plan.badge ? 'text-[#C9A84C]' : 'text-[#909090]'} mb-3`}>
+                    <h4 className={`text-[11px] font-bold uppercase tracking-widest ${plan.badge ? 'text-[var(--gd)]' : 'text-[#909090]'} mb-3`}>
                       {plan.name}
                     </h4>
-                    <div className="font-serif text-4xl font-black text-[#C9A84C] mb-1">{plan.price}</div>
+                    <div className="font-serif text-4xl font-black text-[var(--gd)] mb-1">{plan.price}</div>
                     <p className="text-[10px] text-[#606060] mb-2">{plan.period}</p>
                     
                     {plan.discount && (
@@ -195,7 +200,7 @@ export default function PlanSelectionOnboarding() {
                     )}
                     {!plan.discount && <div className="mb-6 h-4"></div>}
 
-                    <div className={`space-y-3.5 border-t ${plan.badge ? 'border-[#7A5E1E]/30' : 'border-[#242424]'} pt-6 mb-8 text-xs text-[#909090]`}>
+                    <div className={`space-y-3.5 border-t ${plan.badge ? 'border-[var(--gm)]/30' : 'border-[#242424]'} pt-6 mb-8 text-xs text-[#909090]`}>
                       {plan.features.map((feature: any, idx: number) => (
                         <div key={idx} className={`flex items-center gap-2 ${!feature.included ? 'text-[#606060]' : ''}`}>
                           {feature.included ? (
@@ -210,11 +215,11 @@ export default function PlanSelectionOnboarding() {
                   </div>
                   
                   <button
-                    onClick={() => handleSelectPlan(plan.id, plan.price)}
+                    onClick={() => handleSelectPlan(plan)}
                     disabled={submitting}
                     className={`w-full text-center py-3 font-bold rounded-xl text-xs block transition-all mt-6 ${
                       plan.badge || plan.price !== '₦0' 
-                        ? 'bg-gradient-to-r from-[#E2C06A] to-[#7A5E1E] text-zinc-950 hover:opacity-90' 
+                        ? 'bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] text-zinc-950 hover:opacity-90' 
                         : 'border border-[#242424] hover:bg-[#1c1c1c] text-[#F0EBE0]'
                     }`}
                   >

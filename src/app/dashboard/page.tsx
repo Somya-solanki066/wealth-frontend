@@ -24,6 +24,7 @@ import PaywallModal from "@/components/ui/PaywallModal";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import Modal from "@/components/ui/Modal";
 import SmartEditSuite from "@/components/SmartEditSuite";
+import AiToolFeedback from "@/components/AiToolFeedback";
 
 import {
   Home,
@@ -70,9 +71,11 @@ import {
   Activity
 } from "lucide-react";
 import { useContent } from "@/hooks/useContent";
+import { useCatalog } from "@/hooks/useCatalog";
 
 function DashboardContent() {
   const { content } = useContent("dashboard");
+  const { platforms: catalogPlatforms, genres: catalogGenres } = useCatalog();
   const { user, profile, loading, signOutUser, updateUserProfile } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -471,6 +474,15 @@ function DashboardContent() {
   const [isSavingAnalyzerContent, setIsSavingAnalyzerContent] = useState(false);
 
   useEffect(() => {
+    if (catalogPlatforms.length && !catalogPlatforms.some((item) => item.id === analyzerPlatform)) {
+      setAnalyzerPlatform(catalogPlatforms[0].id);
+    }
+    if (catalogGenres.length && !catalogGenres.some((item) => item.id === analyzerGenre)) {
+      setAnalyzerGenre(catalogGenres[0].id);
+    }
+  }, [catalogPlatforms, catalogGenres, analyzerPlatform, analyzerGenre]);
+
+  useEffect(() => {
     if (!analyzerSelectedProjectId) {
       setAnalyzerChapters([]);
       setAnalyzerSelectedChapterId("");
@@ -583,7 +595,8 @@ function DashboardContent() {
         content: analyzerContent,
         platform: analyzerPlatform,
         genre: analyzerGenre,
-        chapterTitle
+        chapterTitle,
+        chapterId: analyzerSelectedChapterId,
       });
       setAnalysisResult(response.data);
       triggerToast("AI analysis complete! 🔥");
@@ -763,7 +776,7 @@ function DashboardContent() {
             <span className="text-[10px] text-[#606060] font-bold uppercase tracking-widest block">
               {content.sidebarWelcome || "Welcome back"}
             </span>
-            <h3 className="font-serif text-base font-black text-[#C9A84C] leading-tight truncate">
+            <h3 className="font-serif text-base font-black text-[var(--gd)] leading-tight truncate">
               {profile?.displayName || "Writer"}
             </h3>
           </div>
@@ -801,7 +814,7 @@ function DashboardContent() {
             <button
               onClick={() => setActiveTab("home")}
               className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
-                activeTab === "home" ? "bg-[#C9A84C]/10 text-[#C9A84C]" : "text-[#909090] hover:text-white"
+                activeTab === "home" ? "bg-[var(--gd)]/10 text-[var(--gd)]" : "text-[#909090] hover:text-white"
               }`}
             >
               <Home className="h-4 w-4" /> Dashboard
@@ -813,7 +826,7 @@ function DashboardContent() {
                 onClick={() => setIsMyProjectsDropdownOpen(!isMyProjectsDropdownOpen)}
                 className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
                   activeTab === "novels-list" || activeTab === "scripts-list" || activeTab === "view-novel" || activeTab === "view-script"
-                    ? "bg-[#C9A84C]/10 text-[#C9A84C]"
+                    ? "bg-[var(--gd)]/10 text-[var(--gd)]"
                     : "text-[#909090] hover:text-white"
                 }`}
               >
@@ -830,7 +843,7 @@ function DashboardContent() {
                     onClick={() => setActiveTab("novels-list")}
                     className={`w-full flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold text-left transition-colors ${
                       activeTab === "novels-list" || activeTab === "view-novel"
-                        ? "text-[#C9A84C] bg-[#C9A84C]/5" 
+                        ? "text-[var(--gd)] bg-[var(--gd)]/5" 
                         : "text-[#909090] hover:text-white hover:bg-zinc-900/40"
                     }`}
                   >
@@ -840,7 +853,7 @@ function DashboardContent() {
                     onClick={() => setActiveTab("scripts-list")}
                     className={`w-full flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold text-left transition-colors ${
                       activeTab === "scripts-list" || activeTab === "view-script"
-                        ? "text-[#C9A84C] bg-[#C9A84C]/5" 
+                        ? "text-[var(--gd)] bg-[var(--gd)]/5" 
                         : "text-[#909090] hover:text-white hover:bg-zinc-900/40"
                     }`}
                   >
@@ -853,7 +866,7 @@ function DashboardContent() {
             <button
               onClick={() => setActiveTab("tools")}
               className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
-                activeTab === "tools" ? "bg-[#C9A84C]/10 text-[#C9A84C]" : "text-[#909090] hover:text-white"
+                activeTab === "tools" ? "bg-[var(--gd)]/10 text-[var(--gd)]" : "text-[#909090] hover:text-white"
               }`}
             >
               <Wrench className="h-4 w-4" /> Quick Tools
@@ -862,7 +875,7 @@ function DashboardContent() {
             <button
               onClick={() => setActiveTab("wealth")}
               className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
-                activeTab === "wealth" ? "bg-[#C9A84C]/10 text-[#C9A84C]" : "text-[#909090] hover:text-white"
+                activeTab === "wealth" ? "bg-[var(--gd)]/10 text-[var(--gd)]" : "text-[#909090] hover:text-white"
               }`}
             >
               <Coins className="h-4 w-4" /> WEALTH Engine
@@ -871,7 +884,7 @@ function DashboardContent() {
             <button
               onClick={() => setActiveTab("student")}
               className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
-                activeTab === "student" ? "bg-[#C9A84C]/10 text-[#C9A84C]" : "text-[#909090] hover:text-white"
+                activeTab === "student" ? "bg-[var(--gd)]/10 text-[var(--gd)]" : "text-[#909090] hover:text-white"
               }`}
             >
               <GraduationCap className="h-4 w-4" /> Student Hub
@@ -880,24 +893,11 @@ function DashboardContent() {
             <button
               onClick={() => setActiveTab("profile")}
               className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
-                activeTab === "profile" ? "bg-[#C9A84C]/10 text-[#C9A84C]" : "text-[#909090] hover:text-white"
+                activeTab === "profile" ? "bg-[var(--gd)]/10 text-[var(--gd)]" : "text-[#909090] hover:text-white"
               }`}
             >
               <Settings className="h-4 w-4" /> Profile & Settings
             </button>
-          </div>
-
-          {/* Upgrade Banner Bottom Sidebar */}
-          <div className="mt-auto p-4 m-4 bg-gradient-to-br from-[#1a1200] to-[#0f0f0f] border border-[#7A5E1E] rounded-xl text-center space-y-3 shrink-0 shadow-lg">
-            <span className="text-[9px] font-bold text-[#C9A84C] tracking-wider uppercase block">
-              Premium Key
-            </span>
-            <p className="text-[10px] text-[#909090] leading-snug">
-              Unlock unlimited compliance scans and screenplay editors.
-            </p>
-            <Button size="sm" className="w-full text-[9px] py-1.5" onClick={() => window.location.href = '/pricing'}>
-              Upgrade Account
-            </Button>
           </div>
 
         </aside>
@@ -932,7 +932,7 @@ function DashboardContent() {
                       value="novel"
                       checked={newProjectType === "novel"}
                       onChange={() => setNewProjectType("novel")}
-                      className="accent-[#C9A84C] h-4 w-4"
+                      className="accent-[var(--gd)] h-4 w-4"
                     />
                     Novel
                   </label>
@@ -943,7 +943,7 @@ function DashboardContent() {
                       value="script"
                       checked={newProjectType === "script"}
                       onChange={() => setNewProjectType("script")}
-                      className="accent-[#C9A84C] h-4 w-4"
+                      className="accent-[var(--gd)] h-4 w-4"
                     />
                     Script / Screenplay
                   </label>
@@ -1038,37 +1038,18 @@ function DashboardContent() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-[#242424] pt-4">
                         <Select
                           label="Target Platform"
-                          options={[
-                            { label: "PocketFM", value: "PocketFM" },
-                            { label: "Dreame", value: "Dreame" },
-                            { label: "GoodNovel", value: "GoodNovel" },
-                            { label: "WebNovel", value: "WebNovel" },
-                            { label: "MegaNovel", value: "MegaNovel" },
-                            { label: "AlphaNovel", value: "AlphaNovel" },
-                            { label: "Letterlux", value: "Letterlux" },
-                            { label: "Stary", value: "Stary" },
-                            { label: "NovelSnack", value: "NovelSnack" }
-                          ]}
+                          options={catalogPlatforms.map((item) => ({ label: item.name, value: item.id }))}
                           value={analyzerPlatform}
                           onChange={(e) => setAnalyzerPlatform(e.target.value)}
-                          className="bg-zinc-950 text-[#C9A84C]"
+                          className="bg-zinc-950 text-[var(--gd)]"
                         />
 
                         <Select
                           label="Genre Focus"
-                          options={[
-                            { label: "Romance", value: "Romance" },
-                            { label: "Werewolf", value: "Werewolf" },
-                            { label: "Billionaire", value: "Billionaire" },
-                            { label: "Fantasy", value: "Fantasy" },
-                            { label: "Urban", value: "Urban" },
-                            { label: "Thriller", value: "Thriller" },
-                            { label: "Sci-Fi", value: "Sci-Fi" },
-                            { label: "Adventure", value: "Adventure" }
-                          ]}
+                          options={catalogGenres.map((item) => ({ label: item.name, value: item.id }))}
                           value={analyzerGenre}
                           onChange={(e) => setAnalyzerGenre(e.target.value)}
-                          className="bg-zinc-950 text-[#C9A84C]"
+                          className="bg-zinc-950 text-[var(--gd)]"
                         />
                       </div>
 
@@ -1089,7 +1070,7 @@ function DashboardContent() {
                               onClick={handleSaveAnalyzerContent}
                               isLoading={isSavingAnalyzerContent}
                             >
-                              <Save className="h-4 w-4 mr-1.5 inline text-[#C9A84C]" /> Save Chapter
+                              <Save className="h-4 w-4 mr-1.5 inline text-[var(--gd)]" /> Save Chapter
                             </Button>
                             <Button 
                               onClick={runChapterAnalysis}
@@ -1105,6 +1086,20 @@ function DashboardContent() {
                         </div>
                       )}
                     </Card>
+
+                    <AiToolFeedback
+                      tool="chapter-analyzer"
+                      title="Analyzer Feedback"
+                      description="Tell us if the Chapter Analyzer is working correctly and share any problems you are facing."
+                      context={{
+                        platform: analyzerPlatform,
+                        genre: analyzerGenre,
+                        projectId: analyzerSelectedProjectId,
+                        chapterId: analyzerSelectedChapterId,
+                        chapterTitle:
+                          analyzerChapters.find((c) => c.id === analyzerSelectedChapterId)?.title || "",
+                      }}
+                    />
                   </div>
 
                   {/* Right Column: AI Analysis Reports */}
@@ -1147,7 +1142,7 @@ function DashboardContent() {
 
                         {/* Editor Note Box */}
                         {analysisResult.editor_note && (
-                          <div className="bg-[#161616] border border-[#242424] p-4 rounded-xl relative overflow-hidden font-serif italic text-xs text-[#f0ebe0] pl-6 border-l-2 border-l-[#C9A84C]">
+                          <div className="bg-[#161616] border border-[#242424] p-4 rounded-xl relative overflow-hidden font-serif italic text-xs text-[#f0ebe0] pl-6 border-l-2 border-l-[var(--gd)]">
                             "{analysisResult.editor_note}"
                           </div>
                         )}
@@ -1167,7 +1162,7 @@ function DashboardContent() {
                                     className="h-full rounded-full transition-all duration-500" 
                                     style={{ 
                                       width: `${val * 10}%`,
-                                      backgroundColor: val >= 8 ? '#52C07A' : val >= 5 ? '#C9A84C' : '#E11D48' 
+                                      backgroundColor: val >= 8 ? '#52C07A' : val >= 5 ? 'var(--gd)' : '#E11D48' 
                                     }} 
                                   />
                                 </div>
@@ -1212,7 +1207,7 @@ function DashboardContent() {
                         {/* Line Edits Suggestions */}
                         {analysisResult.line_edits?.length > 0 && (
                           <div className="space-y-3 border-t border-[#242424] pt-4">
-                            <h4 className="text-[10px] font-bold text-[#C9A84C] uppercase tracking-wider">✎ Line-Level Editing</h4>
+                            <h4 className="text-[10px] font-bold text-[var(--gd)] uppercase tracking-wider">✎ Line-Level Editing</h4>
                             <div className="space-y-3">
                               {analysisResult.line_edits.map((edit: any, idx: number) => (
                                 <div key={idx} className="bg-zinc-950/60 border border-[#242424] rounded-xl p-3.5 space-y-2.5 text-xs">
@@ -1238,8 +1233,8 @@ function DashboardContent() {
 
                         {/* Trending Tropes Fit */}
                         {analysisResult.trending_tropes_fit && (
-                          <div className="bg-[#C9A84C]/5 border border-[#C9A84C]/25 p-4 rounded-xl space-y-1.5 text-xs">
-                            <span className="text-[9px] text-[#C9A84C] font-bold tracking-widest uppercase block">Trending Tropes Fit</span>
+                          <div className="bg-[var(--gd)]/5 border border-[var(--gd)]/25 p-4 rounded-xl space-y-1.5 text-xs">
+                            <span className="text-[9px] text-[var(--gd)] font-bold tracking-widest uppercase block">Trending Tropes Fit</span>
                             <p className="text-[#F0EBE0] leading-relaxed font-serif italic">"{analysisResult.trending_tropes_fit}"</p>
                           </div>
                         )}
@@ -1271,7 +1266,7 @@ function DashboardContent() {
                         onClick={() => setActiveTab("novels-list")}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${
                           (activeTab as string) === "novels-list"
-                            ? "bg-[#C9A84C] text-[#080808]"
+                            ? "bg-[var(--gd)] text-[#080808]"
                             : "text-[#909090] hover:text-white"
                         }`}
                       >
@@ -1308,10 +1303,10 @@ function DashboardContent() {
                       return (
                         <div
                           key={p.id}
-                          className="relative group bg-[#161616] border border-[#242424] hover:border-[#C9A84C]/50 rounded-2xl p-6 transition-all duration-300 hover:shadow-2xl hover:shadow-[#C9A84C]/5 overflow-hidden flex flex-col justify-between min-h-[160px]"
+                          className="relative group bg-[#161616] border border-[#242424] hover:border-[var(--gd)]/50 rounded-2xl p-6 transition-all duration-300 hover:shadow-2xl hover:shadow-[var(--gd)]/5 overflow-hidden flex flex-col justify-between min-h-[160px]"
                         >
                           <div className="space-y-2">
-                            <h3 className="font-serif text-lg font-black text-white group-hover:text-[#C9A84C] transition-colors line-clamp-1">
+                            <h3 className="font-serif text-lg font-black text-white group-hover:text-[var(--gd)] transition-colors line-clamp-1">
                               {p.name}
                             </h3>
                             <div className="flex items-center gap-3 text-[10px] text-[#606060] font-semibold tracking-wider uppercase">
@@ -1325,13 +1320,13 @@ function DashboardContent() {
                           <div className="absolute inset-0 bg-[#080808]/90 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
                             <button
                               onClick={() => handleViewProjectDetails(p)}
-                              className="flex items-center gap-1.5 bg-[#161616] border border-[#242424] hover:border-[#C9A84C]/50 px-4 py-2 rounded-xl text-white text-xs font-bold transition-all duration-200"
+                              className="flex items-center gap-1.5 bg-[#161616] border border-[#242424] hover:border-[var(--gd)]/50 px-4 py-2 rounded-xl text-white text-xs font-bold transition-all duration-200"
                             >
-                              <Eye className="h-4 w-4 text-[#C9A84C]" /> Open
+                              <Eye className="h-4 w-4 text-[var(--gd)]" /> Open
                             </button>
                             <button
                               onClick={() => handleSelectProject(p)}
-                              className="flex items-center gap-1.5 bg-[#C9A84C] hover:bg-[#E2C06A] px-4 py-2 rounded-xl text-[#080808] text-xs font-bold transition-all duration-200"
+                              className="flex items-center gap-1.5 bg-[var(--gd)] hover:bg-[var(--gl)] px-4 py-2 rounded-xl text-[#080808] text-xs font-bold transition-all duration-200"
                             >
                               <FileEdit className="h-4 w-4" /> Edit
                             </button>
@@ -1372,7 +1367,7 @@ function DashboardContent() {
                         onClick={() => setActiveTab("novels-list")}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${
                           (activeTab as string) === "novels-list"
-                            ? "bg-[#C9A84C] text-[#080808]"
+                            ? "bg-[var(--gd)] text-[#080808]"
                             : "text-[#909090] hover:text-white"
                         }`}
                       >
@@ -1514,7 +1509,7 @@ function DashboardContent() {
                               onClick={() => setActivePreviewChapter(chap)}
                               className={`w-full flex justify-between items-center p-2.5 rounded-lg text-xs transition-colors ${
                                 activePreviewChapter?.id === chap.id
-                                  ? "bg-[#C9A84C]/10 border border-[#C9A84C]/20 text-[#C9A84C] font-semibold"
+                                  ? "bg-[var(--gd)]/10 border border-[var(--gd)]/20 text-[var(--gd)] font-semibold"
                                   : "bg-zinc-950 border border-zinc-900 text-[#909090] hover:text-white"
                               }`}
                             >
@@ -1659,7 +1654,7 @@ function DashboardContent() {
             {activeTab === "home" && (
               <div className="space-y-8 animate-fadeIn">
                 {/* Welcome & Writing Streak Banner */}
-                <div className="bg-gradient-to-br from-[#1a1200] to-[#0f0f0f] border border-[#7A5E1E] rounded-2xl p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-xl">
+                <div className="bg-gradient-to-br from-[#1a1200] to-[#0f0f0f] border border-[var(--gm)] rounded-2xl p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-xl">
                   <div className="space-y-2">
                     <h2 className="font-serif text-2xl md:text-3xl font-black text-white">
                       Welcome back, {profile?.displayName || "Writer"}! 👋
@@ -1693,23 +1688,23 @@ function DashboardContent() {
                 {/* Stats overview row */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   <Card hoverable={false} className="p-5 text-center">
-                    <div className="font-serif text-3xl font-black text-[#C9A84C] mb-1">
+                    <div className="font-serif text-3xl font-black text-[var(--gd)] mb-1">
                       {totalWordsWritten.toLocaleString()}
                     </div>
                     <div className="text-[10px] text-[#606060] font-bold tracking-wider uppercase">Total Words</div>
                   </Card>
                   <Card hoverable={false} className="p-5 text-center">
-                    <div className="font-serif text-3xl font-black text-[#C9A84C] mb-1">
+                    <div className="font-serif text-3xl font-black text-[var(--gd)] mb-1">
                       {projects.length}
                     </div>
                     <div className="text-[10px] text-[#606060] font-bold tracking-wider uppercase">My Projects</div>
                   </Card>
                   <Card hoverable={false} className="p-5 text-center">
-                    <div className="font-serif text-3xl font-black text-[#C9A84C] mb-1">94%</div>
+                    <div className="font-serif text-3xl font-black text-[var(--gd)] mb-1">94%</div>
                     <div className="text-[10px] text-[#606060] font-bold tracking-wider uppercase">AI Quality Score</div>
                   </Card>
                   <Card hoverable={false} className="p-5 text-center">
-                    <div className="font-serif text-3xl font-black text-[#C9A84C] mb-1">₦35,000</div>
+                    <div className="font-serif text-3xl font-black text-[var(--gd)] mb-1">₦35,000</div>
                     <div className="text-[10px] text-[#606060] font-bold tracking-wider uppercase">Project Earnings</div>
                   </Card>
                 </div>
@@ -1781,9 +1776,9 @@ function DashboardContent() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div
                       onClick={() => setActiveTab("tools")}
-                      className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-xl p-5 cursor-pointer flex gap-4 items-start transition-all"
+                      className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-xl p-5 cursor-pointer flex gap-4 items-start transition-all"
                     >
-                      <div className="w-10 h-10 rounded-lg bg-[#C9A84C]/10 border border-[#7A5E1E] flex items-center justify-center text-[#C9A84C] shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-[var(--gd)]/10 border border-[var(--gm)] flex items-center justify-center text-[var(--gd)] shrink-0">
                         <Sparkles className="h-5 w-5" />
                       </div>
                       <div>
@@ -1798,9 +1793,9 @@ function DashboardContent() {
 
                     <div
                       onClick={() => setActiveTab("tools")}
-                      className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-xl p-5 cursor-pointer flex gap-4 items-start transition-all"
+                      className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-xl p-5 cursor-pointer flex gap-4 items-start transition-all"
                     >
-                      <div className="w-10 h-10 rounded-lg bg-[#C9A84C]/10 border border-[#7A5E1E] flex items-center justify-center text-[#C9A84C] shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-[var(--gd)]/10 border border-[var(--gm)] flex items-center justify-center text-[var(--gd)] shrink-0">
                         <PenTool className="h-5 w-5" />
                       </div>
                       <div>
@@ -1828,7 +1823,7 @@ function DashboardContent() {
                         <h4 className="text-[10px] font-bold text-[#606060] uppercase tracking-wider">Chapters</h4>
                         <button
                           onClick={handleAddChapter}
-                          className="text-[#C9A84C] hover:text-[#E2C06A] font-bold text-xs"
+                          className="text-[var(--gd)] hover:text-[var(--gl)] font-bold text-xs"
                         >
                           + Add
                         </button>
@@ -1842,7 +1837,7 @@ function DashboardContent() {
                             onClick={() => handleSelectChapter(c)}
                             className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-colors flex justify-between items-center ${
                               activeChapter?.id === c.id
-                                ? "bg-[#C9A84C]/12 text-[#C9A84C]"
+                                ? "bg-[var(--gd)]/12 text-[var(--gd)]"
                                 : "hover:bg-[#161616] text-[#909090]"
                             }`}
                           >
@@ -1898,7 +1893,7 @@ function DashboardContent() {
                         ref={editorRef}
                         contentEditable
                         onInput={handleEditorInput}
-                        className="w-full min-h-[380px] bg-[#161616] border border-[#242424] rounded-2xl p-6 text-xs text-[#F0EBE0] leading-relaxed outline-none focus:border-[#7A5E1E] overflow-y-auto whitespace-pre-wrap select-text"
+                        className="w-full min-h-[380px] bg-[#161616] border border-[#242424] rounded-2xl p-6 text-xs text-[#F0EBE0] leading-relaxed outline-none focus:border-[var(--gm)] overflow-y-auto whitespace-pre-wrap select-text"
                         // @ts-ignore
                         placeholder="Start typing your chapter story here..."
                       />
@@ -1930,7 +1925,7 @@ function DashboardContent() {
                         <h4 className="text-[10px] font-bold text-[#606060] uppercase tracking-wider">Scenes</h4>
                         <button
                           onClick={handleAddChapter}
-                          className="text-[#C9A84C] hover:text-[#E2C06A] font-bold text-xs"
+                          className="text-[var(--gd)] hover:text-[var(--gl)] font-bold text-xs"
                         >
                           + Add
                         </button>
@@ -1944,7 +1939,7 @@ function DashboardContent() {
                             onClick={() => handleSelectChapter(c)}
                             className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-colors flex justify-between items-center ${
                               activeChapter?.id === c.id
-                                ? "bg-[#C9A84C]/12 text-[#C9A84C]"
+                                ? "bg-[var(--gd)]/12 text-[var(--gd)]"
                                 : "hover:bg-[#161616] text-[#909090]"
                             }`}
                           >
@@ -1984,7 +1979,7 @@ function DashboardContent() {
                             onClick={() => setScriptElement(el.key)}
                             className={`px-3 py-1 rounded text-[10px] font-bold transition-all ${
                               scriptElement === el.key
-                                ? "bg-[#C9A84C] text-zinc-950"
+                                ? "bg-[var(--gd)] text-zinc-950"
                                 : "bg-zinc-950 text-[#909090] hover:text-white"
                             }`}
                           >
@@ -1998,7 +1993,7 @@ function DashboardContent() {
                         ref={editorRef}
                         contentEditable
                         onInput={handleEditorInput}
-                        className="w-full min-h-[380px] bg-[#161616] border border-[#242424] rounded-2xl p-10 outline-none focus:border-[#7A5E1E] overflow-y-auto whitespace-pre-wrap font-mono select-text text-sm leading-relaxed text-[#F0EBE0] tracking-wide"
+                        className="w-full min-h-[380px] bg-[#161616] border border-[#242424] rounded-2xl p-10 outline-none focus:border-[var(--gm)] overflow-y-auto whitespace-pre-wrap font-mono select-text text-sm leading-relaxed text-[#F0EBE0] tracking-wide"
                         // @ts-ignore
                         placeholder="Write screenplay script..."
                         style={{ fontFamily: "'Courier New', Courier, monospace" }}
@@ -2032,7 +2027,7 @@ function DashboardContent() {
                   {/* Chapter Analyzer Widget */}
                   <Card className="space-y-4">
                     <div className="flex justify-between items-center border-b border-[#242424] pb-2">
-                      <h3 className="font-serif text-sm font-bold text-[#C9A84C] flex items-center gap-1.5">
+                      <h3 className="font-serif text-sm font-bold text-[var(--gd)] flex items-center gap-1.5">
                         <Sparkles className="h-4 w-4" /> AI Chapter Analyzer
                       </h3>
                       <Badge variant="gold">OpenAI Engine</Badge>
@@ -2047,7 +2042,7 @@ function DashboardContent() {
 
                   {/* Smart Edit Prose Widget */}
                   <Card className="space-y-4">
-                    <h3 className="font-serif text-sm font-bold text-[#C9A84C] flex items-center gap-1.5">
+                    <h3 className="font-serif text-sm font-bold text-[var(--gd)] flex items-center gap-1.5">
                       <PenTool className="h-4 w-4" /> AI Smart Edit Suite
                     </h3>
                     
@@ -2084,7 +2079,7 @@ function DashboardContent() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                   {/* Planner */}
                   <Card className="space-y-4">
-                    <h3 className="font-serif text-sm font-bold text-[#C9A84C] flex items-center gap-1.5">
+                    <h3 className="font-serif text-sm font-bold text-[var(--gd)] flex items-center gap-1.5">
                       <Calendar className="h-4 w-4" /> AI Study Schedule Planner
                     </h3>
                     <Input
@@ -2107,7 +2102,7 @@ function DashboardContent() {
                         <span className="text-[10px] text-[#606060] font-bold uppercase tracking-wider block mb-2 border-b border-[#242424] pb-1">Day-by-Day Study Schedule</span>
                         {studySchedule.map((item, idx) => (
                           <p key={idx} className="text-[#909090]">
-                            <span className="font-bold text-[#C9A84C]">{item.day}:</span> {item.task}
+                            <span className="font-bold text-[var(--gd)]">{item.day}:</span> {item.task}
                           </p>
                         ))}
                       </div>
@@ -2116,7 +2111,7 @@ function DashboardContent() {
 
                   {/* Recall Flashcards */}
                   <Card className="space-y-4">
-                    <h3 className="font-serif text-sm font-bold text-[#C9A84C] flex items-center gap-1.5">
+                    <h3 className="font-serif text-sm font-bold text-[var(--gd)] flex items-center gap-1.5">
                       <BrainCircuit className="h-4 w-4" /> Active Recall Flashcard Generator
                     </h3>
                     <Textarea
@@ -2144,7 +2139,7 @@ function DashboardContent() {
                             ) : (
                               <button
                                 onClick={() => setRevealedCardIdx(idx)}
-                                className="text-[9px] font-bold text-[#C9A84C] underline block"
+                                className="text-[9px] font-bold text-[var(--gd)] underline block"
                               >
                                 Show Answer
                               </button>
@@ -2158,7 +2153,7 @@ function DashboardContent() {
                   {/* Citations generator */}
                   <Card className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <h3 className="font-serif text-sm font-bold text-[#C9A84C] flex items-center gap-1.5">
+                      <h3 className="font-serif text-sm font-bold text-[var(--gd)] flex items-center gap-1.5">
                         <Bookmark className="h-4 w-4" /> AI Citation Generator
                       </h3>
                       <Select
@@ -2169,7 +2164,7 @@ function DashboardContent() {
                         ]}
                         value={citationFormat}
                         onChange={(e) => setCitationFormat(e.target.value)}
-                        className="!w-24 bg-zinc-950 text-[#C9A84C] border-[#242424]"
+                        className="!w-24 bg-zinc-950 text-[var(--gd)] border-[#242424]"
                       />
                     </div>
                     <Input
@@ -2197,7 +2192,7 @@ function DashboardContent() {
 
                   {/* Essay & project writer */}
                   <Card className="space-y-4">
-                    <h3 className="font-serif text-sm font-bold text-[#C9A84C] flex items-center gap-1.5">
+                    <h3 className="font-serif text-sm font-bold text-[var(--gd)] flex items-center gap-1.5">
                       <PenTool className="h-4 w-4" /> AI Essay & Project Writer
                     </h3>
                     <Textarea
@@ -2237,7 +2232,7 @@ function DashboardContent() {
                     <button
                       onClick={() => setWealthSubTab("jobs")}
                       className={`px-3 py-1.5 text-[10px] font-bold rounded-lg ${
-                        wealthSubTab === "jobs" ? "bg-[#C9A84C] text-zinc-950" : "text-[#909090]"
+                        wealthSubTab === "jobs" ? "bg-[var(--gd)] text-zinc-950" : "text-[#909090]"
                       }`}
                     >
                       Jobs & Calls
@@ -2245,7 +2240,7 @@ function DashboardContent() {
                     <button
                       onClick={() => setWealthSubTab("branding")}
                       className={`px-3 py-1.5 text-[10px] font-bold rounded-lg ${
-                        wealthSubTab === "branding" ? "bg-[#C9A84C] text-zinc-950" : "text-[#909090]"
+                        wealthSubTab === "branding" ? "bg-[var(--gd)] text-zinc-950" : "text-[#909090]"
                       }`}
                     >
                       AI Branding
@@ -2454,7 +2449,7 @@ function DashboardContent() {
                     </div>
                     <div className="flex items-center gap-4 pt-2">
                       <div className="w-12 h-12 bg-[#161616] border border-[#242424] rounded-xl flex items-center justify-center">
-                        <PenTool className="h-5 w-5 text-[#C9A84C]" />
+                        <PenTool className="h-5 w-5 text-[var(--gd)]" />
                       </div>
                       <div>
                         <span className="text-xs text-[#909090] font-bold uppercase tracking-wider block">Total Words Written</span>
@@ -2469,7 +2464,7 @@ function DashboardContent() {
                     <div className="space-y-4">
                       <div>
                         <span className="text-[10px] text-[#606060] font-bold uppercase tracking-wider block mb-1">Current Plan</span>
-                        <span className="inline-block bg-gradient-to-r from-[#E2C06A] to-[#7A5E1E] text-zinc-950 font-black text-xs uppercase tracking-wider px-3 py-1 rounded-full">
+                        <span className="inline-block bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] text-zinc-950 font-black text-xs uppercase tracking-wider px-3 py-1 rounded-full">
                           {profile?.subscriptionPlan === 'free' ? 'FREE PLAN' : profile?.subscriptionPlan?.replace('plan_', '').toUpperCase() || 'NONE'}
                         </span>
                       </div>

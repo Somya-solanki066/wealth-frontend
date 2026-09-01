@@ -49,7 +49,7 @@ export default function WealthPage() {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-[#161616] border border-[#7A5E1E] text-[#C9A84C] font-semibold text-xs px-6 py-3 rounded-xl shadow-2xl transition-all duration-300">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-[#161616] border border-[var(--gm)] text-[var(--gd)] font-semibold text-xs px-6 py-3 rounded-xl shadow-2xl transition-all duration-300">
           {toastMessage}
         </div>
       )}
@@ -60,11 +60,11 @@ export default function WealthPage() {
           
           {/* Page Hero */}
           <div className="text-center space-y-4 max-w-3xl mx-auto">
-            <span className="text-[10px] font-bold tracking-widest text-[#C9A84C] uppercase">
+            <span className="text-[10px] font-bold tracking-widest text-[var(--gd)] uppercase">
               Turn Writing Into Income
             </span>
             <h1 className="font-serif text-4xl md:text-5xl font-black text-white">
-              The <span className="text-[#C9A84C]">WEALTH Engine</span>
+              The <span className="text-[var(--gd)]">WEALTH Engine</span>
             </h1>
             <p className="text-[#909090] text-sm md:text-base leading-relaxed">
               Jobs. Industry connections. Author branding. Book promotion. Publishing. Everything a writer needs to earn from their craft.
@@ -79,7 +79,7 @@ export default function WealthPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 min-w-[100px] py-3 text-center text-xs font-bold rounded-xl transition-all duration-200 ${
                   activeTab === tab.id
-                    ? "bg-gradient-to-r from-[#E2C06A] to-[#7A5E1E] text-zinc-950 shadow"
+                    ? "bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] text-zinc-950 shadow"
                     : "text-[#606060] hover:text-[#F0EBE0]"
                 }`}
               >
@@ -96,9 +96,9 @@ export default function WealthPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fadeIn">
                 <div
                   onClick={() => triggerToast("Opening Novel Writing jobs...")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <BookOpen className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <BookOpen className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">Novel Writing Gigs</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">
@@ -109,9 +109,9 @@ export default function WealthPage() {
 
                 <div
                   onClick={() => triggerToast("Opening Screenwriting jobs...")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <Clapperboard className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <Clapperboard className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">Screenwriting Jobs</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">
@@ -122,9 +122,9 @@ export default function WealthPage() {
 
                 <div
                   onClick={() => triggerToast("Opening Ghostwriting jobs...")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <PenTool className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <PenTool className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">Ghostwriting Contracts</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">
@@ -135,9 +135,9 @@ export default function WealthPage() {
 
                 <div
                   onClick={() => triggerToast("Opening Editing jobs...")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <Edit className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <Edit className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">Proofreading & Editing</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">
@@ -153,9 +153,9 @@ export default function WealthPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fadeIn">
                 <div
                   onClick={() => triggerToast("Opening Industry Open Calls...")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <Award className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <Award className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">Open Calls</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">
@@ -166,9 +166,9 @@ export default function WealthPage() {
 
                 <div
                   onClick={() => triggerToast("Opening Post a Listing form...")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <ListPlus className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <ListPlus className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">Post a Listing</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">
@@ -184,9 +184,9 @@ export default function WealthPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fadeIn">
                 <div
                   onClick={() => triggerToast("Book Blurb Writer is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <BookOpen className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <BookOpen className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">Book Blurb Writer</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">
@@ -197,9 +197,9 @@ export default function WealthPage() {
 
                 <div
                   onClick={() => triggerToast("Author Bio Generator is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <PenTool className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <PenTool className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">Author Bio Generator</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">
@@ -210,9 +210,9 @@ export default function WealthPage() {
 
                 <div
                   onClick={() => triggerToast("Press Release Writer is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <FileText className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <FileText className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">Press Release Writer</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">
@@ -223,9 +223,9 @@ export default function WealthPage() {
 
                 <div
                   onClick={() => triggerToast("Pitch Deck Builder is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <TrendingUp className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <TrendingUp className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">Pitch Deck Builder</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">
@@ -241,9 +241,9 @@ export default function WealthPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fadeIn">
                 <div
                   onClick={() => triggerToast("TikTok Strategy is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <Volume2 className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <Volume2 className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">TikTok #BookTok Strategy</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">
@@ -254,9 +254,9 @@ export default function WealthPage() {
 
                 <div
                   onClick={() => triggerToast("Goodreads Strategy is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <BookOpen className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <BookOpen className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">Goodreads Promotion</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">
@@ -267,9 +267,9 @@ export default function WealthPage() {
 
                 <div
                   onClick={() => triggerToast("Reddit Strategy is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <Share2 className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <Share2 className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">Reddit Book Promotion</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">
@@ -280,9 +280,9 @@ export default function WealthPage() {
 
                 <div
                   onClick={() => triggerToast("Medium Strategy is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <Feather className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <Feather className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">Medium Traffic Loop</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">
@@ -298,9 +298,9 @@ export default function WealthPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fadeIn">
                 <div
                   onClick={() => triggerToast("Amazon KDP integration is coming soon!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <Globe className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <Globe className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">Amazon KDP</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">
@@ -311,9 +311,9 @@ export default function WealthPage() {
 
                 <div
                   onClick={() => triggerToast("Draft2Digital integration is coming soon!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <Globe className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <Globe className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">Draft2Digital</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">
@@ -324,9 +324,9 @@ export default function WealthPage() {
 
                 <div
                   onClick={() => triggerToast("Query Letter Builder is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <FileText className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <FileText className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">Query Letter Builder</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">
@@ -337,9 +337,9 @@ export default function WealthPage() {
 
                 <div
                   onClick={() => triggerToast("Social Media Kit is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
+                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
                 >
-                  <Share2 className="h-7 w-7 text-[#C9A84C] shrink-0" />
+                  <Share2 className="h-7 w-7 text-[var(--gd)] shrink-0" />
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">Social Media Kit</h4>
                     <p className="text-xs text-[#909090] leading-relaxed">

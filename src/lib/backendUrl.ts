@@ -11,7 +11,14 @@ export function getBackendOrigin(): string {
   return stripTrailingSlash(raw).replace(/\/api$/i, "");
 }
 
-/** API base including `/api`, e.g. https://wealth-backend-seven.vercel.app/api */
+/**
+ * API base including `/api`.
+ * Browser: same-origin `/api` (proxied by Next.js rewrites — avoids CORS network errors).
+ * Server: direct backend URL for SSR / server-side fetches.
+ */
 export function getBackendApiUrl(): string {
+  if (typeof window !== "undefined") {
+    return "/api";
+  }
   return `${getBackendOrigin()}/api`;
 }

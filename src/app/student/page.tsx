@@ -24,42 +24,42 @@ export default function StudentPage() {
 
   const studentTools = [
     {
-      icon: <Calendar className="h-9 w-9 text-[#C9A84C]" />,
+      icon: <Calendar className="h-9 w-9 text-[var(--gd)]" />,
       title: "Study Planner",
       desc: "AI generates a personalized day-by-day study schedule based on your subject and exam date.",
       badge: "FREE",
       premium: false,
     },
     {
-      icon: <Sparkles className="h-9 w-9 text-[#C9A84C]" />,
+      icon: <Sparkles className="h-9 w-9 text-[var(--gd)]" />,
       title: "Active Recall Flashcards",
       desc: "Paste your notes and AI generates smart question-and-answer flashcards for active recall.",
       badge: "FREE",
       premium: false,
     },
     {
-      icon: <Bookmark className="h-9 w-9 text-[#C9A84C]" />,
+      icon: <Bookmark className="h-9 w-9 text-[var(--gd)]" />,
       title: "Citation Generator",
       desc: "APA, MLA, Harvard, Chicago, Vancouver. Books, articles, websites, YouTube videos — all covered.",
       badge: "FREE",
       premium: false,
     },
     {
-      icon: <Video className="h-9 w-9 text-[#C9A84C]" />,
+      icon: <Video className="h-9 w-9 text-[var(--gd)]" />,
       title: "Course Video Finder",
       desc: "Enter any topic and AI finds the best YouTube tutorials to help you master it fast.",
       badge: "FREE",
       premium: false,
     },
     {
-      icon: <PenTool className="h-9 w-9 text-[#C9A84C]" />,
+      icon: <PenTool className="h-9 w-9 text-[var(--gd)]" />,
       title: "Essay & Project Writer",
       desc: "AI writes essays, research papers, dissertations, lab reports, and case studies to your word count.",
       badge: "PREMIUM",
       premium: true,
     },
     {
-      icon: <BrainCircuit className="h-9 w-9 text-[#C9A84C]" />,
+      icon: <BrainCircuit className="h-9 w-9 text-[var(--gd)]" />,
       title: "Exam Techniques Hub",
       desc: "Active Recall, Spaced Repetition, Pomodoro, Mind Mapping, Memory Palace, Feynman Technique.",
       badge: "FREE",
@@ -73,7 +73,7 @@ export default function StudentPage() {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-[#161616] border border-[#7A5E1E] text-[#C9A84C] font-semibold text-xs px-6 py-3 rounded-xl shadow-2xl transition-all duration-300">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-[#161616] border border-[var(--gm)] text-[var(--gd)] font-semibold text-xs px-6 py-3 rounded-xl shadow-2xl transition-all duration-300">
           {toastMessage}
         </div>
       )}
@@ -84,11 +84,11 @@ export default function StudentPage() {
           
           {/* Page Hero */}
           <div className="text-center space-y-4 max-w-3xl mx-auto">
-            <span className="text-[10px] font-bold tracking-widest text-[#C9A84C] uppercase">
+            <span className="text-[10px] font-bold tracking-widest text-[var(--gd)] uppercase">
               For Students
             </span>
             <h1 className="font-serif text-4xl md:text-5xl font-black text-white">
-              Study Smarter. <span className="text-[#C9A84C]">Write Better.</span>
+              Study Smarter. <span className="text-[var(--gd)]">Write Better.</span>
             </h1>
             <p className="text-[#909090] text-sm md:text-base leading-relaxed">
               Six powerful tools to help students plan, learn, cite, and write — all powered by AI.
@@ -105,7 +105,7 @@ export default function StudentPage() {
                     `${tool.title} is fully integrated inside the Student Dashboard! Log in to use it.`
                   )
                 }
-                className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-2xl p-6 text-center space-y-4 cursor-pointer transition-all duration-200 hover:-translate-y-1 shadow-lg"
+                className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 text-center space-y-4 cursor-pointer transition-all duration-200 hover:-translate-y-1 shadow-lg"
               >
                 <div className="mx-auto w-max">{tool.icon}</div>
                 <h3 className="text-sm font-bold text-white">{tool.title}</h3>
@@ -115,7 +115,7 @@ export default function StudentPage() {
                 <span
                   className={`inline-block text-[9px] font-bold px-3 py-1 rounded ${
                     tool.premium
-                      ? "bg-[#C9A84C]/10 text-[#C9A84C]"
+                      ? "bg-[var(--gd)]/10 text-[var(--gd)]"
                       : "bg-[#52C07A]/10 text-[#52C07A]"
                   }`}
                 >

@@ -36,7 +36,7 @@ export default function Select({
       <div className="relative">
         <select
           id={id}
-          className={`block w-full pl-3.5 pr-10 py-2.5 bg-[#161616] border rounded-lg text-[#F0EBE0] appearance-none focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/10 focus:border-[#7A5E1E] transition-all duration-200 text-xs cursor-pointer ${
+          className={`block w-full pl-3.5 pr-10 py-2.5 bg-[#161616] border rounded-lg text-[#F0EBE0] appearance-none focus:outline-none focus:ring-2 focus:ring-[var(--gd)]/10 focus:border-[var(--gm)] transition-all duration-200 text-xs cursor-pointer ${
             error ? "border-red-500/50" : "border-[#242424]"
           } ${className}`}
           {...props}

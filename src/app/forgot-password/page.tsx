@@ -39,17 +39,17 @@ export default function ForgotPassword() {
     <div className="flex min-h-screen items-center justify-center bg-[#080808] px-4 py-12">
       {/* Background Gradient Orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[20%] left-[20%] h-96 w-96 rounded-full bg-[#C9A84C]/5 blur-[100px]" />
-        <div className="absolute bottom-[20%] right-[20%] h-96 w-96 rounded-full bg-[#7A5E1E]/5 blur-[100px]" />
+        <div className="absolute top-[20%] left-[20%] h-96 w-96 rounded-full bg-[var(--gd)]/5 blur-[100px]" />
+        <div className="absolute bottom-[20%] right-[20%] h-96 w-96 rounded-full bg-[var(--gm)]/5 blur-[100px]" />
       </div>
 
       <div className="relative z-10 w-full max-w-md space-y-8 bg-[#0f0f0f] border border-[#242424] p-8 rounded-2xl shadow-2xl">
         <div className="text-center">
           <Link href="/" className="inline-flex items-center gap-3 group mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#1e1500] to-[#2e2000] border border-[#7A5E1E] rounded-xl flex items-center justify-center text-lg text-[#C9A84C]">
-              <BookOpen className="h-5 w-5 text-[#C9A84C]" />
+            <div className="w-10 h-10 bg-gradient-to-br from-[var(--bg1)] to-[var(--bg2)] border border-[var(--gm)] rounded-xl flex items-center justify-center text-lg text-[var(--gd)]">
+              <BookOpen className="h-5 w-5 text-[var(--gd)]" />
             </div>
-            <span className="font-serif font-black text-xl text-[#C9A84C] tracking-wide">
+            <span className="font-serif font-black text-xl text-[var(--gd)] tracking-wide">
               Ink2Wealth
             </span>
           </Link>
@@ -90,7 +90,7 @@ export default function ForgotPassword() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2.5 bg-[#161616] border border-[#242424] rounded-lg text-[#F0EBE0] placeholder-[#606060] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/10 focus:border-[#7A5E1E] transition-all duration-200 text-xs"
+                className="block w-full pl-10 pr-3 py-2.5 bg-[#161616] border border-[#242424] rounded-lg text-[#F0EBE0] placeholder-[#606060] focus:outline-none focus:ring-2 focus:ring-[var(--gd)]/10 focus:border-[var(--gm)] transition-all duration-200 text-xs"
                 placeholder="name@example.com"
               />
             </div>
@@ -100,7 +100,7 @@ export default function ForgotPassword() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full flex justify-center py-3 px-4 text-xs font-bold rounded-lg text-zinc-950 bg-gradient-to-r from-[#E2C06A] to-[#7A5E1E] hover:from-[#E2C06A]/90 hover:to-[#7A5E1E]/90 focus:outline-none disabled:opacity-50 transition-all duration-200"
+              className="w-full flex justify-center py-3 px-4 text-xs font-bold rounded-lg text-zinc-950 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] hover:from-[var(--gl)]/90 hover:to-[var(--gm)]/90 focus:outline-none disabled:opacity-50 transition-all duration-200"
             >
               {isSubmitting ? (
                 <Loader2 className="h-4 w-4 animate-spin text-zinc-950" />

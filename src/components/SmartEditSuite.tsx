@@ -5,6 +5,7 @@ import { Upload, FileText, CheckCircle, ChevronDown, ChevronUp, AlertCircle, Loa
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import PaywallModal from "@/components/ui/PaywallModal";
+import AiToolFeedback from "@/components/AiToolFeedback";
 import { getBackendApiUrl } from "@/lib/backendUrl";
 
 interface EditCheck {
@@ -86,13 +87,13 @@ export default function SmartEditSuite() {
         <div className="bg-[#161616] border border-[#242424] rounded-xl p-6 shadow-xl">
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-[#C9A84C] mb-2">
+              <label className="block text-sm font-medium text-[var(--gd)] mb-2">
                 Paste your text here
               </label>
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                className="w-full h-48 bg-[#080808] border border-[#242424] rounded-lg p-4 text-white focus:outline-none focus:border-[#C9A84C] transition-colors resize-none"
+                className="w-full h-48 bg-[#080808] border border-[#242424] rounded-lg p-4 text-white focus:outline-none focus:border-[var(--gd)] transition-colors resize-none"
                 placeholder="Paste your chapter, article, or scene here..."
                 disabled={loading}
               />
@@ -105,7 +106,7 @@ export default function SmartEditSuite() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#C9A84C] mb-2">
+              <label className="block text-sm font-medium text-[var(--gd)] mb-2">
                 Upload Document (DOCX, PDF, TXT)
               </label>
               <div className="flex items-center justify-center w-full">
@@ -118,7 +119,7 @@ export default function SmartEditSuite() {
                     <p className="mb-2 text-sm text-[#909090]">
                       <span className="font-semibold text-white">Click to upload</span> or drag and drop
                     </p>
-                    {file && <p className="text-[#C9A84C] text-sm font-medium">{file.name}</p>}
+                    {file && <p className="text-[var(--gd)] text-sm font-medium">{file.name}</p>}
                   </div>
                   <input
                     id="dropzone-file"
@@ -143,7 +144,7 @@ export default function SmartEditSuite() {
               <button
                 onClick={handleAnalyze}
                 disabled={loading}
-                className="flex items-center px-6 py-3 bg-[#C9A84C] hover:bg-[#b0923e] text-[#080808] font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center px-6 py-3 bg-[var(--gd)] hover:bg-[#b0923e] text-[#080808] font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
@@ -167,8 +168,8 @@ export default function SmartEditSuite() {
               <h2 className="text-2xl font-bold text-white mb-1">Analysis Complete</h2>
               <p className="text-[#909090]">Review the suggestions below to improve your writing.</p>
             </div>
-            <div className="flex flex-col items-center justify-center w-32 h-32 rounded-full border-4 border-[#C9A84C] bg-[#080808] shadow-[0_0_20px_rgba(201,168,76,0.3)]">
-              <span className="text-4xl font-black text-[#C9A84C]">{results.overallScore}</span>
+            <div className="flex flex-col items-center justify-center w-32 h-32 rounded-full border-4 border-[var(--gd)] bg-[#080808] shadow-[0_0_20px_rgba(201,168,76,0.3)]">
+              <span className="text-4xl font-black text-[var(--gd)]">{results.overallScore}</span>
               <span className="text-xs font-semibold text-[#909090] uppercase tracking-wider mt-1">Score</span>
             </div>
           </div>
@@ -185,7 +186,7 @@ export default function SmartEditSuite() {
                 >
                   <div className="flex items-center space-x-3">
                     <div className="p-2 bg-[#080808] rounded-lg border border-[#242424]">
-                      <FileText size={18} className="text-[#C9A84C]" />
+                      <FileText size={18} className="text-[var(--gd)]" />
                     </div>
                     <h3 className="font-semibold text-lg text-white">{check.name}</h3>
                   </div>
@@ -213,7 +214,7 @@ export default function SmartEditSuite() {
                         <span className="text-xs font-semibold text-green-400 uppercase tracking-wider px-2 py-1 bg-green-400/10 rounded border border-green-400/20">
                           Suggested
                         </span>
-                        <div className="p-4 bg-[#161616] rounded-lg border border-[#C9A84C]/50 text-white shadow-[0_0_10px_rgba(201,168,76,0.1)]">
+                        <div className="p-4 bg-[#161616] rounded-lg border border-[var(--gd)]/50 text-white shadow-[0_0_10px_rgba(201,168,76,0.1)]">
                           {check.suggested || "Looks good!"}
                         </div>
                       </div>
@@ -238,6 +239,19 @@ export default function SmartEditSuite() {
           </div>
         </div>
       )}
+
+      <AiToolFeedback
+        tool="smart-edit"
+        title="Smart Edit Feedback"
+        description="Tell us if the Smart Edit Suite is working correctly and share any problems you are facing."
+        context={{
+          hasResults: results ? "yes" : "no",
+          inputType: file ? "file" : text ? "text" : "none",
+          fileName: file?.name || "",
+          overallScore: results ? String(results.overallScore) : "",
+        }}
+      />
+
       <PaywallModal isOpen={showPaywall} onClose={() => setShowPaywall(false)} featureName="Smart Edit Suite" />
     </div>
   );

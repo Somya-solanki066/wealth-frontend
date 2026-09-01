@@ -16,7 +16,7 @@ export default function Loader({ fullScreen = false, size = "md" }: LoaderProps)
   };
 
   const content = (
-    <Loader2 className={`animate-spin text-[#C9A84C] ${sizeMap[size]}`} />
+    <Loader2 className={`animate-spin text-[var(--gd)] ${sizeMap[size]}`} />
   );
 
   if (fullScreen) {

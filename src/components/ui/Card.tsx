@@ -10,7 +10,7 @@ export default function Card({ children, hoverable = true, className = "", ...pr
   return (
     <div
       className={`bg-[#161616] border border-[#242424] rounded-2xl p-6 ${
-        hoverable ? "hover:border-[#7A5E1E] transition-all duration-200" : ""
+        hoverable ? "hover:border-[var(--gm)] transition-all duration-200" : ""
       } ${className}`}
       {...props}
     >

@@ -1,39 +1,42 @@
 "use client";
 
-import React, { useState, useRef, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { BookOpen, LogOut, ChevronDown, User, Settings, Sparkles, FolderKanban, Flame } from "lucide-react";
+import { useWorld, WORLD_CONFIG, type WorldId } from "@/context/WorldContext";
+import { BookOpen, LogOut, Flame } from "lucide-react";
 import Button from "@/components/ui/Button";
 import api from "@/services/api";
+import "@/app/home-worlds.css";
+
+function worldFromPath(pathname: string): Exclude<WorldId, "neutral"> | null {
+  if (pathname.startsWith("/screenwriter")) return "screenwriter";
+  if (pathname.startsWith("/student/")) return "student";
+  if (pathname.startsWith("/writer")) return "writer";
+  return null;
+}
 
 function NavbarContent() {
   const { user, signOutUser, loading, profile } = useAuth();
+  const { world, setWorld, config, goHome } = useWorld();
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const currentTab = searchParams ? searchParams.get("tab") : null;
+  const isHome = pathname === "/";
+  const isDashboard = pathname === "/dashboard";
 
-  // Dropdown states
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Always null on SSR + first client paint — avoids hydration mismatch with localStorage
+  const [streak, setStreak] = useState<number | null>(null);
 
-  // Streak state
-  const [streak, setStreak] = useState<number | null>(() => {
-    if (typeof window !== "undefined") {
-      const cached = localStorage.getItem("writingStreak");
-      return cached ? parseInt(cached, 10) : null;
-    }
-    return null;
-  });
+  useEffect(() => {
+    const cached = localStorage.getItem("writingStreak");
+    if (cached) setStreak(parseInt(cached, 10));
+  }, []);
 
   useEffect(() => {
     if (!user) {
       setStreak(null);
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("writingStreak");
-      }
+      localStorage.removeItem("writingStreak");
       return;
     }
 
@@ -42,9 +45,7 @@ function NavbarContent() {
         const response = await api.get("/user/streak");
         const newStreak = response.data.writingStreak || 0;
         setStreak(newStreak);
-        if (typeof window !== "undefined") {
-          localStorage.setItem("writingStreak", newStreak.toString());
-        }
+        localStorage.setItem("writingStreak", newStreak.toString());
       } catch (err) {
         console.error("Failed to fetch streak in navbar:", err);
       }
@@ -56,16 +57,12 @@ function NavbarContent() {
       const customEvent = e as CustomEvent;
       if (customEvent.detail !== undefined) {
         setStreak(customEvent.detail);
-        if (typeof window !== "undefined") {
-          localStorage.setItem("writingStreak", customEvent.detail.toString());
-        }
+        localStorage.setItem("writingStreak", String(customEvent.detail));
       }
     };
 
     window.addEventListener("streakUpdated", handleStreakUpdate);
-    return () => {
-      window.removeEventListener("streakUpdated", handleStreakUpdate);
-    };
+    return () => window.removeEventListener("streakUpdated", handleStreakUpdate);
   }, [user]);
 
   const handleLogout = async () => {
@@ -77,168 +74,119 @@ function NavbarContent() {
     }
   };
 
-  const handleMouseEnter = (menu: string) => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setOpenDropdown(menu);
+  // Path wins on world routes so SSR and client match (context may still be neutral on SSR)
+  const pathWorld = worldFromPath(pathname);
+  const activeWorld: Exclude<WorldId, "neutral"> =
+    pathWorld ?? (world !== "neutral" ? world : "writer");
+  const activeConfig = WORLD_CONFIG[activeWorld];
+
+  const sectionFromPath = (): "features" | "pricing" | "courses" => {
+    if (pathname.endsWith("/pricing")) return "pricing";
+    if (pathname.endsWith("/courses")) return "courses";
+    return "features";
   };
 
-  const handleMouseLeave = () => {
-    timeoutRef.current = setTimeout(() => {
-      setOpenDropdown(null);
-    }, 150);
+  const handleLogoClick = (e: React.MouseEvent) => {
+    if (isHome) {
+      e.preventDefault();
+      goHome();
+    }
   };
 
-  const toggleDropdown = (menu: string) => {
-    setOpenDropdown(openDropdown === menu ? null : menu);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
-
-  // Public Links (Logged Out - pointing to page.tsx query parameters)
-  const publicLinks = [
-    { name: "WIT-WEB Academy", href: "/?screen=witweb-landing" },
-    { name: "SSG Blueprint", href: "/?screen=ssg-landing" },
-    { name: "My Courses", href: "/login?redirectTo=/dashboard" },
-  ];
-
-  // Dashboard Dropdown Menus (Logged In)
-  const dashboardMenus = {
-    ink: {
-      label: "INK",
-      items: [
-        { name: "Projects", href: "/dashboard?tab=home" },
-        { name: "Novel Editor", href: "/dashboard?tab=novel" },
-        { name: "Script Editor", href: "/dashboard?tab=script" },
-        { name: "Chapter Analyzer", href: "/dashboard?tab=tools" },
-        { name: "Smart Edit", href: "/dashboard?tab=tools" },
-      ],
-    },
-    wealth: {
-      label: "WEALTH",
-      items: [
-        { name: "Jobs", href: "/dashboard?tab=wealth" },
-        { name: "Industry Connect", href: "/dashboard?tab=wealth" },
-        { name: "Branding", href: "/dashboard?tab=wealth" },
-        { name: "Promotion", href: "/dashboard?tab=wealth" },
-        { name: "Publishing", href: "/dashboard?tab=wealth" },
-      ],
-    },
-    student: {
-      label: "STUDENT",
-      items: [
-        { name: "Study Planner", href: "/dashboard?tab=student" },
-        { name: "Flashcards", href: "/dashboard?tab=student" },
-        { name: "Citation Generator", href: "/dashboard?tab=student" },
-        { name: "Course Video Finder", href: "/dashboard?tab=student" },
-        { name: "Essay Writer", href: "/dashboard?tab=student" },
-        { name: "Exam Techniques", href: "/dashboard?tab=student" },
-      ],
-    },
-    coaching: {
-      label: "COACHING",
-      items: [
-        { name: "Courses", href: "/courses" },
-        { name: "YouTube", href: "/coach" },
-        { name: "Community", href: "/coach" },
-        { name: "Resources", href: "/dashboard?tab=resources" },
-      ],
-    },
-  };
-
-  // Public Links for Logged In users when on public site
-  const loggedInPublicLinks = [
-    { name: "Features", href: "/features" },
-    { name: "Courses", href: "/courses" },
-    { name: "WEALTH", href: "/wealth" },
-    { name: "Students", href: "/student" },
-    { name: "Coach Victor", href: "/coach" },
-    { name: "Pricing", href: "/pricing" },
-  ];
+  const navCtaLabel =
+    (pathWorld ? activeConfig : config)?.cta || activeConfig.cta || "Get Started Free";
+  const logoIcon = activeConfig.icon;
+  const showWorldLogo = Boolean(pathWorld) || (isHome && world !== "neutral");
+  const accentBorder = "border-[var(--gm)]";
+  const accentText = "text-[var(--gd)]";
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#080808]/92 backdrop-blur-md border-b border-[#242424] px-6 lg:px-12">
-      <div className="max-w-7xl mx-auto flex items-center justify-between h-[70px]">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-[38px] h-[38px] bg-gradient-to-br from-[#1e1500] to-[#2e2000] border border-[#7A5E1E] rounded-lg flex items-center justify-center text-lg text-[#C9A84C] group-hover:border-[#C9A84C] transition-all duration-200">
-            <BookOpen className="h-4.5 w-4.5 text-[#C9A84C]" />
+    <nav className="site-nav fixed top-0 left-0 right-0 z-50 bg-[#080808]/95 backdrop-blur-md border-b border-[#1a1a1a] px-6 lg:px-12">
+      <div className="max-w-7xl mx-auto flex items-center justify-between h-[68px] gap-4">
+        <Link href="/" onClick={handleLogoClick} className="flex items-center gap-3 group shrink-0">
+          <div
+            className={`w-9 h-9 rounded-lg border ${accentBorder} flex items-center justify-center text-lg bg-[#111] transition-all`}
+          >
+            {showWorldLogo ? (
+              <span className="text-base leading-none">{logoIcon}</span>
+            ) : (
+              <BookOpen className={`h-4 w-4 ${accentText}`} />
+            )}
           </div>
-          <span className="font-serif font-black text-xl text-[#C9A84C] tracking-wide">
+          <span className={`font-serif font-black text-xl tracking-wide ${accentText}`}>
             Ink2Wealth
           </span>
         </Link>
 
-        {/* Conditional Center Links */}
-        {pathname !== "/dashboard" ? (
-          <div className="hidden lg:flex items-center gap-8">
-            {user ? (
-              // Logged in user on public site
-              loggedInPublicLinks.map((link) => {
-                const isActive = pathname === link.href || (typeof window !== "undefined" && window.location.hash === link.href.split("#")[1]);
-                return (
-                  <Link
-                    key={link.name}
-                    href={link.href}
-                    className={`text-[13px] font-medium transition-colors duration-200 ${
-                      isActive ? "text-[#C9A84C]" : "text-[#909090] hover:text-[#F0EBE0]"
-                    }`}
-                  >
-                    {link.name}
-                  </Link>
-                );
-              })
-            ) : (
-              // Logged out visitor on public site
-              publicLinks.map((link) => {
-                // Read current search param to match active state
-                const isMatch = searchParams && searchParams.get("screen") === link.href.split("screen=")[1];
-                const isHome = link.href === "/?screen=home" && (!searchParams || !searchParams.get("screen"));
-                const isActive = isMatch || isHome;
-                return (
-                  <Link
-                    key={link.name}
-                    href={link.href}
-                    className={`text-[13px] font-medium transition-colors duration-200 ${
-                      isActive ? "text-[#C9A84C]" : "text-[#909090] hover:text-[#F0EBE0]"
-                    }`}
-                  >
-                    {link.name}
-                  </Link>
-                );
-              })
-            )}
-          </div>
-        ) : (
-          /* Empty center spacer for dashboard / logged-in state */
-          <div className="hidden lg:flex items-center gap-8" />
-        )}
+        <div className="hidden lg:flex items-center gap-7">
+          <Link
+            href={`/${activeWorld}/features`}
+            onClick={() => setWorld(activeWorld)}
+            className={`text-[13px] font-medium transition-colors ${
+              pathname.endsWith("/features") ? accentText : "text-[#606060] hover:text-[#F0EBE0]"
+            }`}
+          >
+            Features
+          </Link>
+          <Link
+            href={`/${activeWorld}/pricing`}
+            onClick={() => setWorld(activeWorld)}
+            className={`text-[13px] font-medium transition-colors ${
+              pathname.endsWith("/pricing") ? accentText : "text-[#606060] hover:text-[#F0EBE0]"
+            }`}
+          >
+            Pricing
+          </Link>
+          <Link
+            href={`/${activeWorld}/courses`}
+            onClick={() => setWorld(activeWorld)}
+            className={`text-[13px] font-medium transition-colors ${
+              pathname.endsWith("/courses") ? accentText : "text-[#606060] hover:text-[#F0EBE0]"
+            }`}
+          >
+            Courses
+          </Link>
+        </div>
 
-        {/* CTA Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
+          {(world !== "neutral" || Boolean(pathWorld)) && (
+            <div className="nav-world-switcher hidden md:flex">
+              {(Object.keys(WORLD_CONFIG) as Exclude<WorldId, "neutral">[]).map((id) => {
+                const item = WORLD_CONFIG[id];
+                const currentSection = sectionFromPath();
+                const onWorldPage = Boolean(pathWorld);
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    className={`nws-btn ${item.switcherClass} ${activeWorld === id ? "on" : ""}`}
+                    onClick={() => {
+                      setWorld(id);
+                      if (onWorldPage) router.push(`/${id}/${currentSection}`);
+                      else if (!isHome) router.push(`/${id}/features`);
+                    }}
+                  >
+                    {item.icon} {item.shortLabel}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {!loading && user ? (
             <div className="flex items-center gap-3">
               {streak !== null && (
                 <Link href="/dashboard">
-                  <div 
-                    className="flex items-center gap-1.5 bg-[#C9A84C]/10 border border-[#C9A84C]/30 hover:border-[#C9A84C]/50 px-3 py-1.5 rounded-xl text-[#C9A84C] text-xs font-bold transition-all duration-300 hover:bg-[#C9A84C]/15 cursor-pointer flex items-center shrink-0"
+                  <div
+                    className="flex items-center gap-1.5 bg-[var(--gf)] border border-[var(--gd)]/30 hover:border-[var(--gd)]/50 px-3 py-1.5 rounded-xl text-[var(--gd)] text-xs font-bold transition-all cursor-pointer shrink-0"
                     title="Writing Streak"
                   >
                     <Flame className="h-4 w-4 fill-current text-orange-500 animate-pulse" />
-                    <span>{streak} Days 🔥</span>
+                    <span>{streak} Days</span>
                   </div>
                 </Link>
               )}
-              {pathname === "/dashboard" ? (
-                <Link href="/">
-                  <Button variant="outline" size="sm">
-                    Go to Public Site
-                  </Button>
-                </Link>
-              ) : (
+              {!isDashboard && (
                 <Link href="/dashboard">
                   <Button variant="outline" size="sm">
                     Dashboard
@@ -246,8 +194,12 @@ function NavbarContent() {
                 </Link>
               )}
               <div className="hidden sm:flex flex-col items-end text-right">
-                <span className="text-[10px] text-white font-bold leading-none">{profile?.displayName || "User"}</span>
-                <span className="text-[8px] text-[#C9A84C] font-semibold mt-0.5 uppercase tracking-widest">Writer</span>
+                <span className="text-[10px] text-white font-bold leading-none">
+                  {profile?.displayName || "User"}
+                </span>
+                <span className="text-[8px] text-[var(--gd)] font-semibold mt-0.5 uppercase tracking-widest">
+                  {activeConfig.shortLabel}
+                </span>
               </div>
               <Button
                 variant="danger"
@@ -260,18 +212,11 @@ function NavbarContent() {
               </Button>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
-              <Link href="/login">
-                <Button variant="outline" size="sm">
-                  Log In
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button variant="primary" size="sm">
-                  Get Started Free
-                </Button>
-              </Link>
-            </div>
+            <Link href="/login">
+              <Button variant="primary" size="sm">
+                {navCtaLabel}
+              </Button>
+            </Link>
           )}
         </div>
       </div>
@@ -281,7 +226,7 @@ function NavbarContent() {
 
 export default function Navbar() {
   return (
-    <Suspense fallback={<div className="h-[70px] bg-[#080808]" />}>
+    <Suspense fallback={<div className="h-[68px] bg-[#080808]" />}>
       <NavbarContent />
     </Suspense>
   );

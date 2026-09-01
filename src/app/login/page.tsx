@@ -73,17 +73,17 @@ function LoginContent() {
     <div className="flex min-h-screen items-center justify-center bg-[#080808] px-4 py-12">
       {/* Background Gradient Orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[20%] left-[20%] h-96 w-96 rounded-full bg-[#C9A84C]/5 blur-[100px]" />
-        <div className="absolute bottom-[20%] right-[20%] h-96 w-96 rounded-full bg-[#7A5E1E]/5 blur-[100px]" />
+        <div className="absolute top-[20%] left-[20%] h-96 w-96 rounded-full bg-[var(--gd)]/5 blur-[100px]" />
+        <div className="absolute bottom-[20%] right-[20%] h-96 w-96 rounded-full bg-[var(--gm)]/5 blur-[100px]" />
       </div>
 
       <Card hoverable={false} className="relative z-10 w-full max-w-md space-y-8 bg-[#0f0f0f] border border-[#242424] p-8 rounded-2xl shadow-2xl">
         <div className="text-center">
           <Link href="/" className="inline-flex items-center gap-3 group mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#1e1500] to-[#2e2000] border border-[#7A5E1E] rounded-xl flex items-center justify-center text-lg text-[#C9A84C]">
-              <BookOpen className="h-5 w-5 text-[#C9A84C]" />
+            <div className="w-10 h-10 bg-gradient-to-br from-[var(--bg1)] to-[var(--bg2)] border border-[var(--gm)] rounded-xl flex items-center justify-center text-lg text-[var(--gd)]">
+              <BookOpen className="h-5 w-5 text-[var(--gd)]" />
             </div>
-            <span className="font-serif font-black text-xl text-[#C9A84C] tracking-wide">
+            <span className="font-serif font-black text-xl text-[var(--gd)] tracking-wide">
               Ink2Wealth
             </span>
           </Link>
@@ -120,7 +120,7 @@ function LoginContent() {
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-[10px] font-medium text-[#C9A84C] hover:text-[#E2C06A] transition-colors"
+                  className="text-[10px] font-medium text-[var(--gd)] hover:text-[var(--gl)] transition-colors"
                 >
                   Forgot password?
                 </Link>
@@ -198,7 +198,7 @@ function LoginContent() {
           New to Ink2Wealth?{" "}
           <Link
             href={redirectTo ? `/register?redirectTo=${redirectTo}` : "/register"}
-            className="font-medium text-[#C9A84C] hover:text-[#E2C06A] transition-colors"
+            className="font-medium text-[var(--gd)] hover:text-[var(--gl)] transition-colors"
           >
             Create an account
           </Link>

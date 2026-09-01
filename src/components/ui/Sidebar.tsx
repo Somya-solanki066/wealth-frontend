@@ -25,7 +25,7 @@ export default function Sidebar({ isOpen, onClose, title, children }: SidebarPro
       <div className="w-80 bg-[#0f0f0f] border-l border-[#242424] h-full p-6 shadow-2xl relative z-10 animate-slideLeft overflow-y-auto">
         <div className="flex items-center justify-between border-b border-[#242424] pb-4 mb-5">
           {title && (
-            <h3 className="font-serif text-sm font-bold text-[#C9A84C]">
+            <h3 className="font-serif text-sm font-bold text-[var(--gd)]">
               {title}
             </h3>
           )}

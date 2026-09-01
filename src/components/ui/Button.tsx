@@ -27,9 +27,9 @@ export default function Button({
 
   const variants = {
     primary:
-      "bg-gradient-to-r from-[#E2C06A] to-[#7A5E1E] hover:from-[#E2C06A]/90 hover:to-[#7A5E1E]/90 text-zinc-950 shadow-lg active:scale-95",
+      "bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] hover:opacity-90 text-zinc-950 shadow-lg active:scale-95",
     secondary: "bg-[#161616] border border-[#242424] hover:bg-[#242424] text-[#F0EBE0] active:scale-95",
-    outline: "border border-[#7A5E1E] text-[#C9A84C] hover:bg-[#C9A84C]/5 active:scale-95",
+    outline: "border border-[var(--gm)] text-[var(--gd)] hover:bg-[var(--gf)] active:scale-95",
     danger: "bg-red-600/10 border border-red-500/20 text-[#E05252] hover:bg-red-500/20 active:scale-95",
   };
 

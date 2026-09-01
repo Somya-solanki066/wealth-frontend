@@ -21,7 +21,7 @@ export default function CoachPage() {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-[#161616] border border-[#7A5E1E] text-[#C9A84C] font-semibold text-xs px-6 py-3 rounded-xl shadow-2xl transition-all duration-300">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-[#161616] border border-[var(--gm)] text-[var(--gd)] font-semibold text-xs px-6 py-3 rounded-xl shadow-2xl transition-all duration-300">
           {toastMessage}
         </div>
       )}
@@ -50,15 +50,15 @@ export default function CoachPage() {
               {/* Stats row */}
               <div className="flex flex-wrap gap-8 pt-2">
                 <div>
-                  <div className="font-serif text-2xl font-black text-[#C9A84C]">2,400+</div>
+                  <div className="font-serif text-2xl font-black text-[var(--gd)]">2,400+</div>
                   <div className="text-[10px] text-[#606060] font-bold tracking-wider uppercase">Community Writers</div>
                 </div>
                 <div>
-                  <div className="font-serif text-2xl font-black text-[#C9A84C]">9</div>
+                  <div className="font-serif text-2xl font-black text-[var(--gd)]">9</div>
                   <div className="text-[10px] text-[#606060] font-bold tracking-wider uppercase">Platforms Mastered</div>
                 </div>
                 <div>
-                  <div className="font-serif text-2xl font-black text-[#C9A84C]">2</div>
+                  <div className="font-serif text-2xl font-black text-[var(--gd)]">2</div>
                   <div className="text-[10px] text-[#606060] font-bold tracking-wider uppercase">Flagship Courses</div>
                 </div>
               </div>
@@ -70,7 +70,7 @@ export default function CoachPage() {
             {/* Card 1 */}
             <div
               onClick={() => triggerToast("Opening YouTube channel...")}
-              className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-3xl p-8 flex gap-6 items-start cursor-pointer transition-all duration-200"
+              className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-3xl p-8 flex gap-6 items-start cursor-pointer transition-all duration-200"
             >
               <Play className="h-12 w-12 text-red-600 shrink-0 fill-current" />
               <div className="space-y-3">
@@ -92,20 +92,20 @@ export default function CoachPage() {
             {/* Card 2 */}
             <div
               onClick={() => triggerToast("Joining WIT-WEB Community...")}
-              className="bg-[#161616] border border-[#242424] hover:border-[#7A5E1E] rounded-3xl p-8 flex gap-6 items-start cursor-pointer transition-all duration-200"
+              className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-3xl p-8 flex gap-6 items-start cursor-pointer transition-all duration-200"
             >
-              <Users className="h-12 w-12 text-[#C9A84C] shrink-0" />
+              <Users className="h-12 w-12 text-[var(--gd)] shrink-0" />
               <div className="space-y-3">
                 <h3 className="font-serif text-lg font-bold text-white leading-tight">
                   WIT-WEB Community
                 </h3>
-                <span className="text-[10px] font-bold text-[#C9A84C] uppercase tracking-widest block">
+                <span className="text-[10px] font-bold text-[var(--gd)] uppercase tracking-widest block">
                   2,400+ Active Writers
                 </span>
                 <p className="text-xs text-[#909090] leading-relaxed">
                   Connect with writers worldwide. Get feedback, find accountability partners, and access exclusive coaching sessions from Coach Victor.
                 </p>
-                <button className="px-5 py-2.5 bg-gradient-to-r from-[#E2C06A] to-[#7A5E1E] hover:from-[#E2C06A]/90 hover:to-[#7A5E1E]/90 text-zinc-950 font-bold rounded-xl text-xs">
+                <button className="px-5 py-2.5 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] hover:from-[var(--gl)]/90 hover:to-[var(--gm)]/90 text-zinc-950 font-bold rounded-xl text-xs">
                   Join the Community
                 </button>
               </div>

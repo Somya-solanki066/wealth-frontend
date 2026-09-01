@@ -49,37 +49,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Sync user profile from Firestore or create it if not exists
   const syncProfile = async (firebaseUser: User) => {
+    const fallbackProfile: UserProfile = {
+      uid: firebaseUser.uid,
+      email: firebaseUser.email,
+      displayName: firebaseUser.displayName || "User",
+      photoURL: firebaseUser.photoURL || null,
+      createdAt: new Date().toISOString(),
+    };
+
     try {
       const docRef = doc(db, "users", firebaseUser.uid);
       const docSnap = await getDoc(docRef);
 
-      const profileData = {
+      if (!docSnap.exists()) {
+        await setDoc(docRef, fallbackProfile);
+        setProfile(fallbackProfile);
+        return;
+      }
+
+      const existingData = docSnap.data();
+      setProfile({
         uid: firebaseUser.uid,
         email: firebaseUser.email,
-        displayName: firebaseUser.displayName || "User",
-        photoURL: firebaseUser.photoURL || null,
-        createdAt: new Date().toISOString(),
-      };
-
-      if (!docSnap.exists()) {
-        // Save initial user profile in Firestore
-        await setDoc(docRef, profileData);
-        setProfile(profileData);
-      } else {
-        const existingData = docSnap.data();
-        setProfile({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: existingData.displayName || firebaseUser.displayName || "User",
-          photoURL: existingData.photoURL || firebaseUser.photoURL || null,
-          createdAt: existingData.createdAt || new Date().toISOString(),
-          subscriptionPlan: existingData.subscriptionPlan || null,
-          subscriptionDate: existingData.subscriptionDate || null,
-          subscriptionExpiry: existingData.subscriptionExpiry || null,
-        });
-      }
+        displayName: existingData.displayName || firebaseUser.displayName || "User",
+        photoURL: existingData.photoURL || firebaseUser.photoURL || null,
+        createdAt: existingData.createdAt || new Date().toISOString(),
+        subscriptionPlan: existingData.subscriptionPlan || null,
+        subscriptionDate: existingData.subscriptionDate || null,
+        subscriptionExpiry: existingData.subscriptionExpiry || null,
+      });
     } catch (error) {
-      console.error("Error syncing user profile from Firestore:", error);
+      // Firestore can briefly go offline after Stripe redirect; keep Auth-based profile so dashboard still loads.
+      console.warn("Firestore profile sync failed; using auth fallback:", error);
+      setProfile((prev) => prev || fallbackProfile);
     }
   };
 

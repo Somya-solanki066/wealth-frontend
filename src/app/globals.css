@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  /* Theme variables matching the prototype */
+  /* Theme variables matching the prototype (overridden by body.world-*) */
   --blk: #080808;
   --dp: #0f0f0f;
   --c1: #161616;
@@ -11,6 +11,12 @@
   --gl: #E2C06A;
   --gm: #7A5E1E;
   --gf: rgba(201, 168, 76, 0.08);
+  --ac: var(--gd);
+  --ac2: var(--gl);
+  --ac3: var(--gm);
+  --bg1: #161000;
+  --bg2: #0f0f00;
+  --pulse: rgba(201, 168, 76, 0.15);
   --wh: #F0EBE0;
   --m1: #606060;
   --m2: #909090;
@@ -67,8 +73,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(201, 168, 76, 0.1);
-  border: 1px solid rgba(201, 168, 76, 0.25);
+  background: color-mix(in srgb, var(--gd) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gd) 25%, transparent);
   border-radius: 20px;
   padding: 6px 18px;
   font-size: 11px;
@@ -150,8 +156,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(201, 168, 76, 0.1);
-  border: 1px solid rgba(201, 168, 76, 0.25);
+  background: color-mix(in srgb, var(--gd) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gd) 25%, transparent);
   border-radius: 20px;
   padding: 6px 16px;
   font-size: 11px;
@@ -261,7 +267,7 @@ body {
   border: 2px solid var(--bd);
   overflow: hidden;
   position: relative;
-  box-shadow: 0 40px 100px rgba(0, 0, 0, .6), 0 0 60px rgba(201, 168, 76, .1);
+  box-shadow: 0 40px 100px rgba(0, 0, 0, .6), 0 0 60px color-mix(in srgb, var(--gd) 10%, transparent);
 }
 .hero-phone::before {
   content: '';
@@ -303,8 +309,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: rgba(201, 168, 76, 0.1);
-  border: 1px solid rgba(201, 168, 76, 0.2);
+  background: color-mix(in srgb, var(--gd) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gd) 20%, transparent);
   border-radius: 20px;
   padding: 3px 10px;
   font-size: 7px;
@@ -608,7 +614,7 @@ body {
   justify-content: center;
   font-size: 64px;
   flex-shrink: 0;
-  box-shadow: 0 0 40px rgba(201, 168, 76, 0.2);
+  box-shadow: 0 0 40px color-mix(in srgb, var(--gd) 20%, transparent);
 }
 .instr-name {
   font-family: 'Playfair Display', serif;
@@ -855,7 +861,7 @@ body {
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 5px;
-  background: rgba(201, 168, 76, 0.12);
+  background: color-mix(in srgb, var(--gd) 12%, transparent);
   color: var(--gd);
   margin-left: auto;
 }
@@ -1014,7 +1020,7 @@ body {
   color: var(--ok);
 }
 .mli-inprog {
-  background: rgba(201, 168, 76, 0.1);
+  background: color-mix(in srgb, var(--gd) 10%, transparent);
   color: var(--gd);
 }
 .mli-locked {
@@ -1045,7 +1051,7 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 28px;
-  box-shadow: 0 0 40px rgba(201, 168, 76, 0.3);
+  box-shadow: 0 0 40px color-mix(in srgb, var(--gd) 30%, transparent);
   transition: transform .2s;
 }
 .play-btn:hover {
@@ -1107,7 +1113,7 @@ body {
   color: var(--ok);
 }
 .li-check.play {
-  background: rgba(201, 168, 76, 0.15);
+  background: var(--pulse);
   color: var(--gd);
 }
 .li-check.lock {
@@ -1431,7 +1437,7 @@ body {
   color: var(--ok);
 }
 .fb-pro {
-  background: rgba(201, 168, 76, 0.1);
+  background: color-mix(in srgb, var(--gd) 10%, transparent);
   color: var(--gd);
 }
 
@@ -1455,7 +1461,7 @@ body {
   transition: all .2s;
 }
 .plat:hover, .plat.on {
-  background: rgba(201, 168, 76, 0.12);
+  background: color-mix(in srgb, var(--gd) 12%, transparent);
   border-color: var(--gm);
   color: var(--gd);
 }
@@ -1605,7 +1611,7 @@ body {
   font-weight: 700;
   padding: 3px 10px;
   border-radius: 6px;
-  background: rgba(201, 168, 76, 0.1);
+  background: color-mix(in srgb, var(--gd) 10%, transparent);
   color: var(--gd);
 }
 

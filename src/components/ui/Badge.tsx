@@ -10,7 +10,7 @@ interface BadgeProps {
 
 export default function Badge({ children, variant = "gold", className = "" }: BadgeProps) {
   const styles = {
-    gold: "bg-[#C9A84C]/10 border border-[#7A5E1E] text-[#C9A84C]",
+    gold: "bg-[var(--gd)]/10 border border-[var(--gm)] text-[var(--gd)]",
     green: "bg-[#52C07A]/10 border border-[#52C07A]/30 text-[#52C07A]",
     red: "bg-red-500/10 border border-red-500/30 text-[#E05252]",
     gray: "bg-[#242424] border border-[#242424] text-[#909090]",

@@ -16,7 +16,7 @@ export default function ProgressBar({
   className = "",
 }: ProgressBarProps) {
   const colors = {
-    gold: "bg-[#C9A84C]",
+    gold: "bg-[var(--gd)]",
     red: "bg-red-600",
     green: "bg-[#52C07A]",
   };

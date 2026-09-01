@@ -37,7 +37,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#242424] pb-4 mb-5">
           {title && (
-            <h3 className="font-serif text-lg font-bold text-[#C9A84C] tracking-wide">
+            <h3 className="font-serif text-lg font-bold text-[var(--gd)] tracking-wide">
               {title}
             </h3>
           )}

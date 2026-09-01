@@ -19,7 +19,7 @@ export default function PolicyPage({ pageId, defaultTitle }: PolicyPageProps) {
       
       <main className="flex-grow pt-[100px] pb-24 max-w-4xl mx-auto px-6 w-full">
         {loading ? (
-          <div className="flex justify-center items-center h-64 text-[#C9A84C] animate-pulse">
+          <div className="flex justify-center items-center h-64 text-[var(--gd)] animate-pulse">
             Loading...
           </div>
         ) : (

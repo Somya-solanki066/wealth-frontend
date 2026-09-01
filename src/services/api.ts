@@ -3,15 +3,14 @@ import { auth } from "../lib/firebase";
 import { getBackendApiUrl } from "../lib/backendUrl";
 
 const api = axios.create({
-  baseURL: getBackendApiUrl(),
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Request interceptor to dynamically inject the Firebase ID token in headers
 api.interceptors.request.use(
   async (config) => {
+    config.baseURL = getBackendApiUrl();
     try {
       const currentUser = auth.currentUser;
       if (currentUser) {
@@ -23,9 +22,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 export default api;

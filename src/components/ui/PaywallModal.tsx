@@ -6,7 +6,9 @@ import Button from "./Button";
 import { Sparkles, Check, Loader2 } from "lucide-react";
 import axios from "axios";
 import { getBackendApiUrl } from "@/lib/backendUrl";
+import { isFreePlan } from "@/lib/plans";
 import { useAuth } from "@/context/AuthContext";
+import { useWorld } from "@/context/WorldContext";
 
 interface PaywallModalProps {
   isOpen: boolean;
@@ -22,6 +24,7 @@ export default function PaywallModal({
   onUpgrade,
 }: PaywallModalProps) {
   const { user, updateUserProfile } = useAuth();
+  const { world } = useWorld();
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState(false);
@@ -31,15 +34,19 @@ export default function PaywallModal({
     if (isOpen) {
       fetchPlans();
     }
-  }, [isOpen]);
+  }, [isOpen, world]);
 
   const fetchPlans = async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${getBackendApiUrl()}/settings`);
       const allPlans = response.data.data.plans || [];
-      // Filter out the free plan
-      setPlans(allPlans.filter((p: any) => p.id !== 'free' && p.id !== 'plan_free'));
+      const activeWorld = world === "neutral" ? "writer" : world;
+      setPlans(
+        allPlans.filter(
+          (p: any) => !isFreePlan(p) && (p.world || "writer") === activeWorld
+        )
+      );
     } catch (err) {
       console.error("Failed to load plans:", err);
       setError("Failed to load subscription plans.");
@@ -48,27 +55,26 @@ export default function PaywallModal({
     }
   };
 
-  const handleSimulateUpgrade = async (planId: string) => {
+  const handleCheckout = async (planId: string) => {
     if (!user) return;
     setUpgrading(true);
     setError("");
     try {
-      // Get the firebase token (assuming it's stored or available, or we just rely on cookies if setup)
-      // Here we assume withCredentials is true or we pass token if needed.
       const token = await user.getIdToken();
-      
-      await axios.post(
-        `${getBackendApiUrl()}/user/simulate-upgrade`,
-        { planId },
+      const response = await axios.post(
+        `${getBackendApiUrl()}/stripe/create-checkout-session`,
+        { planId, email: user.email },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
-      if (onUpgrade) onUpgrade();
-      // Reload page to reflect premium status
-      window.location.reload();
+
+      if (response.data?.url) {
+        window.location.href = response.data.url;
+        return;
+      }
+      setError("Failed to initialize payment.");
     } catch (err: any) {
-      console.error("Upgrade failed:", err);
-      setError("Upgrade failed. Please try again.");
+      console.error("Checkout failed:", err);
+      setError(err.response?.data?.error || "Checkout failed. Please try again.");
     } finally {
       setUpgrading(false);
     }
@@ -77,7 +83,7 @@ export default function PaywallModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Upgrade to Unlock Premium">
       <div className="text-center space-y-6">
-        <div className="mx-auto w-12 h-12 rounded-full bg-[#C9A84C]/10 border border-[#7A5E1E] flex items-center justify-center text-[#C9A84C]">
+        <div className="mx-auto w-12 h-12 rounded-full bg-[var(--gd)]/10 border border-[var(--gm)] flex items-center justify-center text-[var(--gd)]">
           <Sparkles className="h-6 w-6" />
         </div>
 
@@ -94,15 +100,15 @@ export default function PaywallModal({
 
         {loading ? (
           <div className="flex justify-center py-4">
-            <Loader2 className="animate-spin text-[#C9A84C]" size={24} />
+            <Loader2 className="animate-spin text-[var(--gd)]" size={24} />
           </div>
         ) : (
           <div className="space-y-4">
             {plans.map((plan) => (
-              <div key={plan.id} className="bg-zinc-950 border border-[#C9A84C] rounded-2xl p-4 text-left space-y-3">
+              <div key={plan.id} className="bg-zinc-950 border border-[var(--gd)] rounded-2xl p-4 text-left space-y-3">
                 <div className="flex justify-between items-center">
                   <h5 className="font-bold text-white">{plan.name}</h5>
-                  <span className="text-[#C9A84C] font-bold">{plan.price}</span>
+                  <span className="text-[var(--gd)] font-bold">{plan.price}</span>
                 </div>
                 <div className="text-[10px] text-[#606060]">{plan.period}</div>
                 <div className="space-y-1 text-[11px] text-[#909090] max-h-32 overflow-y-auto custom-scrollbar">
@@ -113,11 +119,11 @@ export default function PaywallModal({
                   ))}
                 </div>
                 <Button
-                  onClick={() => handleSimulateUpgrade(plan.id)}
+                  onClick={() => handleCheckout(plan.id)}
                   disabled={upgrading}
                   className="w-full mt-2"
                 >
-                  {upgrading ? "Processing..." : `Subscribe with RevenueCat (Test)`}
+                  {upgrading ? "Processing..." : `Subscribe ${plan.price}`}
                 </Button>
               </div>
             ))}

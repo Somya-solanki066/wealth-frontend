@@ -3,41 +3,42 @@
 import React from "react";
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
+import { useWorld } from "@/context/WorldContext";
 
 export default function Footer() {
-  const triggerToast = (msg: string) => {
-    // Basic browser confirmation or console message for mock pages
-    console.log(`Action: ${msg}`);
-  };
+  const { config } = useWorld();
+  const tagline = config?.footerTagline || "Write It. Script It. Earn From It.";
 
   return (
-    <footer className="bg-[#0f0f0f] border-t border-[#242424] py-16 px-6 lg:px-12 relative z-20">
+    <footer className="bg-[var(--dp)] border-t border-[var(--bd)] py-16 px-6 lg:px-12 relative z-20">
       <div className="max-w-7xl mx-auto space-y-12">
-        {/* Footer Top Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 md:gap-12">
-          
-          {/* Brand Info (takes 2 columns worth of space on large screens) */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-[34px] h-[34px] bg-gradient-to-br from-[#1e1500] to-[#2e2000] border border-[#7A5E1E] rounded-lg flex items-center justify-center text-sm text-[#C9A84C]">
-                <BookOpen className="h-4 w-4 text-[#C9A84C]" />
+              <div className="w-[34px] h-[34px] bg-gradient-to-br from-[var(--bg1)] to-[var(--bg2)] border border-[var(--gm)] rounded-lg flex items-center justify-center text-sm text-[var(--gd)]">
+                {config?.icon ? (
+                  <span className="text-sm leading-none">{config.icon}</span>
+                ) : (
+                  <BookOpen className="h-4 w-4 text-[var(--gd)]" />
+                )}
               </div>
-              <span className="font-serif font-black text-lg text-[#C9A84C] tracking-wide">
+              <span className="font-serif font-black text-lg text-[var(--gd)] tracking-wide">
                 Ink2Wealth
               </span>
             </div>
-            
+
             <p className="text-xs text-[#909090] leading-relaxed max-w-sm">
-              The all-in-one platform for writers, screenwriters, and students who are serious about turning their words into wealth.
+              {config
+                ? config.footerTagline
+                : "The all-in-one platform for writers, screenwriters, and students who are serious about turning their words into wealth."}
             </p>
             <p className="text-[10px] text-[#606060] font-medium tracking-wide">
               A product of Ink2Wealth Media Limited
             </p>
           </div>
 
-          {/* Column 1: PLATFORM */}
           <div className="space-y-4">
-            <h4 className="text-[10px] font-bold tracking-widest text-[#C9A84C] uppercase">
+            <h4 className="text-[10px] font-bold tracking-widest text-[var(--gd)] uppercase">
               Platform
             </h4>
             <div className="flex flex-col gap-2.5 text-xs text-[#909090]">
@@ -56,9 +57,8 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Column 2: LEARN */}
           <div className="space-y-4">
-            <h4 className="text-[10px] font-bold tracking-widest text-[#C9A84C] uppercase">
+            <h4 className="text-[10px] font-bold tracking-widest text-[var(--gd)] uppercase">
               Learn
             </h4>
             <div className="flex flex-col gap-2.5 text-xs text-[#909090]">
@@ -80,9 +80,8 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Column 3: LEGAL */}
           <div className="space-y-4">
-            <h4 className="text-[10px] font-bold tracking-widest text-[#C9A84C] uppercase">
+            <h4 className="text-[10px] font-bold tracking-widest text-[var(--gd)] uppercase">
               Legal
             </h4>
             <div className="flex flex-col gap-2.5 text-xs text-[#909090]">
@@ -100,13 +99,11 @@ export default function Footer() {
               </Link>
             </div>
           </div>
-
         </div>
 
-        {/* Footer Bottom row */}
-        <div className="border-t border-[#242424] pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-[#606060]">
+        <div className="border-t border-[var(--bd)] pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-[#606060]">
           <p>&copy; {new Date().getFullYear()} Ink2Wealth Media Limited. All rights reserved.</p>
-          <p className="font-medium tracking-wide">Write It. Script It. Earn From It.</p>
+          <p className="font-medium tracking-wide">{tagline}</p>
         </div>
       </div>
     </footer>

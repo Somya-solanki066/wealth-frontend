@@ -47,7 +47,7 @@ export default function FileUpload({
 
       <div
         onClick={handleClick}
-        className="border-2 border-dashed border-[#242424] hover:border-[#7A5E1E] bg-[#161616] hover:bg-[#161616]/80 rounded-2xl p-6 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center space-y-3 relative group"
+        className="border-2 border-dashed border-[#242424] hover:border-[var(--gm)] bg-[#161616] hover:bg-[#161616]/80 rounded-2xl p-6 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center space-y-3 relative group"
       >
         <input
           type="file"
@@ -59,12 +59,12 @@ export default function FileUpload({
 
         {isUploading ? (
           <>
-            <Loader2 className="h-8 w-8 animate-spin text-[#C9A84C]" />
+            <Loader2 className="h-8 w-8 animate-spin text-[var(--gd)]" />
             <p className="text-xs text-[#909090]">Uploading your file...</p>
           </>
         ) : fileName ? (
           <>
-            <File className="h-8 w-8 text-[#C9A84C]" />
+            <File className="h-8 w-8 text-[var(--gd)]" />
             <div>
               <p className="text-xs font-semibold text-white">{fileName}</p>
               <p className="text-[10px] text-[#606060] mt-0.5">Click to replace file</p>
@@ -72,7 +72,7 @@ export default function FileUpload({
           </>
         ) : (
           <>
-            <Upload className="h-8 w-8 text-[#606060] group-hover:text-[#C9A84C] transition-colors" />
+            <Upload className="h-8 w-8 text-[#606060] group-hover:text-[var(--gd)] transition-colors" />
             <div>
               <p className="text-xs font-semibold text-white">Choose a file to upload</p>
               <p className="text-[10px] text-[#606060] mt-0.5">Supports format limit: max {maxSizeMB}MB</p>

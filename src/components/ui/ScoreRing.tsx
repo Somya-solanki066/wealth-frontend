@@ -31,7 +31,7 @@ export default function ScoreRing({ score, size = 80, strokeWidth = 6 }: ScoreRi
           cy={size / 2}
           r={radius}
           fill="transparent"
-          stroke="#C9A84C"
+          stroke="var(--gd)"
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={offset}
@@ -40,7 +40,7 @@ export default function ScoreRing({ score, size = 80, strokeWidth = 6 }: ScoreRi
         />
       </svg>
       {/* Percentage Center Text */}
-      <span className="absolute font-serif font-black text-sm text-[#C9A84C] select-none">
+      <span className="absolute font-serif font-black text-sm text-[var(--gd)] select-none">
         {score}%
       </span>
     </div>

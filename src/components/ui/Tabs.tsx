@@ -25,7 +25,7 @@ export default function Tabs({ items, activeKey, onChange, className = "" }: Tab
             onClick={() => onChange(item.key)}
             className={`flex-1 py-3 text-center border-b transition-all duration-150 outline-none ${
               isActive
-                ? "text-[#C9A84C] border-[#C9A84C]"
+                ? "text-[var(--gd)] border-[var(--gd)]"
                 : "border-transparent hover:text-[#F0EBE0]"
             }`}
           >

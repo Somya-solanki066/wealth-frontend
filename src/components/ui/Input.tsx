@@ -35,7 +35,7 @@ export default function Input({
         )}
         <input
           id={id}
-          className={`block w-full py-2.5 bg-[#161616] border rounded-lg text-[#F0EBE0] placeholder-[#606060] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/10 focus:border-[#7A5E1E] transition-all duration-200 text-xs ${
+          className={`block w-full py-2.5 bg-[#161616] border rounded-lg text-[#F0EBE0] placeholder-[#606060] focus:outline-none focus:ring-2 focus:ring-[var(--gd)]/10 focus:border-[var(--gm)] transition-all duration-200 text-xs ${
             leftIcon ? "pl-10" : "pl-3.5"
           } ${error ? "border-red-500/50" : "border-[#242424]"} ${className}`}
           {...props}
