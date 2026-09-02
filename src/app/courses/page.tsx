@@ -139,7 +139,7 @@ export default function CoursesPage() {
       )}
 
       {/* Main Content */}
-      <main className="flex-grow pt-[70px] pb-24">
+      <main className="flex-grow pb-24">
         
         {/* HERO SECTION */}
         <section className="relative overflow-hidden bg-radial-gradient-hero text-center py-20 px-6 border-b border-[#242424]">

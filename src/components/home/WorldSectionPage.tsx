@@ -30,7 +30,7 @@ export default function WorldSectionPage({
   return (
     <div className="worlds-home">
       <Navbar />
-      <div className="world-page" style={{ paddingTop: 120 }}>
+      <div className="world-page">
         <div className="wp-inner">
           {section === "features" && (
             <WorldFeaturesBlock world={world} bordered={false} />

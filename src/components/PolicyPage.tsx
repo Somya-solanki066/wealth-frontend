@@ -17,7 +17,7 @@ export default function PolicyPage({ pageId, defaultTitle }: PolicyPageProps) {
     <div className="min-h-screen bg-[#080808] text-[#F0EBE0] font-sans flex flex-col justify-between">
       <Navbar />
       
-      <main className="flex-grow pt-[100px] pb-24 max-w-4xl mx-auto px-6 w-full">
+      <main className="flex-grow pb-24 max-w-4xl mx-auto px-6 w-full">
         {loading ? (
           <div className="flex justify-center items-center h-64 text-[var(--gd)] animate-pulse">
             Loading...

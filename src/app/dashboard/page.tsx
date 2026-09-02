@@ -766,7 +766,7 @@ function DashboardContent() {
       <Navbar />
 
       {/* Main Layout Split Screen Area */}
-      <div className="flex-grow pt-[70px] flex relative items-stretch overflow-hidden">
+      <div className="flex-grow flex relative items-stretch overflow-hidden">
         
         {/* LEFT SIDEBAR NAVIGATION */}
         <aside className="hidden lg:flex w-64 bg-[#0f0f0f] border-r border-[#242424] flex-col shrink-0 h-full">

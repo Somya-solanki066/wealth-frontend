@@ -65,7 +65,7 @@ function SuccessContent() {
     <div className="min-h-screen bg-[#080808] text-[#F0EBE0] font-sans flex flex-col justify-between">
       <Navbar />
 
-      <main className="flex-grow pt-[120px] pb-16 flex items-center justify-center">
+      <main className="flex-grow pb-16 flex items-center justify-center">
         <div className="max-w-md w-full bg-[#161616] border border-[#242424] rounded-3xl p-8 text-center space-y-6">
           {loading || authLoading ? (
             <div className="flex flex-col items-center justify-center space-y-4 py-8">

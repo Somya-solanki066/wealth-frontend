@@ -125,7 +125,7 @@ export default function WitWebLanding() {
     <div className="min-h-screen bg-[#080808] text-[#F0EBE0] font-sans flex flex-col justify-between">
       <Navbar />
 
-      <main className="flex-grow pt-[68px] pb-24">
+      <main className="flex-grow pb-24">
         {/* HERO */}
         <div className="lp-hero">
           <div className="lp-badge">

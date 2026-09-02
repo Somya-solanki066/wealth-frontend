@@ -67,7 +67,7 @@ export default function SsgLanding() {
     <div className="min-h-screen bg-[#080808] text-[#F0EBE0] font-sans flex flex-col justify-between">
       <Navbar />
 
-      <main className="flex-grow pt-[68px] pb-24">
+      <main className="flex-grow pb-24">
         {/* HERO */}
         <div className="lp-hero" style={{ background: "radial-gradient(ellipse at 30% 30%,#1a0008,#080808)" }}>
           <div className="lp-badge" style={{ background: "rgba(224,82,82,.1)", borderColor: "rgba(224,82,82,.25)", color: "#E05252" }}>

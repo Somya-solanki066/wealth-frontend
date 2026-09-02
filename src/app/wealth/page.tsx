@@ -55,7 +55,7 @@ export default function WealthPage() {
       )}
 
       {/* Main Content */}
-      <main className="flex-grow pt-[70px] pb-16">
+      <main className="flex-grow pb-16">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 py-16 space-y-12">
           
           {/* Page Hero */}
