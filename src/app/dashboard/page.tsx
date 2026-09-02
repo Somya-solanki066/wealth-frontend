@@ -25,6 +25,7 @@ import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import Modal from "@/components/ui/Modal";
 import SmartEditSuite from "@/components/SmartEditSuite";
 import AiToolFeedback from "@/components/AiToolFeedback";
+import "@/app/home-worlds.css";
 
 import {
   Home,
@@ -111,7 +112,7 @@ function DashboardContent() {
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   // My Projects sidebar and detailed views state
-  const [isMyProjectsDropdownOpen, setIsMyProjectsDropdownOpen] = useState(true);
+  const [isMyProjectsDropdownOpen, setIsMyProjectsDropdownOpen] = useState(false);
   const [selectedViewProject, setSelectedViewProject] = useState<any | null>(null);
   const [viewProjectChapters, setViewProjectChapters] = useState<any[]>([]);
   const [isViewChaptersLoading, setIsViewChaptersLoading] = useState(false);
@@ -762,11 +763,11 @@ function DashboardContent() {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-[#080808] text-[#F0EBE0] font-sans flex flex-col">
+    <div className="dashboard-shell h-screen overflow-hidden bg-[#080808] text-[#F0EBE0] font-sans flex flex-col">
       <Navbar />
 
       {/* Main Layout Split Screen Area */}
-      <div className="flex-grow flex relative items-stretch overflow-hidden">
+      <div className="flex-grow flex relative items-stretch overflow-hidden min-h-0">
         
         {/* LEFT SIDEBAR NAVIGATION */}
         <aside className="hidden lg:flex w-64 bg-[#0f0f0f] border-r border-[#242424] flex-col shrink-0 h-full">
@@ -903,7 +904,7 @@ function DashboardContent() {
         </aside>
 
         {/* RIGHT WORKSPACE PANELS */}
-        <div className="flex-grow flex flex-col relative overflow-y-auto overflow-x-hidden h-full custom-scrollbar pb-16">
+        <div className="dashboard-scroll-main flex-grow flex flex-col relative overflow-y-auto overflow-x-hidden h-full min-h-0 custom-scrollbar pb-16">
           
           {/* Toast Notification */}
           {toastMessage && (
@@ -993,7 +994,7 @@ function DashboardContent() {
           />
 
           {/* MAIN DISPLAY CONTENT */}
-          <main className="flex-grow p-6 md:p-10 max-w-5xl w-full mx-auto">
+          <main className="flex-grow p-6 md:p-10 max-w-5xl w-full mx-auto max-lg:pt-8">
             
             {/* TAB: AI ANALYZER WORKSPACE */}
             {activeTab === "analyzer-workspace" && (
@@ -1686,26 +1687,26 @@ function DashboardContent() {
                 </div>
 
                 {/* Stats overview row */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <Card hoverable={false} className="p-5 text-center">
-                    <div className="font-serif text-3xl font-black text-[var(--gd)] mb-1">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 [&>*]:min-w-0">
+                  <Card hoverable={false} className="dashboard-stat-card p-4 sm:p-5 text-center min-w-0 overflow-hidden">
+                    <div className="dashboard-stat-value font-serif font-black text-[var(--gd)] mb-1">
                       {totalWordsWritten.toLocaleString()}
                     </div>
-                    <div className="text-[10px] text-[#606060] font-bold tracking-wider uppercase">Total Words</div>
+                    <div className="dashboard-stat-label text-[10px] text-[#606060] font-bold tracking-wider uppercase">Total Words</div>
                   </Card>
-                  <Card hoverable={false} className="p-5 text-center">
-                    <div className="font-serif text-3xl font-black text-[var(--gd)] mb-1">
+                  <Card hoverable={false} className="dashboard-stat-card p-4 sm:p-5 text-center min-w-0 overflow-hidden">
+                    <div className="dashboard-stat-value font-serif font-black text-[var(--gd)] mb-1">
                       {projects.length}
                     </div>
-                    <div className="text-[10px] text-[#606060] font-bold tracking-wider uppercase">My Projects</div>
+                    <div className="dashboard-stat-label text-[10px] text-[#606060] font-bold tracking-wider uppercase">My Projects</div>
                   </Card>
-                  <Card hoverable={false} className="p-5 text-center">
-                    <div className="font-serif text-3xl font-black text-[var(--gd)] mb-1">94%</div>
-                    <div className="text-[10px] text-[#606060] font-bold tracking-wider uppercase">AI Quality Score</div>
+                  <Card hoverable={false} className="dashboard-stat-card p-4 sm:p-5 text-center min-w-0 overflow-hidden">
+                    <div className="dashboard-stat-value font-serif font-black text-[var(--gd)] mb-1">94%</div>
+                    <div className="dashboard-stat-label text-[10px] text-[#606060] font-bold tracking-wider uppercase">AI Quality Score</div>
                   </Card>
-                  <Card hoverable={false} className="p-5 text-center">
-                    <div className="font-serif text-3xl font-black text-[var(--gd)] mb-1">₦35,000</div>
-                    <div className="text-[10px] text-[#606060] font-bold tracking-wider uppercase">Project Earnings</div>
+                  <Card hoverable={false} className="dashboard-stat-card p-4 sm:p-5 text-center min-w-0 overflow-hidden">
+                    <div className="dashboard-stat-value font-serif font-black text-[var(--gd)] mb-1">₦35,000</div>
+                    <div className="dashboard-stat-label text-[10px] text-[#606060] font-bold tracking-wider uppercase">Project Earnings</div>
                   </Card>
                 </div>
 

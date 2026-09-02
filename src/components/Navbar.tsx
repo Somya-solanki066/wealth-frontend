@@ -2,10 +2,23 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useWorld, WORLD_CONFIG, type WorldId } from "@/context/WorldContext";
-import { BookOpen, LogOut, Flame, Menu, X } from "lucide-react";
+import {
+  BookOpen,
+  LogOut,
+  Flame,
+  Menu,
+  X,
+  Home,
+  FolderKanban,
+  ChevronDown,
+  Wrench,
+  Coins,
+  GraduationCap,
+  Settings,
+} from "lucide-react";
 import Button from "@/components/ui/Button";
 import api from "@/services/api";
 import "@/app/home-worlds.css";
@@ -22,12 +35,15 @@ function NavbarContent() {
   const { world, setWorld, config, goHome } = useWorld();
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const isHome = pathname === "/";
   const isDashboard = pathname === "/dashboard";
+  const dashboardTab = isDashboard ? searchParams.get("tab") || "home" : null;
 
   // Always null on SSR + first client paint — avoids hydration mismatch with localStorage
   const [streak, setStreak] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileProjectsOpen, setMobileProjectsOpen] = useState(false);
 
   useEffect(() => {
     const cached = localStorage.getItem("writingStreak");
@@ -120,6 +136,7 @@ function NavbarContent() {
   const accentBorder = "border-[var(--gm)]";
   const accentText = "text-[var(--gd)]";
   const showWorldSwitcher = world !== "neutral" || Boolean(pathWorld);
+  const showMobileWorldBar = showWorldSwitcher && !isDashboard;
   const onWorldPage = Boolean(pathWorld);
   const currentSection = sectionFromPath();
 
@@ -131,9 +148,28 @@ function NavbarContent() {
   };
 
   const navLinkClass = (active: boolean) =>
-    `block rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
+    `mobile-nav-link rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
       active ? accentText : "text-[#909090] hover:text-[#F0EBE0] hover:bg-[#161616]"
     }`;
+
+  const isDashboardTabActive = (tab: string) => {
+    if (!isDashboard) return false;
+    if (tab === "home") return dashboardTab === "home";
+    if (tab === "novels-list") {
+      return dashboardTab === "novels-list" || dashboardTab === "view-novel";
+    }
+    if (tab === "scripts-list") {
+      return dashboardTab === "scripts-list" || dashboardTab === "view-script";
+    }
+    return dashboardTab === tab;
+  };
+
+  const isMyProjectsActive =
+    isDashboard &&
+    (dashboardTab === "novels-list" ||
+      dashboardTab === "scripts-list" ||
+      dashboardTab === "view-novel" ||
+      dashboardTab === "view-script");
 
   return (
     <>
@@ -255,20 +291,26 @@ function NavbarContent() {
             </Link>
           )}
 
-          <button
-            type="button"
-            className="mobile-menu-btn lg:hidden"
-            onClick={() => setMobileMenuOpen((open) => !open)}
-            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={mobileMenuOpen}
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          {!loading && !user ? (
+            <Link href="/login" className="mobile-nav-cta lg:hidden">
+              {navCtaLabel}
+            </Link>
+          ) : !loading && user ? (
+            <button
+              type="button"
+              className="mobile-menu-btn lg:hidden"
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          ) : null}
         </div>
       </div>
     </nav>
 
-    {showWorldSwitcher && (
+    {showMobileWorldBar && (
       <div className="mobile-world-switcher-bar lg:hidden" aria-label="Switch world">
         <div className="mobile-world-switcher-inner">
           <div className="nav-world-switcher mobile-bar-switcher">
@@ -291,11 +333,11 @@ function NavbarContent() {
     )}
 
     <div
-      className={`fixed-nav-spacer${showWorldSwitcher ? " with-world-switcher" : ""}`}
+      className={`fixed-nav-spacer${showMobileWorldBar ? " with-world-switcher" : ""}`}
       aria-hidden="true"
     />
 
-    {mobileMenuOpen && (
+    {mobileMenuOpen && user && (
       <>
         <button
           type="button"
@@ -372,6 +414,90 @@ function NavbarContent() {
             </nav>
           </div>
 
+          {!loading && user && (
+            <div className="mobile-nav-section">
+              <div className="mobile-nav-label">Workspace</div>
+              <nav className="mobile-nav-links">
+                <Link
+                  href="/dashboard"
+                  onClick={closeMobileMenu}
+                  className={navLinkClass(isDashboardTabActive("home"))}
+                >
+                  <Home className="h-4 w-4 shrink-0" />
+                  <span>Dashboard</span>
+                </Link>
+
+                <div className="mobile-nav-accordion">
+                  <button
+                    type="button"
+                    className={`mobile-nav-link mobile-nav-accordion-btn rounded-xl px-4 py-3 text-sm font-semibold transition-colors w-full ${
+                      isMyProjectsActive ? accentText : "text-[#909090] hover:text-[#F0EBE0] hover:bg-[#161616]"
+                    }`}
+                    onClick={() => setMobileProjectsOpen((open) => !open)}
+                    aria-expanded={mobileProjectsOpen}
+                  >
+                    <FolderKanban className="h-4 w-4 shrink-0" />
+                    <span className="flex-1 text-left">My Projects</span>
+                    <ChevronDown
+                      className={`h-4 w-4 shrink-0 transition-transform duration-200 ${mobileProjectsOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                  {mobileProjectsOpen && (
+                    <div className="mobile-nav-sublinks">
+                      <Link
+                        href="/dashboard?tab=novels-list"
+                        onClick={closeMobileMenu}
+                        className={navLinkClass(isDashboardTabActive("novels-list"))}
+                      >
+                        <span>Novels</span>
+                      </Link>
+                      <Link
+                        href="/dashboard?tab=scripts-list"
+                        onClick={closeMobileMenu}
+                        className={navLinkClass(isDashboardTabActive("scripts-list"))}
+                      >
+                        <span>Scripts</span>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+                <Link
+                  href="/dashboard?tab=tools"
+                  onClick={closeMobileMenu}
+                  className={navLinkClass(isDashboardTabActive("tools"))}
+                >
+                  <Wrench className="h-4 w-4 shrink-0" />
+                  <span>Quick Tools</span>
+                </Link>
+                <Link
+                  href="/dashboard?tab=wealth"
+                  onClick={closeMobileMenu}
+                  className={navLinkClass(isDashboardTabActive("wealth"))}
+                >
+                  <Coins className="h-4 w-4 shrink-0" />
+                  <span>WEALTH Engine</span>
+                </Link>
+                <Link
+                  href="/dashboard?tab=student"
+                  onClick={closeMobileMenu}
+                  className={navLinkClass(isDashboardTabActive("student"))}
+                >
+                  <GraduationCap className="h-4 w-4 shrink-0" />
+                  <span>Student Hub</span>
+                </Link>
+                <Link
+                  href="/dashboard?tab=profile"
+                  onClick={closeMobileMenu}
+                  className={navLinkClass(isDashboardTabActive("profile"))}
+                >
+                  <Settings className="h-4 w-4 shrink-0" />
+                  <span>Profile & Settings</span>
+                </Link>
+              </nav>
+            </div>
+          )}
+
           <div className="mobile-nav-actions">
             {!loading && user ? (
               <>
@@ -385,13 +511,11 @@ function NavbarContent() {
                     <span>{streak} Days Streak</span>
                   </Link>
                 )}
-                {!isDashboard && (
-                  <Link href="/dashboard" onClick={closeMobileMenu} className="w-full">
-                    <Button variant="outline" size="md" className="w-full">
-                      Dashboard
-                    </Button>
-                  </Link>
-                )}
+                <Link href="/dashboard" onClick={closeMobileMenu} className="w-full">
+                  <Button variant="outline" size="md" className="w-full">
+                    Dashboard
+                  </Button>
+                </Link>
                 <Button
                   variant="danger"
                   size="md"
