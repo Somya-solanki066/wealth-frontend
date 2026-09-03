@@ -124,7 +124,7 @@ export default function IndustryFeedPage() {
             </select>
             <button
               type="button"
-              onClick={load}
+              onClick={() => load()}
               className="rounded-xl border border-[var(--gm)] bg-[var(--gf)] px-3 py-2.5 text-xs font-bold text-[var(--gd)]"
             >
               Apply Filters
