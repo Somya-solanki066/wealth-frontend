@@ -18,7 +18,9 @@ const FALLBACK_PLATFORMS: CatalogItem[] = [
 const FALLBACK_GENRES: CatalogItem[] = [
   "Romance",
   "Werewolf",
+  "Vampire",
   "Billionaire",
+  "Urban Fiction",
   "Fantasy",
   "Urban",
   "Thriller",

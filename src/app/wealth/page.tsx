@@ -1,361 +1,332 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import {
-  Briefcase,
-  Clapperboard,
-  Feather,
-  Edit,
-  Award,
-  Users,
-  Search,
-  CheckCircle,
-  FileText,
-  Volume2,
-  Tv,
-  PenTool,
-  BookOpen,
-  DollarSign,
-  TrendingUp,
-  Globe,
-  Share2,
-  ListPlus
-} from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import WealthToolModals from "@/components/wealth/WealthToolModals";
+
+type TabId = "jobs" | "industry" | "brand" | "promo" | "publish";
+type ModalId =
+  | "blurb"
+  | "bio"
+  | "press"
+  | "pitch"
+  | "booktok"
+  | "goodreads"
+  | "reddit"
+  | "medium"
+  | "query"
+  | "social";
+
+type WealthItem = {
+  icon: string;
+  title: string;
+  desc: string;
+  toast?: string;
+  modal?: ModalId;
+  href?: string;
+};
+
+const TABS: { id: TabId; label: string }[] = [
+  { id: "jobs", label: "💼 Writing Jobs" },
+  { id: "industry", label: "🎬 Industry" },
+  { id: "brand", label: "📣 Branding" },
+  { id: "promo", label: "📱 Promotion" },
+  { id: "publish", label: "📦 Publishing" },
+];
+
+const CONTENT: Record<TabId, WealthItem[]> = {
+  jobs: [
+    {
+      icon: "📖",
+      title: "Novel Writing Jobs",
+      desc: "Browse serialized fiction writing gigs from publishers and platform managers worldwide.",
+      href: "/wealth/jobs?category=novel",
+    },
+    {
+      icon: "🎬",
+      title: "Screenwriting Jobs",
+      desc: "Find film, TV, and audio drama writing opportunities from verified production companies.",
+      href: "/wealth/jobs?category=screenwriting",
+    },
+    {
+      icon: "👻",
+      title: "Ghostwriting Jobs",
+      desc: "Write under someone else's name for premium rates. The most lucrative writing category.",
+      href: "/wealth/jobs?category=ghostwriting",
+    },
+    {
+      icon: "✍️",
+      title: "Editing Jobs",
+      desc: "Manuscript editing, proofreading, and developmental editing opportunities.",
+      href: "/wealth/jobs?category=editing",
+    },
+  ],
+  industry: [
+    {
+      icon: "🎯",
+      title: "Open Calls",
+      desc: "Directors and producers post open calls for scripts, stories, and creative collaborations.",
+      href: "/wealth/industry",
+    },
+    {
+      icon: "📋",
+      title: "Post a Listing",
+      desc: "Are you a director or producer? Post your open call and find writers who match your vision.",
+      href: "/wealth/industry/post",
+    },
+  ],
+  brand: [
+    {
+      icon: "📖",
+      title: "Book Blurb Writer",
+      desc: "AI writes your back cover description and Amazon listing that actually sells.",
+      modal: "blurb",
+    },
+    {
+      icon: "🖊️",
+      title: "Author Bio Generator",
+      desc: "Short, medium, and long professional bios for all platforms and press kits.",
+      modal: "bio",
+    },
+    {
+      icon: "📰",
+      title: "Press Release Writer",
+      desc: "Professional press releases for book launches, milestones, and publishing deals.",
+      modal: "press",
+    },
+    {
+      icon: "📊",
+      title: "Pitch Deck Builder",
+      desc: "Build a professional pitch deck for publishers, producers, and streaming platforms.",
+      modal: "pitch",
+    },
+  ],
+  promo: [
+    {
+      icon: "🎵",
+      title: "TikTok #BookTok Strategy",
+      desc: "Hook scripts, posting schedule, content ideas, and trending hashtags to grow your readership.",
+      modal: "booktok",
+    },
+    {
+      icon: "📚",
+      title: "Goodreads Promotion",
+      desc: "4-step strategy — author page, giveaways, reading lists, and groups to reach 150 million readers.",
+      modal: "goodreads",
+    },
+    {
+      icon: "🔴",
+      title: "Reddit Book Promotion",
+      desc: "Best subreddits, how to post correctly, and a high-converting post format template.",
+      modal: "reddit",
+    },
+    {
+      icon: "✍️",
+      title: "Medium Strategy",
+      desc: "Drive readers from articles to your novels with a proven content-to-fiction traffic loop.",
+      modal: "medium",
+    },
+  ],
+  publish: [
+    {
+      icon: "📦",
+      title: "Amazon KDP",
+      desc: "Format and publish your manuscript directly to Kindle from within the platform.",
+      href: "/wealth/publish/kdp",
+    },
+    {
+      icon: "🌍",
+      title: "Draft2Digital",
+      desc: "Wide distribution to Apple Books, Kobo, Barnes & Noble, and library systems worldwide.",
+      href: "/wealth/publish/d2d",
+    },
+    {
+      icon: "📝",
+      title: "Query Letter Builder",
+      desc: "AI builds your complete query letter, synopsis, and submission package for literary agents.",
+      modal: "query",
+    },
+    {
+      icon: "📱",
+      title: "Social Media Kit",
+      desc: "Ready-to-post content for TikTok, Instagram, Twitter, and Facebook. All platforms covered.",
+      modal: "social",
+    },
+  ],
+};
 
 export default function WealthPage() {
-  const [activeTab, setActiveTab] = useState("jobs");
+  const router = useRouter();
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<TabId>("jobs");
   const [toastMessage, setToastMessage] = useState("");
+  const [activeModal, setActiveModal] = useState<ModalId | null>(null);
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage("");
-    }, 2200);
+    window.setTimeout(() => setToastMessage(""), 2200);
   };
 
-  const tabs = [
-    { id: "jobs", label: "💼 Writing Jobs" },
-    { id: "industry", label: "🎬 Industry" },
-    { id: "brand", label: "📣 Branding" },
-    { id: "promo", label: "📱 Promotion" },
-    { id: "publish", label: "📦 Publishing" },
-  ];
+  useEffect(() => {
+    if (!activeModal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActiveModal(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [activeModal]);
+
+  const handleItem = (item: WealthItem) => {
+    if (item.href) {
+      if (!user && (item.href.startsWith("/wealth/industry") || item.href.startsWith("/wealth/jobs"))) {
+        router.push(`/login?redirectTo=${encodeURIComponent(item.href)}`);
+        return;
+      }
+      router.push(item.href);
+      return;
+    }
+    if (item.modal) {
+      if (!user) {
+        router.push(`/login?redirectTo=${encodeURIComponent("/wealth")}`);
+        return;
+      }
+      setActiveModal(item.modal);
+      return;
+    }
+    if (item.toast) triggerToast(item.toast);
+  };
 
   return (
-    <div className="min-h-screen bg-[#080808] text-[#F0EBE0] font-sans flex flex-col justify-between">
+    <div className="flex min-h-screen flex-col justify-between bg-[#080808] font-sans text-[#F0EBE0]">
       <Navbar />
 
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-[#161616] border border-[var(--gm)] text-[var(--gd)] font-semibold text-xs px-6 py-3 rounded-xl shadow-2xl transition-all duration-300">
+      {toastMessage ? (
+        <div className="pointer-events-none fixed bottom-8 left-1/2 z-[999] -translate-x-1/2 whitespace-nowrap rounded-[14px] border border-[var(--gm)] bg-[#1a1200] px-6 py-3 text-[13px] font-semibold text-[var(--gd)] shadow-2xl">
           {toastMessage}
         </div>
-      )}
+      ) : null}
 
-      {/* Main Content */}
-      <main className="flex-grow pb-16">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-16 space-y-12">
-          
-          {/* Page Hero */}
-          <div className="text-center space-y-4 max-w-3xl mx-auto">
-            <span className="text-[10px] font-bold tracking-widest text-[var(--gd)] uppercase">
+      <main className="flex-grow px-[5%] pt-6 pb-16">
+        <div className="mx-auto max-w-[1200px]">
+          <div className="px-0 pb-8 pt-10 text-center md:pb-[60px]">
+            <p className="mb-4 text-center text-[10px] font-bold uppercase tracking-[3px] text-[var(--gd)]">
               Turn Writing Into Income
-            </span>
-            <h1 className="font-serif text-4xl md:text-5xl font-black text-white">
+            </p>
+            <h1 className="mb-4 font-serif text-4xl font-black text-white md:text-[48px] md:leading-tight">
               The <span className="text-[var(--gd)]">WEALTH Engine</span>
             </h1>
-            <p className="text-[#909090] text-sm md:text-base leading-relaxed">
-              Jobs. Industry connections. Author branding. Book promotion. Publishing. Everything a writer needs to earn from their craft.
+            <p className="mx-auto max-w-[600px] text-base leading-relaxed text-[#909090] md:text-[17px]">
+              Jobs. Industry connections. Author branding. Book promotion. Publishing. Everything a
+              writer needs to earn from their craft.
             </p>
           </div>
 
-          {/* Interactive Tabs */}
-          <div className="bg-[#161616] border border-[#242424] rounded-2xl p-1 max-w-2xl mx-auto flex flex-wrap gap-1">
-            {tabs.map((tab) => (
+          <div className="mb-8 flex gap-0 overflow-x-auto rounded-[14px] border border-[#242424] bg-[#161616] p-1">
+            {TABS.map((tab) => (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 min-w-[100px] py-3 text-center text-xs font-bold rounded-xl transition-all duration-200 ${
+                className={`min-w-[120px] flex-1 rounded-[10px] px-2 py-2.5 text-center text-xs font-semibold transition-all duration-200 ${
                   activeTab === tab.id
-                    ? "bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] text-zinc-950 shadow"
+                    ? "bg-gradient-to-br from-[var(--gl)] to-[var(--gm)] text-[#080808]"
                     : "text-[#606060] hover:text-[#F0EBE0]"
                 }`}
               >
-                {tab.label.split(" ").slice(1).join(" ")}
+                {tab.label}
               </button>
             ))}
           </div>
 
-          {/* Tab Contents */}
-          <div className="max-w-4xl mx-auto">
-            
-            {/* JOBS CONTENT */}
-            {activeTab === "jobs" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fadeIn">
-                <div
-                  onClick={() => triggerToast("Opening Novel Writing jobs...")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <BookOpen className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">Novel Writing Gigs</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Browse serialized fiction writing gigs from publishers and platform managers worldwide.
-                    </p>
-                  </div>
-                </div>
+          {activeTab === "jobs" && user ? (
+            <div className="mb-4 flex flex-wrap gap-2">
+              <Link
+                href="/wealth/jobs"
+                className="rounded-xl border border-[var(--gm)] bg-[var(--gf)] px-3 py-1.5 text-[11px] font-bold text-[var(--gd)]"
+              >
+                Browse All Jobs
+              </Link>
+              <Link
+                href="/wealth/jobs/post"
+                className="rounded-xl border border-[#242424] px-3 py-1.5 text-[11px] font-bold text-[#909090] hover:border-[var(--gm)] hover:text-[var(--gd)]"
+              >
+                Post a Job
+              </Link>
+              <Link
+                href="/wealth/jobs/mine"
+                className="rounded-xl border border-[#242424] px-3 py-1.5 text-[11px] font-bold text-[#909090] hover:border-[var(--gm)] hover:text-[var(--gd)]"
+              >
+                My Jobs
+              </Link>
+              <Link
+                href="/wealth/applications"
+                className="rounded-xl border border-[#242424] px-3 py-1.5 text-[11px] font-bold text-[#909090] hover:border-[var(--gm)] hover:text-[var(--gd)]"
+              >
+                My Applications
+              </Link>
+            </div>
+          ) : null}
 
-                <div
-                  onClick={() => triggerToast("Opening Screenwriting jobs...")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <Clapperboard className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">Screenwriting Jobs</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Find film, TV, and audio drama writing opportunities from verified production companies.
-                    </p>
-                  </div>
-                </div>
+          {activeTab === "industry" && user ? (
+            <div className="mb-4 flex flex-wrap gap-2">
+              <Link
+                href="/wealth/industry"
+                className="rounded-xl border border-[var(--gm)] bg-[var(--gf)] px-3 py-1.5 text-[11px] font-bold text-[var(--gd)]"
+              >
+                Browse Open Calls
+              </Link>
+              <Link
+                href="/wealth/industry/post"
+                className="rounded-xl border border-[#242424] px-3 py-1.5 text-[11px] font-bold text-[#909090] hover:border-[var(--gm)] hover:text-[var(--gd)]"
+              >
+                Post a Listing
+              </Link>
+              <Link
+                href="/wealth/industry/mine"
+                className="rounded-xl border border-[#242424] px-3 py-1.5 text-[11px] font-bold text-[#909090] hover:border-[var(--gm)] hover:text-[var(--gd)]"
+              >
+                My Listings
+              </Link>
+              <Link
+                href="/wealth/pitches"
+                className="rounded-xl border border-[#242424] px-3 py-1.5 text-[11px] font-bold text-[#909090] hover:border-[var(--gm)] hover:text-[var(--gd)]"
+              >
+                My Pitches
+              </Link>
+            </div>
+          ) : null}
 
-                <div
-                  onClick={() => triggerToast("Opening Ghostwriting jobs...")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <PenTool className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">Ghostwriting Contracts</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Write under someone else&apos;s name for premium rates. The most lucrative writing category.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => triggerToast("Opening Editing jobs...")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <Edit className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">Proofreading & Editing</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Manuscript editing, proofreading, and developmental editing opportunities.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* INDUSTRY CONTENT */}
-            {activeTab === "industry" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fadeIn">
-                <div
-                  onClick={() => triggerToast("Opening Industry Open Calls...")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <Award className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">Open Calls</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Directors and producers post open calls for scripts, stories, and creative collaborations.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => triggerToast("Opening Post a Listing form...")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <ListPlus className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">Post a Listing</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Are you a director or producer? Post your open call and find writers who match your vision.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* BRANDING CONTENT */}
-            {activeTab === "brand" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fadeIn">
-                <div
-                  onClick={() => triggerToast("Book Blurb Writer is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <BookOpen className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">Book Blurb Writer</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      AI writes your back cover description and Amazon listing that actually sells.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => triggerToast("Author Bio Generator is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <PenTool className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">Author Bio Generator</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Short, medium, and long professional bios for all platforms and press kits.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => triggerToast("Press Release Writer is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <FileText className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">Press Release Writer</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Professional press releases for book launches, milestones, and publishing deals.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => triggerToast("Pitch Deck Builder is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <TrendingUp className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">Pitch Deck Builder</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Build a professional pitch deck for publishers, producers, and streaming platforms.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* PROMOTION CONTENT */}
-            {activeTab === "promo" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fadeIn">
-                <div
-                  onClick={() => triggerToast("TikTok Strategy is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <Volume2 className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">TikTok #BookTok Strategy</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Hook scripts, posting schedule, content ideas, and trending hashtags to grow your readership.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => triggerToast("Goodreads Strategy is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <BookOpen className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">Goodreads Promotion</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      4-step strategy — author page, giveaways, reading lists, and groups to reach readers.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => triggerToast("Reddit Strategy is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <Share2 className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">Reddit Book Promotion</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Best subreddits, how to post correctly, and a high-converting post format template.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => triggerToast("Medium Strategy is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <Feather className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">Medium Traffic Loop</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Drive readers from articles to your novels with a proven content-to-fiction traffic loop.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* PUBLISHING CONTENT */}
-            {activeTab === "publish" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fadeIn">
-                <div
-                  onClick={() => triggerToast("Amazon KDP integration is coming soon!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <Globe className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">Amazon KDP</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Format and publish your manuscript directly to Kindle from within the platform.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => triggerToast("Draft2Digital integration is coming soon!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <Globe className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">Draft2Digital</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Wide distribution to Apple Books, Kobo, Barnes & Noble, and library systems worldwide.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => triggerToast("Query Letter Builder is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <FileText className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">Query Letter Builder</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      AI builds your complete query letter, synopsis, and submission package for literary agents.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => triggerToast("Social Media Kit is available in the Dashboard!")}
-                  className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-2xl p-6 flex gap-4 items-start cursor-pointer transition-all duration-200"
-                >
-                  <Share2 className="h-7 w-7 text-[var(--gd)] shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white mb-1">Social Media Kit</h4>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Ready-to-post content for TikTok, Instagram, Twitter, and Facebook. All platforms covered.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {CONTENT[activeTab].map((item) => (
+              <button
+                key={item.title}
+                type="button"
+                onClick={() => handleItem(item)}
+                className="flex items-start gap-3.5 rounded-2xl border border-[#242424] bg-[#1c1c1c] p-5 text-left transition-all duration-200 hover:border-[var(--gm)]"
+              >
+                <span className="shrink-0 text-[28px] leading-none">{item.icon}</span>
+                <span>
+                  <span className="mb-1 block text-[15px] font-bold text-white">{item.title}</span>
+                  <span className="block text-xs leading-relaxed text-[#606060]">{item.desc}</span>
+                </span>
+              </button>
+            ))}
           </div>
-
         </div>
       </main>
 
-      {/* Footer */}
+      {activeModal ? (
+        <WealthToolModals
+          activeModal={activeModal}
+          onClose={() => setActiveModal(null)}
+          onToast={triggerToast}
+        />
+      ) : null}
+
       <Footer />
     </div>
   );

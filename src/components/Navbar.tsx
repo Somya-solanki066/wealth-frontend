@@ -7,13 +7,12 @@ import { useAuth } from "@/context/AuthContext";
 import { useWorld, WORLD_CONFIG, type WorldId } from "@/context/WorldContext";
 import {
   BookOpen,
+  Clapperboard,
   LogOut,
   Flame,
   Menu,
   X,
   Home,
-  FolderKanban,
-  ChevronDown,
   Wrench,
   Coins,
   GraduationCap,
@@ -26,7 +25,7 @@ import "@/app/home-worlds.css";
 function worldFromPath(pathname: string): Exclude<WorldId, "neutral"> | null {
   if (pathname.startsWith("/screenwriter")) return "screenwriter";
   if (pathname.startsWith("/student/")) return "student";
-  if (pathname.startsWith("/writer")) return "writer";
+  if (pathname.startsWith("/writer") || pathname === "/wealth") return "writer";
   return null;
 }
 
@@ -43,7 +42,6 @@ function NavbarContent() {
   // Always null on SSR + first client paint — avoids hydration mismatch with localStorage
   const [streak, setStreak] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileProjectsOpen, setMobileProjectsOpen] = useState(false);
 
   useEffect(() => {
     const cached = localStorage.getItem("writingStreak");
@@ -154,22 +152,31 @@ function NavbarContent() {
 
   const isDashboardTabActive = (tab: string) => {
     if (!isDashboard) return false;
-    if (tab === "home") return dashboardTab === "home";
+    if (tab === "home") return !dashboardTab || dashboardTab === "home";
     if (tab === "novels-list") {
-      return dashboardTab === "novels-list" || dashboardTab === "view-novel";
+      return (
+        dashboardTab === "novels-list" ||
+        dashboardTab === "view-novel" ||
+        dashboardTab === "novel"
+      );
     }
     if (tab === "scripts-list") {
-      return dashboardTab === "scripts-list" || dashboardTab === "view-script";
+      return (
+        dashboardTab === "scripts-list" ||
+        dashboardTab === "view-script" ||
+        dashboardTab === "script"
+      );
+    }
+    if (tab === "tools") {
+      return (
+        dashboardTab === "tools" ||
+        dashboardTab === "ghost-writer" ||
+        dashboardTab === "smart-edit" ||
+        dashboardTab === "analyzer-workspace"
+      );
     }
     return dashboardTab === tab;
   };
-
-  const isMyProjectsActive =
-    isDashboard &&
-    (dashboardTab === "novels-list" ||
-      dashboardTab === "scripts-list" ||
-      dashboardTab === "view-novel" ||
-      dashboardTab === "view-script");
 
   return (
     <>
@@ -224,6 +231,17 @@ function NavbarContent() {
           >
             Courses
           </Link>
+          {activeWorld === "writer" && (
+            <Link
+              href="/wealth"
+              onClick={() => setWorld("writer")}
+              className={`text-[13px] font-medium transition-colors ${
+                pathname === "/wealth" ? accentText : "text-[#606060] hover:text-[#F0EBE0]"
+              }`}
+            >
+              WEALTH
+            </Link>
+          )}
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
@@ -411,6 +429,15 @@ function NavbarContent() {
               >
                 Courses
               </Link>
+              {activeWorld === "writer" && (
+                <Link
+                  href="/wealth"
+                  onClick={() => { setWorld("writer"); closeMobileMenu(); }}
+                  className={navLinkClass(pathname === "/wealth")}
+                >
+                  WEALTH
+                </Link>
+              )}
             </nav>
           </div>
 
@@ -427,40 +454,23 @@ function NavbarContent() {
                   <span>Dashboard</span>
                 </Link>
 
-                <div className="mobile-nav-accordion">
-                  <button
-                    type="button"
-                    className={`mobile-nav-link mobile-nav-accordion-btn rounded-xl px-4 py-3 text-sm font-semibold transition-colors w-full ${
-                      isMyProjectsActive ? accentText : "text-[#909090] hover:text-[#F0EBE0] hover:bg-[#161616]"
-                    }`}
-                    onClick={() => setMobileProjectsOpen((open) => !open)}
-                    aria-expanded={mobileProjectsOpen}
-                  >
-                    <FolderKanban className="h-4 w-4 shrink-0" />
-                    <span className="flex-1 text-left">My Projects</span>
-                    <ChevronDown
-                      className={`h-4 w-4 shrink-0 transition-transform duration-200 ${mobileProjectsOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
-                  {mobileProjectsOpen && (
-                    <div className="mobile-nav-sublinks">
-                      <Link
-                        href="/dashboard?tab=novels-list"
-                        onClick={closeMobileMenu}
-                        className={navLinkClass(isDashboardTabActive("novels-list"))}
-                      >
-                        <span>Novels</span>
-                      </Link>
-                      <Link
-                        href="/dashboard?tab=scripts-list"
-                        onClick={closeMobileMenu}
-                        className={navLinkClass(isDashboardTabActive("scripts-list"))}
-                      >
-                        <span>Scripts</span>
-                      </Link>
-                    </div>
-                  )}
-                </div>
+                <Link
+                  href="/dashboard?tab=novels-list"
+                  onClick={closeMobileMenu}
+                  className={navLinkClass(isDashboardTabActive("novels-list"))}
+                >
+                  <BookOpen className="h-4 w-4 shrink-0" />
+                  <span>Novels</span>
+                </Link>
+
+                <Link
+                  href="/dashboard?tab=scripts-list"
+                  onClick={closeMobileMenu}
+                  className={navLinkClass(isDashboardTabActive("scripts-list"))}
+                >
+                  <Clapperboard className="h-4 w-4 shrink-0" />
+                  <span>Scripts</span>
+                </Link>
 
                 <Link
                   href="/dashboard?tab=tools"

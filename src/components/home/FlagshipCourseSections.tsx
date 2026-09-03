@@ -1,55 +1,30 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
+import { useLandingCourses } from "@/hooks/useLandingCourses";
+import {
+  type LandingCourse,
+  type LandingCourseId,
+} from "@/lib/landingCoursesDefaults";
+import type { WorldFlagshipCourse } from "@/lib/worldCoursesDefaults";
 
-type CourseVariant = "witweb" | "ssg";
+type CourseVariant = LandingCourseId;
+type CourseContent = LandingCourse | WorldFlagshipCourse;
 
-const WITWEB_LEARN = [
-  {
-    icon: "📖",
-    title: "How Each Platform Works",
-    desc: "What PocketFM, Dreame, GoodNovel, WebNovel and 5 more platforms specifically want.",
-  },
-  {
-    icon: "🎯",
-    title: "Chapters That Convert",
-    desc: "Hooks, tension, and cliffhangers that make readers pay to unlock every time.",
-  },
-  {
-    icon: "📝",
-    title: "Platform Submission and Contracts",
-    desc: "Exact steps to submit, what editors want, and how to negotiate your contract.",
-  },
-  {
-    icon: "💰",
-    title: "Earning Consistently",
-    desc: "How payment works on each platform and how to build a sustainable writing income.",
-  },
-];
-
-const SSG_LEARN = [
-  {
-    icon: "📄",
-    title: "Industry-Standard Formatting",
-    desc: "Scene headings, action lines, dialogue, parentheticals — the Hollywood standard done correctly.",
-  },
-  {
-    icon: "🎬",
-    title: "Feature Film Structure",
-    desc: "Three-act structure, character arcs, plot points, and the all-is-lost moment.",
-  },
-  {
-    icon: "📺",
-    title: "TV Series and Audio Drama",
-    desc: "Pilot structure, series bible, and writing specifically for Nollywood and audio platforms.",
-  },
-  {
-    icon: "🤝",
-    title: "Getting Your Script Noticed",
-    desc: "Query letters, pitch decks, competitions, networking with producers and directors.",
-  },
-];
+function resolveMediaUrl(url: string): string {
+  if (!url) return "";
+  if (url.startsWith("/")) return url;
+  try {
+    const parsed = new URL(url);
+    if (parsed.pathname.startsWith("/uploads/")) {
+      return parsed.pathname;
+    }
+  } catch {
+    // keep as-is
+  }
+  return url;
+}
 
 function AlsoFromDivider({ subtitle }: { subtitle: string }) {
   return (
@@ -65,76 +40,58 @@ function AlsoFromDivider({ subtitle }: { subtitle: string }) {
   );
 }
 
-function FlagshipCourseBlock({ variant }: { variant: CourseVariant }) {
-  const isWitweb = variant === "witweb";
+function FlagshipCourseBlock({ course }: { course: CourseContent }) {
+  const tags = course.tags || [];
+  const learnPoints = course.learnPoints || [];
 
   return (
     <section className="flagship-course-section">
-      <span className="sec-label">Flagship Course</span>
-      <h2 className="sec-h2">{isWitweb ? "WIT-WEB Academy" : "SSG Blueprint"}</h2>
+      <span className="sec-label">{course.sectionLabel}</span>
+      <h2 className="sec-h2">{course.title}</h2>
       <div className="flagship-course-grid">
         <div className="flagship-course-card">
           <div
             className="flagship-course-banner"
-            style={{
-              background: isWitweb
-                ? "linear-gradient(135deg,#1a1200,#2e2000)"
-                : "linear-gradient(135deg,#1a0006,#2e0010)",
-            }}
+            style={{ background: course.bannerGradient }}
           >
-            {isWitweb ? "📖" : "🎬"}
+            {course.bannerEmoji}
           </div>
           <div className="flagship-course-body">
-            <div className="flagship-course-kicker">
-              {isWitweb ? "WIT-WEB Academy" : "SSG Blueprint"}
-            </div>
-            <div className="flagship-course-name">
-              {isWitweb
-                ? "Webnoveling Ink to Wealth Blueprint"
-                : "Scriptwriting and Screenwriting Guide"}
-            </div>
-            <div className="flagship-course-desc">
-              {isWitweb
-                ? "The complete guide to writing, publishing, and earning from serialized fiction on all 9 major platforms. Real editor standards. Real income strategies."
-                : "Master screenplay and script writing from concept to final draft. Feature films, TV series, audio drama — and how to get your script into the right hands."}
-            </div>
+            <div className="flagship-course-kicker">{course.kicker}</div>
+            <div className="flagship-course-name">{course.courseName}</div>
+            <div className="flagship-course-desc">{course.description}</div>
             <div className="flagship-course-tags">
-              {isWitweb ? (
-                <>
-                  <span className="flagship-tag">12 Modules</span>
-                  <span className="flagship-tag">48 Lessons</span>
-                  <span className="flagship-tag">9 Platforms</span>
-                  <span className="flagship-tag flagship-tag-green">Lifetime Access</span>
-                </>
-              ) : (
-                <>
-                  <span className="flagship-tag">10 Modules</span>
-                  <span className="flagship-tag">40 Lessons</span>
-                  <span className="flagship-tag">Film + TV + Audio</span>
-                  <span className="flagship-tag flagship-tag-green">Lifetime Access</span>
-                </>
-              )}
+              {tags.map((tag, index) => (
+                <span
+                  key={`${tag}-${index}`}
+                  className={`flagship-tag${
+                    /lifetime/i.test(tag) ? " flagship-tag-green" : ""
+                  }`}
+                >
+                  {tag}
+                </span>
+              ))}
             </div>
             <Link
-              href={isWitweb ? "/witweb-landing" : "/ssg-landing"}
+              href={course.primaryCtaHref || "#"}
               className="btn-world-primary flagship-enroll-btn"
             >
-              {isWitweb ? "Enroll Now — ₦35,000" : "Enroll Now — ₦30,000"}
+              {course.primaryCtaLabel}
             </Link>
             <Link
-              href={isWitweb ? "/witweb-landing" : "/ssg-landing"}
+              href={course.secondaryCtaHref || "#"}
               className="btn-world-secondary flagship-enroll-btn"
             >
-              {isWitweb ? "Get Bundle with App — ₦55,000" : "Get Both Courses — ₦55,000"}
+              {course.secondaryCtaLabel}
             </Link>
           </div>
         </div>
 
         <div className="flagship-learn-col">
-          <div className="flagship-learn-title">What You Will Learn</div>
+          <div className="flagship-learn-title">{course.learnHeading}</div>
           <div className="flagship-learn-list">
-            {(isWitweb ? WITWEB_LEARN : SSG_LEARN).map((item) => (
-              <div key={item.title} className="flagship-learn-item">
+            {learnPoints.map((item, index) => (
+              <div key={`${item.title}-${index}`} className="flagship-learn-item">
                 <div className="flagship-learn-icon">{item.icon}</div>
                 <div>
                   <div className="flagship-learn-item-title">{item.title}</div>
@@ -144,14 +101,26 @@ function FlagshipCourseBlock({ variant }: { variant: CourseVariant }) {
             ))}
           </div>
           <div className="flagship-creator-card">
-            <div className="flagship-creator-avatar">👨‍🏫</div>
+            <div className="flagship-creator-avatar">
+              {course.coachPhotoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={resolveMediaUrl(course.coachPhotoUrl)}
+                  alt={course.coachName}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: "50%",
+                  }}
+                />
+              ) : (
+                course.coachPhotoEmoji || "👨‍🏫"
+              )}
+            </div>
             <div>
-              <div className="flagship-creator-name">Victor Daniels — Course Creator</div>
-              <div className="flagship-creator-desc">
-                {isWitweb
-                  ? "Teaching from live publishing experience on PocketFM, Dreame, GoodNovel and more. Real contracts. Real editors. Real income."
-                  : "Teaching screenwriting from professional experience. Nollywood, Hollywood and audio drama industry knowledge built into every lesson."}
-              </div>
+              <div className="flagship-creator-name">{course.miniCreatorLabel}</div>
+              <div className="flagship-creator-desc">{course.miniCreatorBio}</div>
             </div>
           </div>
         </div>
@@ -160,70 +129,69 @@ function FlagshipCourseBlock({ variant }: { variant: CourseVariant }) {
   );
 }
 
-function CoachVictorBlock({
-  variant,
-  onYouTube,
-}: {
-  variant: CourseVariant;
-  onYouTube: () => void;
-}) {
-  const isWitweb = variant === "witweb";
+function CoachVictorBlock({ course }: { course: CourseContent }) {
+  const photoUrl = resolveMediaUrl(course.coachPhotoUrl || "");
+  const stats = course.stats || [];
+
+  const openYouTube = () => {
+    const url = course.youtubeUrl?.trim();
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    const handle = (course.youtubeHandle || "").replace(/^@/, "");
+    if (handle) {
+      window.open(`https://www.youtube.com/@${handle}`, "_blank", "noopener,noreferrer");
+    }
+  };
 
   return (
     <section className="coach-victor-section">
-      <span className="sec-label">Your Coach</span>
-      <h2 className="sec-h2">Meet Coach Victor Daniels</h2>
+      <span className="sec-label">{course.coachSectionLabel}</span>
+      <h2 className="sec-h2">{course.coachHeading}</h2>
       <div className="coach-victor-card">
         <div
           className="coach-victor-avatar"
-          style={{
-            background: isWitweb
-              ? "linear-gradient(135deg,#1e1500,#2a1e00)"
-              : "linear-gradient(135deg,#1a0006,#2a0010)",
-          }}
+          style={{ background: course.coachAvatarGradient }}
         >
-          👨‍🏫
+          {photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={photoUrl}
+              alt={course.coachName}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                borderRadius: "50%",
+              }}
+            />
+          ) : (
+            course.coachPhotoEmoji || "👨‍🏫"
+          )}
         </div>
         <div className="coach-victor-content">
-          <div className="coach-victor-name">Victor Daniels</div>
-          <div className="coach-victor-role">
-            {isWitweb
-              ? "Serialized Fiction Expert · Writing Coach · Founder, Ink2Wealth Media Limited"
-              : "Screenwriter · Coach · Founder, Ink2Wealth Media Limited"}
-          </div>
-          <div className="coach-victor-bio">
-            {isWitweb
-              ? "Contracted author on PocketFM, Dreame, and GoodNovel. Founder of WIT-WEB Academy and coach to 2,400+ writers worldwide. Everything he teaches comes from live publishing experience — real contracts, real editors, real income."
-              : "Screenwriter, writing coach and founder of SSG Blueprint. Teaches from professional experience across Nollywood, Hollywood format standards, and audio drama for platforms like PocketFM. Everything in the course is industry-tested."}
-          </div>
+          <div className="coach-victor-name">{course.coachName}</div>
+          <div className="coach-victor-role">{course.coachRole}</div>
+          <div className="coach-victor-bio">{course.coachBio}</div>
           <div className="coach-victor-stats">
-            <div>
-              <div className="coach-victor-stat-num">2,400+</div>
-              <div className="coach-victor-stat-lbl">Writers Coached</div>
-            </div>
-            <div>
-              <div className="coach-victor-stat-num">
-                {isWitweb ? "9" : "3"}
+            {stats.map((stat, index) => (
+              <div key={`${stat.label}-${index}`}>
+                <div className="coach-victor-stat-num">{stat.value}</div>
+                <div className="coach-victor-stat-lbl">{stat.label}</div>
               </div>
-              <div className="coach-victor-stat-lbl">
-                {isWitweb ? "Platforms Mastered" : "Script Formats Taught"}
-              </div>
-            </div>
-            <div>
-              <div className="coach-victor-stat-num">YouTube</div>
-              <div className="coach-victor-stat-lbl">@CoachVictorDaniels</div>
-            </div>
+            ))}
           </div>
           <div className="coach-victor-actions">
             <Link
-              href={isWitweb ? "/witweb-landing" : "/ssg-landing"}
+              href={course.coachEnrollHref || "#"}
               className="btn-world-primary"
               style={{ textDecoration: "none", display: "inline-block" }}
             >
-              {isWitweb ? "Enroll in WIT-WEB →" : "Enroll in SSG Blueprint →"}
+              {course.coachEnrollLabel}
             </Link>
-            <button type="button" className="btn-world-secondary" onClick={onYouTube}>
-              ▶️ YouTube Channel
+            <button type="button" className="btn-world-secondary" onClick={openYouTube}>
+              {course.coachYoutubeButtonLabel || "▶️ YouTube Channel"}
             </button>
           </div>
         </div>
@@ -232,60 +200,53 @@ function CoachVictorBlock({
   );
 }
 
+/** Render a list of full course + coach sections (world courses CMS). */
+export function FlagshipCoursesList({
+  courses,
+}: {
+  courses: WorldFlagshipCourse[];
+}) {
+  if (!courses?.length) return null;
+
+  return (
+    <div className="flagship-stack">
+      {courses.map((course) => (
+        <div key={course.id} className="flagship-stack-block">
+          <AlsoFromDivider subtitle={course.dividerSubtitle} />
+          <div className="flagship-stack-inner">
+            <FlagshipCourseBlock course={course} />
+            <CoachVictorBlock course={course} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function FlagshipCourseStack({
   variant,
 }: {
   variant: CourseVariant | "both";
 }) {
-  const [toast, setToast] = useState("");
-
-  const showYouTube = () => {
-    setToast("Opening YouTube — @CoachVictorDaniels!");
-    setTimeout(() => setToast(""), 2200);
-  };
+  const { courses } = useLandingCourses();
 
   const stacks: CourseVariant[] =
     variant === "both" ? ["witweb", "ssg"] : [variant];
 
   return (
     <div className="flagship-stack">
-      {stacks.map((v, idx) => (
-        <div key={v} className="flagship-stack-block">
-          <AlsoFromDivider
-            subtitle={
-              v === "witweb"
-                ? "Go deeper with our flagship courses. Use the app to practise. Take the course to master it."
-                : "Go deeper with the SSG Blueprint course. Use the Script Editor to write. Take the course to master the craft."
-            }
-          />
-          <div className="flagship-stack-inner">
-            <FlagshipCourseBlock variant={v} />
-            <CoachVictorBlock variant={v} onYouTube={showYouTube} />
+      {stacks.map((v) => {
+        const course = courses[v];
+        return (
+          <div key={v} className="flagship-stack-block">
+            <AlsoFromDivider subtitle={course.dividerSubtitle} />
+            <div className="flagship-stack-inner">
+              <FlagshipCourseBlock course={course} />
+              <CoachVictorBlock course={course} />
+            </div>
           </div>
-        </div>
-      ))}
-
-      {toast ? (
-        <div
-          style={{
-            position: "fixed",
-            bottom: 32,
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: "var(--bg1, #161000)",
-            border: "1px solid var(--ac3, #2a1e00)",
-            borderRadius: 14,
-            padding: "12px 24px",
-            fontSize: 13,
-            color: "var(--ac, var(--gd))",
-            fontWeight: 600,
-            zIndex: 999,
-            whiteSpace: "nowrap",
-          }}
-        >
-          {toast}
-        </div>
-      ) : null}
+        );
+      })}
     </div>
   );
 }

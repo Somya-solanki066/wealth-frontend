@@ -24,8 +24,19 @@ import PaywallModal from "@/components/ui/PaywallModal";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import Modal from "@/components/ui/Modal";
 import SmartEditSuite from "@/components/SmartEditSuite";
+import GhostWriterWorkspace from "@/components/GhostWriterWorkspace";
+import StudentHubWorkspace from "@/components/StudentHubWorkspace";
 import AiToolFeedback from "@/components/AiToolFeedback";
+import ScriptEditorToolbar from "@/components/ScriptEditorToolbar";
 import "@/app/home-worlds.css";
+import "@/app/script-editor.css";
+import {
+  applyScriptElement,
+  execEditorCommand,
+  handleScriptEnter,
+  SCRIPT_ELEMENT_CLASS,
+  type ScriptElementKey,
+} from "@/lib/scriptEditor";
 
 import {
   Home,
@@ -57,12 +68,12 @@ import {
   Italic,
   Quote,
   Wrench,
-  FolderKanban,
-  ChevronDown,
   Eye,
   Edit,
   FileEdit,
-  Shield
+  Shield,
+  Ghost,
+  Pencil
 } from "lucide-react";
 import { 
   BarChart, 
@@ -84,11 +95,18 @@ function DashboardContent() {
   // Active view tab state (home, novel, script, tools, student, wealth, profile)
   const [activeTab, setActiveTab] = useState<string>("home");
 
+  const goToTab = (tab: string) => {
+    setActiveTab(tab);
+    if (tab === "home") {
+      router.push("/dashboard");
+    } else {
+      router.push(`/dashboard?tab=${encodeURIComponent(tab)}`);
+    }
+  };
+
   useEffect(() => {
     const tabParam = searchParams.get("tab");
-    if (tabParam) {
-      setActiveTab(tabParam);
-    }
+    setActiveTab(tabParam || "home");
   }, [searchParams]);
 
   useEffect(() => {
@@ -111,8 +129,7 @@ function DashboardContent() {
   const [paywallFeature, setPaywallFeature] = useState("");
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
-  // My Projects sidebar and detailed views state
-  const [isMyProjectsDropdownOpen, setIsMyProjectsDropdownOpen] = useState(false);
+  // Detailed project views state
   const [selectedViewProject, setSelectedViewProject] = useState<any | null>(null);
   const [viewProjectChapters, setViewProjectChapters] = useState<any[]>([]);
   const [isViewChaptersLoading, setIsViewChaptersLoading] = useState(false);
@@ -123,7 +140,7 @@ function DashboardContent() {
     setViewProjectChapters([]);
     setActivePreviewChapter(null);
     setIsViewChaptersLoading(true);
-    setActiveTab(proj.type === "novel" ? "view-novel" : "view-script");
+    goToTab(proj.type === "novel" ? "view-novel" : "view-script");
     try {
       const response = await api.get(`/projects/${proj.id}/chapters`);
       const chaptersList = response.data || [];
@@ -152,6 +169,13 @@ function DashboardContent() {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeletingProject, setIsDeletingProject] = useState(false);
 
+  const [renameChapterTarget, setRenameChapterTarget] = useState<any | null>(null);
+  const [renameChapterTitle, setRenameChapterTitle] = useState("");
+  const [isRenamingChapter, setIsRenamingChapter] = useState(false);
+  const [deleteChapterTarget, setDeleteChapterTarget] = useState<any | null>(null);
+  const [isDeleteChapterOpen, setIsDeleteChapterOpen] = useState(false);
+  const [isDeletingChapter, setIsDeletingChapter] = useState(false);
+
   // Active project & editors state
   const [activeProject, setActiveProject] = useState<any | null>(null);
   const [chapters, setChapters] = useState<any[]>([]);
@@ -170,8 +194,19 @@ function DashboardContent() {
     : 0;
 
   // Script Editor Format Elements
-  const [scriptElement, setScriptElement] = useState("action"); // scene, action, character, dialogue, parenthetical, transition
+  const [scriptElement, setScriptElement] = useState<ScriptElementKey>("action");
   const [scriptPageCount, setScriptPageCount] = useState(1);
+
+  const normalizeScriptHtml = (html: string) => {
+    const trimmed = (html || "").trim();
+    if (!trimmed || trimmed === "<br>") {
+      return `<div class="${SCRIPT_ELEMENT_CLASS.action}" data-script-element="action"><br></div>`;
+    }
+    if (!trimmed.includes("script-el-") && !trimmed.includes("<div") && !trimmed.includes("<p")) {
+      return `<div class="${SCRIPT_ELEMENT_CLASS.action}" data-script-element="action">${trimmed}</div>`;
+    }
+    return trimmed;
+  };
 
   // Streak status states
   const [writingStreak, setWritingStreak] = useState(0);
@@ -324,7 +359,7 @@ function DashboardContent() {
         setActiveProject(null);
         setChapters([]);
         setActiveChapter(null);
-        setActiveTab("home");
+        goToTab("home");
       }
     } catch (err) {
       console.error("Failed to delete project:", err);
@@ -349,14 +384,14 @@ function DashboardContent() {
     setChapters([]);
     setActiveChapter(null);
     setIsChaptersLoading(true);
-    setActiveTab(proj.type); // Route to 'novel' or 'script' editor tab
+    goToTab(proj.type); // Route to 'novel' or 'script' editor tab
 
     try {
       const response = await api.get(`/projects/${proj.id}/chapters`);
       const chaptersList = response.data || [];
       setChapters(chaptersList);
       if (chaptersList.length > 0) {
-        handleSelectChapter(chaptersList[0]);
+        handleSelectChapter(chaptersList[0], proj.type);
       }
     } catch (err) {
       console.error("Failed to load chapters:", err);
@@ -365,12 +400,14 @@ function DashboardContent() {
     }
   };
 
-  const handleSelectChapter = (chap: any) => {
+  const handleSelectChapter = (chap: any, projectType?: string) => {
     setActiveChapter(chap);
-    setEditorContent(chap.content);
-    // Set text directly inside contentEditable container
+    const type = projectType ?? activeProject?.type;
+    const content =
+      type === "script" ? normalizeScriptHtml(chap.content || "") : chap.content || "";
+    setEditorContent(content);
     if (editorRef.current) {
-      editorRef.current.innerHTML = chap.content;
+      editorRef.current.innerHTML = content;
     }
     // Calculate page counts for script editor (approx 180 words per page in screenplay formatting)
     const wordCount = chap.wordCount || 5;
@@ -391,6 +428,77 @@ function DashboardContent() {
     } catch (err) {
       console.error("Failed to add chapter:", err);
       triggerToast("Failed to add chapter.");
+    }
+  };
+
+  const openRenameChapter = (chap: any, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setRenameChapterTarget(chap);
+    setRenameChapterTitle(chap.title || "");
+  };
+
+  const handleRenameChapter = async () => {
+    if (!activeProject || !renameChapterTarget) return;
+    const nextTitle = renameChapterTitle.trim();
+    if (!nextTitle) {
+      triggerToast("Title cannot be empty.");
+      return;
+    }
+    setIsRenamingChapter(true);
+    try {
+      await api.put(`/projects/${activeProject.id}/chapters/${renameChapterTarget.id}`, {
+        title: nextTitle,
+      });
+      setChapters((prev) =>
+        prev.map((c) => (c.id === renameChapterTarget.id ? { ...c, title: nextTitle } : c))
+      );
+      if (activeChapter?.id === renameChapterTarget.id) {
+        setActiveChapter({ ...activeChapter, title: nextTitle });
+      }
+      setViewProjectChapters((prev) =>
+        prev.map((c) => (c.id === renameChapterTarget.id ? { ...c, title: nextTitle } : c))
+      );
+      setRenameChapterTarget(null);
+      triggerToast("Chapter renamed.");
+    } catch (err) {
+      console.error("Failed to rename chapter:", err);
+      triggerToast("Failed to rename chapter.");
+    } finally {
+      setIsRenamingChapter(false);
+    }
+  };
+
+  const openDeleteChapter = (chap: any, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setDeleteChapterTarget(chap);
+    setIsDeleteChapterOpen(true);
+  };
+
+  const handleDeleteChapter = async () => {
+    if (!activeProject || !deleteChapterTarget) return;
+    setIsDeletingChapter(true);
+    try {
+      await api.delete(`/projects/${activeProject.id}/chapters/${deleteChapterTarget.id}`);
+      const remaining = chapters.filter((c) => c.id !== deleteChapterTarget.id);
+      setChapters(remaining);
+      setViewProjectChapters((prev) => prev.filter((c) => c.id !== deleteChapterTarget.id));
+      if (activeChapter?.id === deleteChapterTarget.id) {
+        if (remaining.length > 0) {
+          handleSelectChapter(remaining[0]);
+        } else {
+          setActiveChapter(null);
+          setEditorContent("");
+          if (editorRef.current) editorRef.current.innerHTML = "";
+        }
+      }
+      setIsDeleteChapterOpen(false);
+      setDeleteChapterTarget(null);
+      triggerToast("Chapter deleted.");
+    } catch (err) {
+      console.error("Failed to delete chapter:", err);
+      triggerToast("Failed to delete chapter.");
+    } finally {
+      setIsDeletingChapter(false);
     }
   };
 
@@ -446,19 +554,38 @@ function DashboardContent() {
     }
   };
 
-  // Text formatter execCommands (bold, italic, blockquote formatting inside contentEditable)
-  const execFormat = (command: string) => {
-    document.execCommand(command, false);
-    // Sync contents
+  // Text formatter execCommands (bold, italic, etc. inside contentEditable)
+  const syncEditorFromDom = () => {
     if (editorRef.current) {
       setEditorContent(editorRef.current.innerHTML);
     }
   };
 
-  const handleEditorInput = () => {
+  const execFormat = (command: string, value?: string) => {
+    execEditorCommand(command, value);
+    syncEditorFromDom();
+  };
+
+  const handleScriptElementApply = (key: ScriptElementKey) => {
+    setScriptElement(key);
     if (editorRef.current) {
-      setEditorContent(editorRef.current.innerHTML);
+      applyScriptElement(editorRef.current, key);
+      syncEditorFromDom();
     }
+  };
+
+  const handleScriptKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (editorRef.current) {
+        handleScriptEnter(editorRef.current, scriptElement);
+        syncEditorFromDom();
+      }
+    }
+  };
+
+  const handleEditorInput = () => {
+    syncEditorFromDom();
   };
 
   // Interactive AI Tools States
@@ -542,25 +669,6 @@ function DashboardContent() {
   const [isPolishing, setIsPolishing] = useState(false);
   const [polishingResult, setPolishingResult] = useState<string>("");
 
-  // Student specific generator helpers
-  const [studySubject, setStudySubject] = useState("");
-  const [studySchedule, setStudySchedule] = useState<any[] | null>(null);
-  const [isGeneratingSchedule, setIsGeneratingSchedule] = useState(false);
-
-  const [recallNotes, setRecallNotes] = useState("");
-  const [flashcards, setFlashcards] = useState<any[] | null>(null);
-  const [isGeneratingFlashcards, setIsGeneratingFlashcards] = useState(false);
-  const [revealedCardIdx, setRevealedCardIdx] = useState<number | null>(null);
-
-  const [citationUrl, setCitationUrl] = useState("");
-  const [citationFormat, setCitationFormat] = useState("APA");
-  const [isCiting, setIsCiting] = useState(false);
-  const [generatedCitation, setGeneratedCitation] = useState("");
-
-  const [essayTopic, setEssayTopic] = useState("");
-  const [isWritingEssay, setIsWritingEssay] = useState(false);
-  const [generatedEssay, setGeneratedEssay] = useState("");
-
   // Interactive WEALTH Engine states
   const [wealthSubTab, setWealthSubTab] = useState("jobs");
   const [blurbTitle, setBlurbTitle] = useState("");
@@ -631,74 +739,6 @@ function DashboardContent() {
       );
       triggerToast("Prose polished!");
     }, 1000);
-  };
-
-  const runStudyPlanner = () => {
-    if (!studySubject.trim()) {
-      triggerToast("Please enter a subject.");
-      return;
-    }
-    setIsGeneratingSchedule(true);
-    setStudySchedule(null);
-    setTimeout(() => {
-      setIsGeneratingSchedule(false);
-      setStudySchedule([
-        { day: "Day 1", task: "Review Core Definitions and Formulas" },
-        { day: "Day 2", task: "Practice Sample Questions and Active Recall" },
-        { day: "Day 3", task: "Review Weak Areas and Mock Exam Prep" }
-      ]);
-      triggerToast("Schedule generated!");
-    }, 1000);
-  };
-
-  const runFlashcardsGenerator = () => {
-    if (!recallNotes.trim()) {
-      triggerToast("Please paste some lecture notes.");
-      return;
-    }
-    setIsGeneratingFlashcards(true);
-    setFlashcards(null);
-    setRevealedCardIdx(null);
-    setTimeout(() => {
-      setIsGeneratingFlashcards(false);
-      setFlashcards([
-        { q: "What is the humiliation-to-power reveal arc?", a: "A structural pacing method where the main character overcomes early rejection to reveal hidden strength." },
-        { q: "Why are cliffhangers crucial for web serializations?", a: "They encourage continuous reads and unlock next-chapter coin microtransactions." }
-      ]);
-      triggerToast("Active recall cards built!");
-    }, 1000);
-  };
-
-  const runCitationGenerator = () => {
-    if (!citationUrl.trim()) {
-      triggerToast("Please enter a reference source link.");
-      return;
-    }
-    setIsCiting(true);
-    setGeneratedCitation("");
-    setTimeout(() => {
-      setIsCiting(false);
-      setGeneratedCitation(
-        `Daniels, V. (2026). Ink to Wealth Blueprint: Writing Serialized Fiction for Modern App Platforms. Lagos: WIT-WEB Publishing.`
-      );
-      triggerToast("Citation generated!");
-    }, 800);
-  };
-
-  const runEssayWriter = () => {
-    if (!essayTopic.trim()) {
-      triggerToast("Please enter a topic.");
-      return;
-    }
-    setIsWritingEssay(true);
-    setGeneratedEssay("");
-    setTimeout(() => {
-      setIsWritingEssay(false);
-      setGeneratedEssay(
-        `Abstract Outline & Draft:\n\nTopic: ${essayTopic}\n\n1. Introduction: Setting the thesis parameters.\n2. Methodology: Structural review of character humiliation-to-reveal arcs.\n3. Analysis: Quantitative breakdown of serialization pacing standards.\n4. Conclusion: Final findings on converting prose to recurring wealth.`
-      );
-      triggerToast("Essay draft complete!");
-    }, 1200);
   };
 
   const runBlurbGenerator = () => {
@@ -813,7 +853,7 @@ function DashboardContent() {
           {/* Navigation Items */}
           <div className="px-3 flex-grow space-y-0.5 text-xs mt-3 overflow-y-auto custom-scrollbar">
             <button
-              onClick={() => setActiveTab("home")}
+              onClick={() => goToTab("home")}
               className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
                 activeTab === "home" ? "bg-[var(--gd)]/10 text-[var(--gd)]" : "text-[#909090] hover:text-white"
               }`}
@@ -821,60 +861,39 @@ function DashboardContent() {
               <Home className="h-4 w-4" /> Dashboard
             </button>
 
-            {/* My Projects Collapsible Navigation */}
-            <div className="space-y-0.5">
-              <button
-                onClick={() => setIsMyProjectsDropdownOpen(!isMyProjectsDropdownOpen)}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
-                  activeTab === "novels-list" || activeTab === "scripts-list" || activeTab === "view-novel" || activeTab === "view-script"
-                    ? "bg-[var(--gd)]/10 text-[var(--gd)]"
-                    : "text-[#909090] hover:text-white"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <FolderKanban className="h-4 w-4" />
-                  <span>My Projects</span>
-                </div>
-                <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isMyProjectsDropdownOpen ? "rotate-180" : ""}`} />
-              </button>
-              
-              {isMyProjectsDropdownOpen && (
-                <div className="pl-4 pr-1 py-1 space-y-0.5 animate-fadeIn">
-                  <button
-                    onClick={() => setActiveTab("novels-list")}
-                    className={`w-full flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold text-left transition-colors ${
-                      activeTab === "novels-list" || activeTab === "view-novel"
-                        ? "text-[var(--gd)] bg-[var(--gd)]/5" 
-                        : "text-[#909090] hover:text-white hover:bg-zinc-900/40"
-                    }`}
-                  >
-                    <span>Novels</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("scripts-list")}
-                    className={`w-full flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold text-left transition-colors ${
-                      activeTab === "scripts-list" || activeTab === "view-script"
-                        ? "text-[var(--gd)] bg-[var(--gd)]/5" 
-                        : "text-[#909090] hover:text-white hover:bg-zinc-900/40"
-                    }`}
-                  >
-                    <span>Scripts</span>
-                  </button>
-                </div>
-              )}
-            </div>
+            <button
+              onClick={() => goToTab("novels-list")}
+              className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
+                activeTab === "novels-list" || activeTab === "view-novel" || activeTab === "novel"
+                  ? "bg-[var(--gd)]/10 text-[var(--gd)]"
+                  : "text-[#909090] hover:text-white"
+              }`}
+            >
+              <BookOpen className="h-4 w-4" /> Novels
+            </button>
 
             <button
-              onClick={() => setActiveTab("tools")}
+              onClick={() => goToTab("scripts-list")}
               className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
-                activeTab === "tools" ? "bg-[var(--gd)]/10 text-[var(--gd)]" : "text-[#909090] hover:text-white"
+                activeTab === "scripts-list" || activeTab === "view-script" || activeTab === "script"
+                  ? "bg-[var(--gd)]/10 text-[var(--gd)]"
+                  : "text-[#909090] hover:text-white"
+              }`}
+            >
+              <Clapperboard className="h-4 w-4" /> Scripts
+            </button>
+
+            <button
+              onClick={() => goToTab("tools")}
+              className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
+                activeTab === "tools" || activeTab === "ghost-writer" || activeTab === "smart-edit" || activeTab === "analyzer-workspace" ? "bg-[var(--gd)]/10 text-[var(--gd)]" : "text-[#909090] hover:text-white"
               }`}
             >
               <Wrench className="h-4 w-4" /> Quick Tools
             </button>
 
             <button
-              onClick={() => setActiveTab("wealth")}
+              onClick={() => goToTab("wealth")}
               className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
                 activeTab === "wealth" ? "bg-[var(--gd)]/10 text-[var(--gd)]" : "text-[#909090] hover:text-white"
               }`}
@@ -883,7 +902,7 @@ function DashboardContent() {
             </button>
 
             <button
-              onClick={() => setActiveTab("student")}
+              onClick={() => goToTab("student")}
               className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
                 activeTab === "student" ? "bg-[var(--gd)]/10 text-[var(--gd)]" : "text-[#909090] hover:text-white"
               }`}
@@ -892,7 +911,7 @@ function DashboardContent() {
             </button>
 
             <button
-              onClick={() => setActiveTab("profile")}
+              onClick={() => goToTab("profile")}
               className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
                 activeTab === "profile" ? "bg-[var(--gd)]/10 text-[var(--gd)]" : "text-[#909090] hover:text-white"
               }`}
@@ -993,6 +1012,44 @@ function DashboardContent() {
             isLoading={isDeletingProject}
           />
 
+          <ConfirmationModal
+            isOpen={isDeleteChapterOpen}
+            onClose={() => {
+              setIsDeleteChapterOpen(false);
+              setDeleteChapterTarget(null);
+            }}
+            onConfirm={handleDeleteChapter}
+            title={activeProject?.type === "script" ? "Delete Scene" : "Delete Chapter"}
+            description={`Delete "${deleteChapterTarget?.title || "this chapter"}"? This cannot be undone.`}
+            confirmText="Delete"
+            cancelText="Cancel"
+            variant="danger"
+            isLoading={isDeletingChapter}
+          />
+
+          <Modal
+            isOpen={Boolean(renameChapterTarget)}
+            onClose={() => setRenameChapterTarget(null)}
+            title={activeProject?.type === "script" ? "Rename Scene" : "Rename Chapter"}
+          >
+            <div className="space-y-4">
+              <Input
+                label="Title"
+                value={renameChapterTitle}
+                onChange={(e) => setRenameChapterTitle(e.target.value)}
+                placeholder={activeProject?.type === "script" ? "Scene 1" : "Chapter 1"}
+              />
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={() => setRenameChapterTarget(null)}>
+                  Cancel
+                </Button>
+                <Button size="sm" isLoading={isRenamingChapter} onClick={handleRenameChapter}>
+                  Save name
+                </Button>
+              </div>
+            </div>
+          </Modal>
+
           {/* MAIN DISPLAY CONTENT */}
           <main className="flex-grow p-6 md:p-10 max-w-5xl w-full mx-auto max-lg:pt-8">
             
@@ -1004,9 +1061,60 @@ function DashboardContent() {
                     <h2 className="font-serif text-2xl md:text-3xl font-black text-white">AI Chapter Analyzer</h2>
                     <p className="text-xs text-[#909090] mt-1">Verify editorial compliance against target serialization platforms.</p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => setActiveTab("tools")}>
+                  <Button variant="outline" size="sm" onClick={() => goToTab("tools")}>
                     Back to Tools
                   </Button>
+                </div>
+
+                <div className="rounded-2xl border border-[#242424] bg-gradient-to-b from-[#161000] to-[#0c0c0c] p-5 md:p-6">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--gd)] mb-4">
+                    How it works
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 xl:gap-2">
+                    {[
+                      {
+                        step: "01",
+                        title: "Pick a novel",
+                        desc: "Choose the project you want to scan from Novel Editor.",
+                      },
+                      {
+                        step: "02",
+                        title: "Open a chapter",
+                        desc: "Load the chapter text. You can still edit it before running.",
+                      },
+                      {
+                        step: "03",
+                        title: "Set platform & genre",
+                        desc: "Match PocketFM, Dreame, WebNovel and the rest — plus genre.",
+                      },
+                      {
+                        step: "04",
+                        title: "Run analysis",
+                        desc: "GPT scores hooks, pacing, conflict, emotion, and cliffhangers.",
+                      },
+                      {
+                        step: "05",
+                        title: "Fix from the report",
+                        desc: "Read the scores on the right, revise, then scan again.",
+                      },
+                    ].map((item, index) => (
+                      <div key={item.step} className="relative flex gap-3 xl:flex-col xl:gap-3">
+                        {index < 4 ? (
+                          <span
+                            className="hidden xl:block absolute top-4 left-[2.15rem] right-[-0.5rem] h-px bg-gradient-to-r from-[var(--gm)]/70 to-transparent"
+                            aria-hidden
+                          />
+                        ) : null}
+                        <div className="relative z-[1] flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--gm)] bg-[#1a1200] text-[10px] font-bold text-[var(--gd)]">
+                          {item.step}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-serif text-sm font-bold text-white">{item.title}</p>
+                          <p className="mt-1 text-[11px] leading-relaxed text-[#909090]">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -1264,7 +1372,7 @@ function DashboardContent() {
                     {/* Segmented switch toggle */}
                     <div className="flex items-center gap-1 bg-[#161616] border border-[#242424] p-1 rounded-xl shrink-0">
                       <button
-                        onClick={() => setActiveTab("novels-list")}
+                        onClick={() => goToTab("novels-list")}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${
                           (activeTab as string) === "novels-list"
                             ? "bg-[var(--gd)] text-[#080808]"
@@ -1274,7 +1382,7 @@ function DashboardContent() {
                         Novels
                       </button>
                       <button
-                        onClick={() => setActiveTab("scripts-list")}
+                        onClick={() => goToTab("scripts-list")}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${
                           (activeTab as string) === "scripts-list"
                             ? "bg-red-600 text-white"
@@ -1294,6 +1402,32 @@ function DashboardContent() {
                     >
                       <Plus className="h-4 w-4 mr-1.5 inline" /> Add Novel
                     </Button>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-[#242424] bg-gradient-to-b from-[#161000] to-[#0c0c0c] p-5 md:p-6">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--gd)] mb-4">
+                    Features
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {[
+                      "Chapter-by-chapter writing and saving",
+                      "Live word count display",
+                      "Platform selector — write for your target platform",
+                      "Auto-save to your account",
+                      "Bold, italic, quote formatting",
+                      "One-tap Chapter Analyzer integration",
+                    ].map((feature) => (
+                      <div
+                        key={feature}
+                        className="flex items-start gap-2.5 rounded-xl border border-[#242424] bg-[#0c0c0c]/80 px-3.5 py-3"
+                      >
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[var(--gm)]/60 bg-[#1a1200] text-[10px] font-bold text-[var(--gd)]">
+                          ✓
+                        </span>
+                        <p className="text-[12px] leading-snug text-[#F0EBE0]">{feature}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -1365,7 +1499,7 @@ function DashboardContent() {
                     {/* Segmented switch toggle */}
                     <div className="flex items-center gap-1 bg-[#161616] border border-[#242424] p-1 rounded-xl shrink-0">
                       <button
-                        onClick={() => setActiveTab("novels-list")}
+                        onClick={() => goToTab("novels-list")}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${
                           (activeTab as string) === "novels-list"
                             ? "bg-[var(--gd)] text-[#080808]"
@@ -1375,7 +1509,7 @@ function DashboardContent() {
                         Novels
                       </button>
                       <button
-                        onClick={() => setActiveTab("scripts-list")}
+                        onClick={() => goToTab("scripts-list")}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${
                           (activeTab as string) === "scripts-list"
                             ? "bg-red-600 text-white"
@@ -1395,6 +1529,32 @@ function DashboardContent() {
                     >
                       <Plus className="h-4 w-4 mr-1.5 inline" /> Add Script
                     </Button>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-[#242424] bg-gradient-to-b from-[#1a080c] to-[#0c0c0c] p-5 md:p-6">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-red-400 mb-4">
+                    Features
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {[
+                      "Scene-by-scene writing and saving",
+                      "Courier Prime Hollywood screenplay format",
+                      "One-tap elements — heading, action, character, dialogue",
+                      "Parentheticals, transitions, and Enter-to-next-element",
+                      "Bold, italic, color, and quote formatting",
+                      "Auto-save, live word count, and Ghost Writer save-in",
+                    ].map((feature) => (
+                      <div
+                        key={feature}
+                        className="flex items-start gap-2.5 rounded-xl border border-[#242424] bg-[#0c0c0c]/80 px-3.5 py-3"
+                      >
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-red-500/50 bg-[#2a0a10] text-[10px] font-bold text-red-400">
+                          ✓
+                        </span>
+                        <p className="text-[12px] leading-snug text-[#F0EBE0]">{feature}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -1466,7 +1626,7 @@ function DashboardContent() {
                     <h2 className="font-serif text-2xl md:text-3xl font-black text-white">{selectedViewProject.name}</h2>
                   </div>
                   <div className="flex gap-3">
-                    <Button variant="outline" size="sm" onClick={() => setActiveTab("novels-list")}>
+                    <Button variant="outline" size="sm" onClick={() => goToTab("novels-list")}>
                       Back to list
                     </Button>
                     <Button size="sm" onClick={() => handleSelectProject(selectedViewProject)}>
@@ -1564,7 +1724,7 @@ function DashboardContent() {
                     <h2 className="font-serif text-2xl md:text-3xl font-black text-white">{selectedViewProject.name}</h2>
                   </div>
                   <div className="flex gap-3">
-                    <Button variant="outline" size="sm" onClick={() => setActiveTab("scripts-list")}>
+                    <Button variant="outline" size="sm" onClick={() => goToTab("scripts-list")}>
                       Back to list
                     </Button>
                     <Button size="sm" onClick={() => handleSelectProject(selectedViewProject)}>
@@ -1667,7 +1827,7 @@ function DashboardContent() {
                       <Button onClick={() => setIsCreateOpen(true)} size="sm">
                         Create Project
                       </Button>
-                      <Button onClick={() => setActiveTab("tools")} variant="outline" size="sm">
+                      <Button onClick={() => goToTab("tools")} variant="outline" size="sm">
                         Use AI Tools
                       </Button>
                     </div>
@@ -1776,7 +1936,7 @@ function DashboardContent() {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div
-                      onClick={() => setActiveTab("tools")}
+                      onClick={() => goToTab("tools")}
                       className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-xl p-5 cursor-pointer flex gap-4 items-start transition-all"
                     >
                       <div className="w-10 h-10 rounded-lg bg-[var(--gd)]/10 border border-[var(--gm)] flex items-center justify-center text-[var(--gd)] shrink-0">
@@ -1793,7 +1953,7 @@ function DashboardContent() {
                     </div>
 
                     <div
-                      onClick={() => setActiveTab("tools")}
+                      onClick={() => goToTab("tools")}
                       className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-xl p-5 cursor-pointer flex gap-4 items-start transition-all"
                     >
                       <div className="w-10 h-10 rounded-lg bg-[var(--gd)]/10 border border-[var(--gm)] flex items-center justify-center text-[var(--gd)] shrink-0">
@@ -1833,18 +1993,41 @@ function DashboardContent() {
                         {isChaptersLoading ? (
                           <Loader size="sm" />
                         ) : chapters.map((c) => (
-                          <button
+                          <div
                             key={c.id}
-                            onClick={() => handleSelectChapter(c)}
-                            className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-colors flex justify-between items-center ${
+                            className={`group w-full px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 ${
                               activeChapter?.id === c.id
                                 ? "bg-[var(--gd)]/12 text-[var(--gd)]"
                                 : "hover:bg-[#161616] text-[#909090]"
                             }`}
                           >
-                            <span>{c.title}</span>
-                            <span className="text-[9px] text-[#606060] font-normal">{(c.wordCount || 0).toLocaleString()} w</span>
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSelectChapter(c)}
+                              className="flex-1 min-w-0 text-left flex justify-between items-center gap-2 px-1 py-0.5"
+                            >
+                              <span className="truncate">{c.title}</span>
+                              <span className="text-[9px] text-[#606060] font-normal shrink-0">
+                                {(c.wordCount || 0).toLocaleString()} w
+                              </span>
+                            </button>
+                            <button
+                              type="button"
+                              title="Rename"
+                              onClick={(e) => openRenameChapter(c, e)}
+                              className="opacity-70 hover:opacity-100 p-1 rounded hover:bg-[#242424] text-[#909090] hover:text-[var(--gd)]"
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </button>
+                            <button
+                              type="button"
+                              title="Delete"
+                              onClick={(e) => openDeleteChapter(c, e)}
+                              className="opacity-70 hover:opacity-100 p-1 rounded hover:bg-[#242424] text-[#909090] hover:text-red-400"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -1935,18 +2118,39 @@ function DashboardContent() {
                         {isChaptersLoading ? (
                           <Loader size="sm" />
                         ) : chapters.map((c) => (
-                          <button
+                          <div
                             key={c.id}
-                            onClick={() => handleSelectChapter(c)}
-                            className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-colors flex justify-between items-center ${
+                            className={`group w-full px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 ${
                               activeChapter?.id === c.id
                                 ? "bg-[var(--gd)]/12 text-[var(--gd)]"
                                 : "hover:bg-[#161616] text-[#909090]"
                             }`}
                           >
-                            <span>{c.title}</span>
-                            <span className="text-[9px] text-[#606060]">{(c.wordCount || 0).toLocaleString()} w</span>
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSelectChapter(c)}
+                              className="flex-1 min-w-0 text-left flex justify-between items-center gap-2 px-1 py-0.5"
+                            >
+                              <span className="truncate">{c.title}</span>
+                              <span className="text-[9px] text-[#606060] shrink-0">{(c.wordCount || 0).toLocaleString()} w</span>
+                            </button>
+                            <button
+                              type="button"
+                              title="Rename"
+                              onClick={(e) => openRenameChapter(c, e)}
+                              className="opacity-70 hover:opacity-100 p-1 rounded hover:bg-[#242424] text-[#909090] hover:text-[var(--gd)]"
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </button>
+                            <button
+                              type="button"
+                              title="Delete"
+                              onClick={(e) => openDeleteChapter(c, e)}
+                              className="opacity-70 hover:opacity-100 p-1 rounded hover:bg-[#242424] text-[#909090] hover:text-red-400"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -1965,39 +2169,20 @@ function DashboardContent() {
                       </div>
 
                       {/* Screenplay Formatting Toolbar */}
-                      <div className="flex items-center gap-1.5 bg-[#161616] border border-[#242424] p-1.5 rounded-lg overflow-x-auto">
-                        <span className="text-[9px] font-bold text-[#606060] uppercase px-2">Element:</span>
-                        {[
-                          { key: "scene", label: "Scene Heading" },
-                          { key: "action", label: "Action" },
-                          { key: "character", label: "Character" },
-                          { key: "dialogue", label: "Dialogue" },
-                          { key: "parenthetical", label: "Parenthetical" },
-                          { key: "transition", label: "Transition" }
-                        ].map((el) => (
-                          <button
-                            key={el.key}
-                            onClick={() => setScriptElement(el.key)}
-                            className={`px-3 py-1 rounded text-[10px] font-bold transition-all ${
-                              scriptElement === el.key
-                                ? "bg-[var(--gd)] text-zinc-950"
-                                : "bg-zinc-950 text-[#909090] hover:text-white"
-                            }`}
-                          >
-                            {el.label}
-                          </button>
-                        ))}
-                      </div>
+                      <ScriptEditorToolbar
+                        scriptElement={scriptElement}
+                        onScriptElement={handleScriptElementApply}
+                        onCommand={execFormat}
+                      />
 
                       {/* Screenplay workspace contentEditable with Courier Prime specs */}
                       <div
                         ref={editorRef}
                         contentEditable
                         onInput={handleEditorInput}
-                        className="w-full min-h-[380px] bg-[#161616] border border-[#242424] rounded-2xl p-10 outline-none focus:border-[var(--gm)] overflow-y-auto whitespace-pre-wrap font-mono select-text text-sm leading-relaxed text-[#F0EBE0] tracking-wide"
-                        // @ts-ignore
-                        placeholder="Write screenplay script..."
-                        style={{ fontFamily: "'Courier New', Courier, monospace" }}
+                        onKeyDown={handleScriptKeyDown}
+                        data-placeholder="Write screenplay script..."
+                        className="script-editor-surface w-full min-h-[380px] bg-[#161616] border border-[#242424] rounded-2xl p-6 sm:p-10 outline-none focus:border-[var(--gm)] overflow-y-auto whitespace-pre-wrap select-text text-[#F0EBE0]"
                       />
 
                       {/* Footer Metrics */}
@@ -2036,7 +2221,7 @@ function DashboardContent() {
                     <p className="text-xs text-[#909090] leading-relaxed">
                       Select your projects, select the target serialization platform, and scan compliance quality metrics including hooks, pacing, conflict, and emotion.
                     </p>
-                    <Button onClick={() => setActiveTab("analyzer-workspace")} className="w-full">
+                    <Button onClick={() => goToTab("analyzer-workspace")} className="w-full">
                       Open Analyzer Workspace
                     </Button>
                   </Card>
@@ -2051,11 +2236,26 @@ function DashboardContent() {
                       Analyze your text for grammar, pacing, repetition, and more using advanced AI.
                     </p>
                     <Button
-                      onClick={() => setActiveTab("smart-edit")}
+                      onClick={() => goToTab("smart-edit")}
                       variant="outline"
                       className="w-full"
                     >
                       Open Smart Edit Suite
+                    </Button>
+                  </Card>
+
+                  <Card className="space-y-4">
+                    <div className="flex justify-between items-center border-b border-[#242424] pb-2">
+                      <h3 className="font-serif text-sm font-bold text-[var(--gd)] flex items-center gap-1.5">
+                        <Ghost className="h-4 w-4" /> AI Ghost Writer
+                      </h3>
+                      <Badge variant="gold">PREMIUM</Badge>
+                    </div>
+                    <p className="text-xs text-[#909090] leading-relaxed">
+                      Generate a full serialized chapter or screenplay scene from your plot notes, then copy, rewrite, or save it into Novel Editor or Script Editor.
+                    </p>
+                    <Button onClick={() => goToTab("ghost-writer")} className="w-full">
+                      Open Ghost Writer
                     </Button>
                   </Card>
                 </div>
@@ -2069,156 +2269,26 @@ function DashboardContent() {
               </div>
             )}
 
-            {/* TAB 5: STUDENT TAB (INTERACTIVE HUB) */}
+            {activeTab === "ghost-writer" && (
+              <GhostWriterWorkspace
+                projects={projects}
+                initialMode={searchParams.get("mode") === "script" ? "script" : "novel"}
+                onOpenProject={handleSelectProject}
+                onProjectCreated={(proj) => setProjects((prev) => [proj, ...prev])}
+              />
+            )}
+
+            {/* TAB 5: STUDENT HUB */}
             {activeTab === "student" && (
-              <div className="space-y-8 animate-fadeIn">
-                <div>
-                  <h2 className="font-serif text-2xl font-bold text-white">Student Study Suite</h2>
-                  <p className="text-xs text-[#909090]">Use student specific formatting, generators, and recall methods.</p>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                  {/* Planner */}
-                  <Card className="space-y-4">
-                    <h3 className="font-serif text-sm font-bold text-[var(--gd)] flex items-center gap-1.5">
-                      <Calendar className="h-4 w-4" /> AI Study Schedule Planner
-                    </h3>
-                    <Input
-                      type="text"
-                      value={studySubject}
-                      onChange={(e) => setStudySubject(e.target.value)}
-                      className="bg-[#080808]"
-                      placeholder="Enter exam subject (e.g. Calculus)..."
-                    />
-                    <Button
-                      onClick={runStudyPlanner}
-                      isLoading={isGeneratingSchedule}
-                      className="w-full"
-                    >
-                      Generate Study Schedule
-                    </Button>
-
-                    {studySchedule && (
-                      <div className="bg-zinc-950 border border-[#242424] rounded-xl p-4 space-y-2 animate-fadeIn text-xs">
-                        <span className="text-[10px] text-[#606060] font-bold uppercase tracking-wider block mb-2 border-b border-[#242424] pb-1">Day-by-Day Study Schedule</span>
-                        {studySchedule.map((item, idx) => (
-                          <p key={idx} className="text-[#909090]">
-                            <span className="font-bold text-[var(--gd)]">{item.day}:</span> {item.task}
-                          </p>
-                        ))}
-                      </div>
-                    )}
-                  </Card>
-
-                  {/* Recall Flashcards */}
-                  <Card className="space-y-4">
-                    <h3 className="font-serif text-sm font-bold text-[var(--gd)] flex items-center gap-1.5">
-                      <BrainCircuit className="h-4 w-4" /> Active Recall Flashcard Generator
-                    </h3>
-                    <Textarea
-                      value={recallNotes}
-                      onChange={(e) => setRecallNotes(e.target.value)}
-                      className="min-h-[80px] bg-[#080808]"
-                      placeholder="Paste lecture notes to generate flashcards..."
-                    />
-                    <Button
-                      onClick={runFlashcardsGenerator}
-                      isLoading={isGeneratingFlashcards}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      Build Flashcards
-                    </Button>
-
-                    {flashcards && (
-                      <div className="space-y-2 animate-fadeIn text-xs">
-                        {flashcards.map((card, idx) => (
-                          <div key={idx} className="bg-zinc-950 border border-[#242424] rounded-xl p-4 space-y-2">
-                            <p className="text-white font-bold">Q: {card.q}</p>
-                            {revealedCardIdx === idx ? (
-                              <p className="text-[#52C07A] italic">A: {card.a}</p>
-                            ) : (
-                              <button
-                                onClick={() => setRevealedCardIdx(idx)}
-                                className="text-[9px] font-bold text-[var(--gd)] underline block"
-                              >
-                                Show Answer
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </Card>
-
-                  {/* Citations generator */}
-                  <Card className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-serif text-sm font-bold text-[var(--gd)] flex items-center gap-1.5">
-                        <Bookmark className="h-4 w-4" /> AI Citation Generator
-                      </h3>
-                      <Select
-                        options={[
-                          { label: "APA", value: "APA" },
-                          { label: "MLA", value: "MLA" },
-                          { label: "Chicago", value: "Chicago" }
-                        ]}
-                        value={citationFormat}
-                        onChange={(e) => setCitationFormat(e.target.value)}
-                        className="!w-24 bg-zinc-950 text-[var(--gd)] border-[#242424]"
-                      />
-                    </div>
-                    <Input
-                      type="text"
-                      value={citationUrl}
-                      onChange={(e) => setCitationUrl(e.target.value)}
-                      className="bg-[#080808]"
-                      placeholder="Enter website link, book title, or journal DOI..."
-                    />
-                    <Button
-                      onClick={runCitationGenerator}
-                      isLoading={isCiting}
-                      className="w-full"
-                    >
-                      Generate Citation
-                    </Button>
-
-                    {generatedCitation && (
-                      <div className="bg-zinc-950 border border-[#242424] rounded-xl p-4 animate-fadeIn text-xs leading-relaxed">
-                        <span className="text-[10px] text-[#606060] font-bold uppercase tracking-wider block mb-1">Generated Citation ({citationFormat})</span>
-                        <p className="text-[#52C07A] italic">{generatedCitation}</p>
-                      </div>
-                    )}
-                  </Card>
-
-                  {/* Essay & project writer */}
-                  <Card className="space-y-4">
-                    <h3 className="font-serif text-sm font-bold text-[var(--gd)] flex items-center gap-1.5">
-                      <PenTool className="h-4 w-4" /> AI Essay & Project Writer
-                    </h3>
-                    <Textarea
-                      value={essayTopic}
-                      onChange={(e) => setEssayTopic(e.target.value)}
-                      className="min-h-[80px] bg-[#080808]"
-                      placeholder="Enter essay assignment question..."
-                    />
-                    <Button
-                      onClick={runEssayWriter}
-                      isLoading={isWritingEssay}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      Write Essay Draft
-                    </Button>
-
-                    {generatedEssay && (
-                      <div className="bg-zinc-950 border border-[#242424] rounded-xl p-4 animate-fadeIn text-xs leading-relaxed">
-                        <pre className="text-[#52C07A] whitespace-pre-wrap font-sans">{generatedEssay}</pre>
-                      </div>
-                    )}
-                  </Card>
-                </div>
-              </div>
+              <StudentHubWorkspace
+                onToolChange={(tool) => {
+                  if (tool) {
+                    router.push(`/dashboard?tab=student&tool=${encodeURIComponent(tool)}`);
+                  } else {
+                    router.push("/dashboard?tab=student");
+                  }
+                }}
+              />
             )}
 
             {/* TAB 6: WEALTH TAB (INTERACTIVE HUB) */}
@@ -2250,44 +2320,75 @@ function DashboardContent() {
                 </div>
 
                 {wealthSubTab === "jobs" ? (
-                  /* JOB BOARD & INDUSTRY CALLS */
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Card className="space-y-4">
-                      <h3 className="font-serif text-sm font-bold text-white border-b border-[#242424] pb-2">Active Writing Gigs</h3>
-                      <div className="space-y-3 text-xs">
-                        <div className="bg-zinc-950 border border-[#242424] p-4 rounded-xl flex justify-between items-center">
-                          <div>
-                            <h4 className="font-bold text-white">PocketFM Romance Writer</h4>
-                            <span className="text-[10px] text-[#606060]">Payout: ₦15,000 / chapter</span>
-                          </div>
-                          <Button onClick={() => triggerToast("Application request sent!")} size="sm">
-                            Apply
-                          </Button>
-                        </div>
-
-                        <div className="bg-zinc-950 border border-[#242424] p-4 rounded-xl flex justify-between items-center">
-                          <div>
-                            <h4 className="font-bold text-white">GoodNovel Teen Fiction ghostwriter</h4>
-                            <span className="text-[10px] text-[#606060]">Payout: ₦220,000 fixed pack rate</span>
-                          </div>
-                          <Button onClick={() => triggerToast("Application request sent!")} size="sm">
-                            Apply
-                          </Button>
-                        </div>
+                      <h3 className="font-serif text-sm font-bold text-white border-b border-[#242424] pb-2">
+                        Writing Jobs Marketplace
+                      </h3>
+                      <p className="text-xs text-[#909090] leading-relaxed">
+                        Browse live gigs, apply with a cover message, or post a job for admin review.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <Button size="sm" onClick={() => router.push("/wealth/jobs")}>
+                          Browse Jobs
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => router.push("/wealth/jobs/post")}
+                        >
+                          Post a Job
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => router.push("/wealth/applications")}
+                        >
+                          My Applications
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => router.push("/wealth/jobs/mine")}
+                        >
+                          My Jobs
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 pt-2">
+                        {[
+                          { label: "Novel", href: "/wealth/jobs?category=novel" },
+                          { label: "Screenwriting", href: "/wealth/jobs?category=screenwriting" },
+                          { label: "Ghostwriting", href: "/wealth/jobs?category=ghostwriting" },
+                          { label: "Editing", href: "/wealth/jobs?category=editing" },
+                        ].map((c) => (
+                          <button
+                            key={c.href}
+                            type="button"
+                            onClick={() => router.push(c.href)}
+                            className="rounded-xl border border-[#242424] bg-zinc-950 px-3 py-2 text-left text-[11px] font-bold text-white hover:border-[var(--gm)]"
+                          >
+                            {c.label} →
+                          </button>
+                        ))}
                       </div>
                     </Card>
 
                     <Card className="space-y-4">
-                      <h3 className="font-serif text-sm font-bold text-white border-b border-[#242424] pb-2">Industry Open Calls</h3>
-                      <div className="space-y-3 text-xs">
-                        <div className="bg-zinc-950 border border-[#242424] p-4 rounded-xl">
-                          <h4 className="font-bold text-white">Lagos Film Studios</h4>
-                          <p className="text-[10px] text-[#909090] mt-1">Looking for Act I Screenplay drafts for a Nollywood TV series. Must be formatted in Courier.</p>
-                          <Button onClick={() => triggerToast("Script draft submitted to Lagos Film Studios!")} variant="outline" size="sm" className="mt-3">
-                            Submit Script
-                          </Button>
-                        </div>
-                      </div>
+                      <h3 className="font-serif text-sm font-bold text-white border-b border-[#242424] pb-2">
+                        Industry Connect
+                      </h3>
+                      <p className="text-[10px] text-[#909090] mt-1 leading-relaxed">
+                        Open calls, pitches, and producer connections ship in the next phase. Writing
+                        Jobs marketplace is live now.
+                      </p>
+                      <Button
+                        onClick={() => router.push("/wealth")}
+                        variant="outline"
+                        size="sm"
+                        className="mt-3"
+                      >
+                        Open WEALTH Hub
+                      </Button>
                     </Card>
                   </div>
                 ) : (

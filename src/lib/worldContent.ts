@@ -82,10 +82,10 @@ export const WORLD_PAGES: Record<ActiveWorld, WorldPageData> = {
     features: [
       { icon: "🔍", title: "Chapter Analyzer", desc: "Paste your chapter, select your platform. AI evaluates it the way a real PocketFM, Dreame, or GoodNovel editor would. Specific feedback. Not generic.", tag: "FREE — 3/month", link: "/dashboard?tab=analyzer-workspace" },
       { icon: "✅", title: "Smart Edit Suite", desc: "10 professional editing checks. Grammar, Passive Voice, Filler Words, Show Don't Tell, Dialogue Tags, Sentence Length, Opening Line Score and more.", tag: "3 checks FREE", link: "/dashboard?tab=smart-edit" },
-      { icon: "👻", title: "AI Ghost Writer", desc: "Tell us your characters, platform, and what should happen. AI writes a complete, platform-ready chapter — 800 to 2,000 words with a cliffhanger ending.", tag: "PREMIUM" },
+      { icon: "👻", title: "AI Ghost Writer", desc: "Tell us your characters, platform, and what should happen. AI writes a complete, platform-ready chapter — 800 to 2,000 words with a cliffhanger ending.", tag: "PREMIUM", link: "/dashboard?tab=ghost-writer" },
       { icon: "💡", title: "Writing Vault", desc: "250+ writing prompts organized by genre and trope. Fire Starters, Scene Builders, Character Voice prompts. Tap and write.", tag: "FREE" },
       { icon: "🎨", title: "Book Cover Generator", desc: "AI generates covers calibrated for your platform aesthetic. PocketFM covers look different from Dreame covers. We know the difference.", tag: "PREMIUM" },
-      { icon: "💰", title: "WEALTH Engine", desc: "Writing jobs board, author branding suite, book promotion tools, Amazon KDP and Draft2Digital publishing integration. Turn writing into income.", tag: "PREMIUM" },
+      { icon: "💰", title: "WEALTH Engine", desc: "Writing jobs board, author branding suite, book promotion tools, Amazon KDP and Draft2Digital publishing integration. Turn writing into income.", tag: "PREMIUM", link: "/wealth" },
     ],
     pricing: [
       {
@@ -165,7 +165,8 @@ export const WORLD_PAGES: Record<ActiveWorld, WorldPageData> = {
     coursesH2: "Master Script & Screenwriting",
     coursesIntro: "From concept to final draft — feature films, TV, and audio drama for Nollywood and beyond.",
     features: [
-      { icon: "📝", title: "Professional Script Editor", desc: "Courier Prime font. One-tap element switching — scene heading, action, character, dialogue, parenthetical. Hollywood standard formatting built in.", tag: "FREE" },
+      { icon: "📝", title: "Professional Script Editor", desc: "Courier Prime font. One-tap element switching — scene heading, action, character, dialogue, parenthetical. Hollywood standard formatting built in.", tag: "FREE", link: "/dashboard?tab=scripts-list" },
+      { icon: "👻", title: "AI Ghost Writer", desc: "Generate a complete screenplay scene from your characters, format, and plot beats — then save it into Script Editor.", tag: "PREMIUM", link: "/dashboard?tab=ghost-writer&mode=script" },
       { icon: "🏭", title: "Industry Hub & Open Calls", desc: "Directors and producers post open calls. Board refreshes every midnight and 7am. Filter by genre, industry, budget. Apply directly through the platform.", tag: "FREE — 3/day" },
       { icon: "🎥", title: "Short Film Showcase", desc: "Upload your short film, logline, script, and budget. Directors and producers browse, watch, and reach out. Cinema-style browsing experience.", tag: "PREMIUM" },
       { icon: "📜", title: "Script Marketplace", desc: "Upload completed scripts for sale or option. Producers preview the first 10 pages free then purchase. You earn. Ink2Wealth takes 10-15% commission.", tag: "PREMIUM" },
@@ -228,6 +229,12 @@ export const WORLD_PAGES: Record<ActiveWorld, WorldPageData> = {
       { icon: "🩺", title: "MBBS Hub", desc: "Complete 6-year programme. Pre-clinical, Para-clinical, Clinical years. Clinical scenario questions that mirror real professional exams. Not just MCQs.", tag: "FREE + PREMIUM" },
       { icon: "⚖️", title: "All Professional Courses", desc: "Law, Pharmacy, Medical Lab Science, Radiography, Physiotherapy, Dentistry, Optometry, Nutrition, Public Health, Environmental Health. All covered.", tag: "FREE + PREMIUM" },
       { icon: "📊", title: "Smart Performance Analytics", desc: "Score history. Subject breakdown. Weak area detector. Study streak. The app tells you exactly what to study today based on where you are weakest.", tag: "FREE" },
+      { icon: "🗓️", title: "Study Planner", desc: "AI generates a personalized day-by-day study schedule based on your subject and exam date.", tag: "FREE", link: "/dashboard?tab=student&tool=study-planner" },
+      { icon: "🃏", title: "Active Recall Flashcards", desc: "Paste your notes and AI generates smart question-and-answer flashcards for active recall.", tag: "FREE", link: "/dashboard?tab=student&tool=flashcards" },
+      { icon: "📄", title: "Citation Generator", desc: "APA, MLA, Harvard, Chicago, Vancouver. Books, articles, websites, YouTube videos — all covered.", tag: "FREE", link: "/dashboard?tab=student&tool=citation" },
+      { icon: "▶️", title: "Course Video Finder", desc: "Enter any topic and AI finds the best YouTube tutorials to help you master it fast.", tag: "FREE", link: "/dashboard?tab=student&tool=video-finder" },
+      { icon: "✍️", title: "Essay & Project Writer", desc: "AI writes essays, research papers, dissertations, lab reports, and case studies to your word count.", tag: "PREMIUM", link: "/dashboard?tab=student&tool=essay-writer" },
+      { icon: "🧠", title: "Exam Techniques Hub", desc: "Active Recall, Spaced Repetition, Pomodoro, Mind Mapping, Memory Palace, Feynman Technique.", tag: "FREE", link: "/dashboard?tab=student&tool=exam-techniques" },
     ],
     pricing: [
       {

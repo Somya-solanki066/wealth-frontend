@@ -53,6 +53,7 @@ export default function FeaturesPage() {
       desc: content.feat3Desc || "Give us your characters, platform, genre, and what should happen. AI writes a complete, platform-ready chapter for you — 800 to 2,000 words.",
       badge: "PREMIUM",
       badgeType: "pro",
+      link: "/dashboard?tab=ghost-writer",
     },
     {
       icon: <BookOpen className="h-9 w-9 text-[var(--gd)]" />,

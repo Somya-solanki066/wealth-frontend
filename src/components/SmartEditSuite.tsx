@@ -83,6 +83,57 @@ export default function SmartEditSuite() {
         </p>
       </div>
 
+      <div className="rounded-2xl border border-[#242424] bg-gradient-to-b from-[#161000] to-[#0c0c0c] p-5 md:p-6">
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--gd)] mb-4">
+          How it works
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 xl:gap-2">
+          {[
+            {
+              step: "01",
+              title: "Add your draft",
+              desc: "Paste a chapter or scene, or upload a DOCX, PDF, or TXT file.",
+            },
+            {
+              step: "02",
+              title: "Run Smart Edit",
+              desc: "AI scans the text for grammar, voice, fillers, verbs, pacing, and more.",
+            },
+            {
+              step: "03",
+              title: "Free vs Premium",
+              desc: "Grammar, Passive Voice, and Filler Words are free. The rest need a plan.",
+            },
+            {
+              step: "04",
+              title: "Open each check",
+              desc: "Expand a card to see the original line, the rewrite, and why it matters.",
+            },
+            {
+              step: "05",
+              title: "Apply the fixes",
+              desc: "Copy suggestions back into your draft, then run again if you want a cleaner pass.",
+            },
+          ].map((item, index) => (
+            <div key={item.step} className="relative flex gap-3 xl:flex-col xl:gap-3">
+              {index < 4 ? (
+                <span
+                  className="hidden xl:block absolute top-4 left-[2.15rem] right-[-0.5rem] h-px bg-gradient-to-r from-[var(--gm)]/70 to-transparent"
+                  aria-hidden
+                />
+              ) : null}
+              <div className="relative z-[1] flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--gm)] bg-[#1a1200] text-[10px] font-bold text-[var(--gd)]">
+                {item.step}
+              </div>
+              <div className="min-w-0">
+                <p className="font-serif text-sm font-bold text-white">{item.title}</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-[#909090]">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {!results ? (
         <div className="bg-[#161616] border border-[#242424] rounded-xl p-6 shadow-xl">
           <div className="space-y-6">
