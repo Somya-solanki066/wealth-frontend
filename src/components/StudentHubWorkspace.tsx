@@ -10,6 +10,12 @@ import {
   PenTool,
   Sparkles,
   Video,
+  BookOpen,
+  School,
+  Pill,
+  Stethoscope,
+  Scale,
+  BarChart3,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
@@ -18,8 +24,20 @@ import FlashcardsWorkspace from "@/components/FlashcardsWorkspace";
 import CitationWorkspace from "@/components/CitationWorkspace";
 import VideoFinderWorkspace from "@/components/VideoFinderWorkspace";
 import EssayWriterWorkspace from "@/components/EssayWriterWorkspace";
+import JambPracticeWorkspace from "@/components/JambPracticeWorkspace";
+import UniversityPastQuestionsWorkspace from "@/components/UniversityPastQuestionsWorkspace";
+import NursingHubWorkspace from "@/components/NursingHubWorkspace";
+import MbbsHubWorkspace from "@/components/MbbsHubWorkspace";
+import ProfessionalCoursesWorkspace from "@/components/ProfessionalCoursesWorkspace";
+import SmartPerformanceAnalyticsWorkspace from "@/components/SmartPerformanceAnalyticsWorkspace";
 
 type StudentToolId =
+  | "jamb-practice"
+  | "university-past"
+  | "nursing-hub"
+  | "mbbs-hub"
+  | "professional-courses"
+  | "performance-analytics"
   | "study-planner"
   | "flashcards"
   | "citation"
@@ -34,6 +52,48 @@ const TOOLS: {
   badge: "FREE" | "PREMIUM";
   icon: ReactNode;
 }[] = [
+  {
+    id: "jamb-practice",
+    title: "JAMB UTME Practice",
+    desc: "CBT-style past questions — timer, mark for review, question map, and instant scoring.",
+    badge: "FREE",
+    icon: <BookOpen className="h-5 w-5" />,
+  },
+  {
+    id: "university-past",
+    title: "University Past Questions",
+    desc: "20 universities. Navigate University → Faculty → Department → Course → Year. 3 years free.",
+    badge: "FREE",
+    icon: <School className="h-5 w-5" />,
+  },
+  {
+    id: "nursing-hub",
+    title: "Nursing Hub",
+    desc: "Year 1–5. MedSurg, MCH, Community Health, Mental Health, ICU, Emergency. Drug Calculation Tool built in.",
+    badge: "FREE",
+    icon: <Pill className="h-5 w-5" />,
+  },
+  {
+    id: "mbbs-hub",
+    title: "MBBS Hub",
+    desc: "6-year programme. Pre-clinical, Para-clinical, Clinical. Clinical scenario questions — not just MCQs.",
+    badge: "FREE",
+    icon: <Stethoscope className="h-5 w-5" />,
+  },
+  {
+    id: "professional-courses",
+    title: "All Professional Courses",
+    desc: "Law, Pharmacy, Med Lab Science, Radiography, Physiotherapy, Dentistry, Optometry, Nutrition, Public Health, Environmental Health.",
+    badge: "FREE",
+    icon: <Scale className="h-5 w-5" />,
+  },
+  {
+    id: "performance-analytics",
+    title: "Smart Performance Analytics",
+    desc: "Score history, subject breakdown, weak area detector, study streak — know exactly what to study today.",
+    badge: "FREE",
+    icon: <BarChart3 className="h-5 w-5" />,
+  },
   {
     id: "study-planner",
     title: "Study Planner",
@@ -180,7 +240,7 @@ export default function StudentHubWorkspace({
       <div>
         <h2 className="font-serif text-2xl font-bold text-white">Student Hub</h2>
         <p className="text-xs text-[#909090] mt-1">
-          Six study tools — five AI-powered, plus free exam techniques. Open a card to get started.
+          Nine study tools — JAMB, university past questions, nursing & MBBS hubs, planning, and exam prep.
         </p>
       </div>
 
@@ -223,6 +283,9 @@ export default function StudentHubWorkspace({
                 {activeMeta?.icon}
                 {activeMeta?.title}
               </h3>
+              {activeMeta?.desc ? (
+                <p className="text-xs text-[#909090] mt-1 max-w-2xl leading-relaxed">{activeMeta.desc}</p>
+              ) : null}
             </div>
             <Button type="button" variant="outline" size="sm" onClick={() => selectTool(null)}>
               All tools
@@ -231,6 +294,24 @@ export default function StudentHubWorkspace({
 
           {error ? <p className="text-xs text-red-400">{error}</p> : null}
 
+          {activeTool === "jamb-practice" && (
+            <JambPracticeWorkspace onBack={() => selectTool(null)} />
+          )}
+          {activeTool === "university-past" && (
+            <UniversityPastQuestionsWorkspace onBack={() => selectTool(null)} />
+          )}
+          {activeTool === "nursing-hub" && (
+            <NursingHubWorkspace onBack={() => selectTool(null)} />
+          )}
+          {activeTool === "mbbs-hub" && (
+            <MbbsHubWorkspace onBack={() => selectTool(null)} />
+          )}
+          {activeTool === "professional-courses" && (
+            <ProfessionalCoursesWorkspace onBack={() => selectTool(null)} />
+          )}
+          {activeTool === "performance-analytics" && (
+            <SmartPerformanceAnalyticsWorkspace onBack={() => selectTool(null)} />
+          )}
           {activeTool === "study-planner" && <StudyPlannerWizard />}
           {activeTool === "flashcards" && <FlashcardsWorkspace />}
           {activeTool === "citation" && <CitationWorkspace />}

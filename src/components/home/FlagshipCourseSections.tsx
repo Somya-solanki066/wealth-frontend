@@ -3,6 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { useLandingCourses } from "@/hooks/useLandingCourses";
+import CourseEnrollButton from "@/components/CourseEnrollButton";
+import { resolveCourseProductId } from "@/hooks/useCourseCheckout";
 import {
   type LandingCourse,
   type LandingCourseId,
@@ -43,6 +45,7 @@ function AlsoFromDivider({ subtitle }: { subtitle: string }) {
 function FlagshipCourseBlock({ course }: { course: CourseContent }) {
   const tags = course.tags || [];
   const learnPoints = course.learnPoints || [];
+  const checkoutId = resolveCourseProductId(course);
 
   return (
     <section className="flagship-course-section">
@@ -72,18 +75,43 @@ function FlagshipCourseBlock({ course }: { course: CourseContent }) {
                 </span>
               ))}
             </div>
-            <Link
-              href={course.primaryCtaHref || "#"}
-              className="btn-world-primary flagship-enroll-btn"
-            >
-              {course.primaryCtaLabel}
-            </Link>
-            <Link
-              href={course.secondaryCtaHref || "#"}
-              className="btn-world-secondary flagship-enroll-btn"
-            >
-              {course.secondaryCtaLabel}
-            </Link>
+            {checkoutId ? (
+              <CourseEnrollButton
+                courseId={checkoutId}
+                className="btn-world-primary flagship-enroll-btn"
+              >
+                {course.primaryCtaLabel}
+              </CourseEnrollButton>
+            ) : (
+              <Link
+                href={course.primaryCtaHref || "/courses"}
+                className="btn-world-primary flagship-enroll-btn"
+              >
+                {course.primaryCtaLabel}
+              </Link>
+            )}
+            {checkoutId === "witweb" &&
+            /bundle|₦55|55000/i.test(course.secondaryCtaLabel || "") ? (
+              <CourseEnrollButton
+                courseId="witweb-bundle"
+                className="btn-world-secondary flagship-enroll-btn"
+              >
+                {course.secondaryCtaLabel}
+              </CourseEnrollButton>
+            ) : (
+              <Link
+                href={
+                  checkoutId === "witweb"
+                    ? "/witweb-landing"
+                    : checkoutId === "ssg"
+                      ? "/ssg-landing"
+                      : course.secondaryCtaHref || "/courses"
+                }
+                className="btn-world-secondary flagship-enroll-btn"
+              >
+                {course.secondaryCtaLabel}
+              </Link>
+            )}
           </div>
         </div>
 
@@ -132,6 +160,7 @@ function FlagshipCourseBlock({ course }: { course: CourseContent }) {
 function CoachVictorBlock({ course }: { course: CourseContent }) {
   const photoUrl = resolveMediaUrl(course.coachPhotoUrl || "");
   const stats = course.stats || [];
+  const checkoutId = resolveCourseProductId(course);
 
   const openYouTube = () => {
     const url = course.youtubeUrl?.trim();
@@ -183,13 +212,23 @@ function CoachVictorBlock({ course }: { course: CourseContent }) {
             ))}
           </div>
           <div className="coach-victor-actions">
-            <Link
-              href={course.coachEnrollHref || "#"}
-              className="btn-world-primary"
-              style={{ textDecoration: "none", display: "inline-block" }}
-            >
-              {course.coachEnrollLabel}
-            </Link>
+            {checkoutId ? (
+              <CourseEnrollButton
+                courseId={checkoutId}
+                className="btn-world-primary"
+                style={{ textDecoration: "none", display: "inline-block" }}
+              >
+                {course.coachEnrollLabel}
+              </CourseEnrollButton>
+            ) : (
+              <Link
+                href={course.coachEnrollHref || "/courses"}
+                className="btn-world-primary"
+                style={{ textDecoration: "none", display: "inline-block" }}
+              >
+                {course.coachEnrollLabel}
+              </Link>
+            )}
             <button type="button" className="btn-world-secondary" onClick={openYouTube}>
               {course.coachYoutubeButtonLabel || "▶️ YouTube Channel"}
             </button>

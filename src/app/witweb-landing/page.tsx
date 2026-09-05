@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import CourseEnrollButton from "@/components/CourseEnrollButton";
 import { useContent } from "@/hooks/useContent";
 
 export default function WitWebLanding() {
@@ -138,9 +139,13 @@ export default function WitWebLanding() {
             {content.heroSubtitle || "The complete guide to writing, publishing, and earning from serialized fiction on PocketFM, Dreame, GoodNovel, WebNovel, and 5 more platforms."}
           </p>
           <div className="lp-btns">
-            <Link href="/register" className="btn-g" style={{ fontSize: "15px", padding: "16px 40px", textDecoration: "none", display: "inline-block" }}>
+            <CourseEnrollButton
+              courseId="witweb"
+              className="btn-g"
+              style={{ fontSize: "15px", padding: "16px 40px", textDecoration: "none", display: "inline-block" }}
+            >
               Enroll Now — ₦35,000
-            </Link>
+            </CourseEnrollButton>
             <Link href="/dashboard" className="btn-o" style={{ fontSize: "15px", padding: "15px 36px", textDecoration: "none", display: "inline-block" }}>
               Preview Free Lessons
             </Link>
@@ -278,7 +283,7 @@ export default function WitWebLanding() {
             <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: "36px", fontWeight: 900, color: "var(--wh)" }}>Choose Your Access</h2>
           </div>
           <div className="pb-inner">
-            <Link href="/register" className="pb-card" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+            <div className="pb-card" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
               <div>
                 <div className="pb-name">Standard Enrollment</div>
                 <div className="pb-price">₦35,000</div>
@@ -290,10 +295,12 @@ export default function WitWebLanding() {
                   <div className="pb-item"><span style={{ color: "var(--ok)" }}>✓</span>Community access — WIT-WEB writers group</div>
                   <div className="pb-item"><span style={{ color: "var(--ok)" }}>✓</span>Certificate of completion</div>
                 </div>
-                <button className="btn-g" style={{ width: "100%" }}>Enroll — ₦35,000</button>
+                <CourseEnrollButton courseId="witweb" className="btn-g" style={{ width: "100%" }}>
+                  Enroll — ₦35,000
+                </CourseEnrollButton>
               </div>
-            </Link>
-            <Link href="/register" className="pb-card feat" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+            </div>
+            <div className="pb-card feat" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
               <div>
                 <div style={{ fontSize: "11px", fontWeight: 800, padding: "4px 16px", borderRadius: "20px", background: "linear-gradient(135deg,var(--gl),var(--gm))", color: "#080808", display: "inline-block", marginBottom: "12px" }}>BEST VALUE</div>
                 <div className="pb-name">WIT-WEB + App Bundle</div>
@@ -306,9 +313,11 @@ export default function WitWebLanding() {
                   <div className="pb-item"><span style={{ color: "var(--ok)" }}>✓</span>One private 30-min coaching session</div>
                   <div className="pb-item"><span style={{ color: "var(--ok)" }}>✓</span>Early access to new modules</div>
                 </div>
-                <button className="btn-g" style={{ width: "100%" }}>Get the Bundle — ₦55,000</button>
+                <CourseEnrollButton courseId="witweb-bundle" className="btn-g" style={{ width: "100%" }}>
+                  Get the Bundle — ₦55,000
+                </CourseEnrollButton>
               </div>
-            </Link>
+            </div>
           </div>
         </div>
       </main>
@@ -322,9 +331,13 @@ export default function WitWebLanding() {
           </div>
           <div className="se-price">₦35,000</div>
         </div>
-        <Link href="/register" className="btn-g" style={{ textDecoration: "none", display: "inline-block" }}>
+        <CourseEnrollButton
+          courseId="witweb"
+          className="btn-g"
+          style={{ textDecoration: "none", display: "inline-block" }}
+        >
           Enroll Now →
-        </Link>
+        </CourseEnrollButton>
       </div>
 
       <Footer />

@@ -1,27 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import CourseEnrollButton from "@/components/CourseEnrollButton";
 import { BookOpen, Clapperboard, Download, Play, ShieldAlert, Award, GraduationCap, ChevronDown, CheckCircle, HelpCircle } from "lucide-react";
 
 export default function CoursesPage() {
   const [toastMessage, setToastMessage] = useState("");
   const [openModuleIndex, setOpenModuleIndex] = useState<number | null>(0);
-  const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState("");
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage("");
     }, 3000);
-  };
-
-  const handleEnrollClick = (courseName: string) => {
-    setSelectedCourse(courseName);
-    setIsEnrollModalOpen(true);
   };
 
   // Curriculum modules list
@@ -156,12 +150,12 @@ export default function CoursesPage() {
             </p>
             
             <div className="flex flex-wrap justify-center gap-4 pt-4">
-              <button 
-                onClick={() => handleEnrollClick("WIT-WEB Academy")}
+              <CourseEnrollButton
+                courseId="witweb"
                 className="px-8 py-4 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] hover:from-[var(--gl)]/90 hover:to-[var(--gm)]/90 text-zinc-950 font-bold rounded-xl text-sm transition-all hover:scale-[1.02]"
               >
                 Enroll Now — ₦35,000
-              </button>
+              </CourseEnrollButton>
               <Link 
                 href="/login"
                 className="px-8 py-4 border border-[var(--gm)] hover:bg-[var(--gd)]/5 text-[var(--gd)] font-bold rounded-xl text-sm transition-all"
@@ -195,10 +189,7 @@ export default function CoursesPage() {
         <section className="max-w-6xl mx-auto px-6 py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* WIT-WEB Course */}
-            <div 
-              onClick={() => handleEnrollClick("WIT-WEB Academy")}
-              className="bg-[#0f0f0f] border border-[#242424] hover:border-[var(--gm)] rounded-3xl p-8 text-left cursor-pointer transition-all duration-300 hover:-translate-y-1 shadow-2xl flex flex-col justify-between"
-            >
+            <div className="bg-[#0f0f0f] border border-[#242424] hover:border-[var(--gm)] rounded-3xl p-8 text-left transition-all duration-300 hover:-translate-y-1 shadow-2xl flex flex-col justify-between">
               <div>
                 <div className="w-14 h-14 bg-gradient-to-br from-[var(--bg1)] to-[var(--bg2)] rounded-2xl border border-[var(--gm)] flex items-center justify-center text-3xl mb-6">
                   📖
@@ -218,16 +209,21 @@ export default function CoursesPage() {
                   <span className="text-[9px] font-bold px-2.5 py-1 rounded bg-sky-500/10 border border-sky-500/20 text-sky-400">Lifetime Access</span>
                 </div>
               </div>
-              <button className="w-full py-3 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] hover:from-[var(--gl)]/90 hover:to-[var(--gm)]/90 text-zinc-950 font-bold rounded-xl text-xs transition-all">
-                View Course →
-              </button>
+              <div className="flex flex-col gap-2">
+                <CourseEnrollButton
+                  courseId="witweb"
+                  className="w-full py-3 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] hover:from-[var(--gl)]/90 hover:to-[var(--gm)]/90 text-zinc-950 font-bold rounded-xl text-xs transition-all"
+                >
+                  Enroll Now — ₦35,000
+                </CourseEnrollButton>
+                <Link href="/witweb-landing" className="w-full py-3 text-center border border-[#242424] hover:border-[var(--gm)] text-[#909090] hover:text-white font-bold rounded-xl text-xs transition-all">
+                  View Course →
+                </Link>
+              </div>
             </div>
 
             {/* SSG Blueprint Course */}
-            <div 
-              onClick={() => handleEnrollClick("SSG Blueprint")}
-              className="bg-[#0f0f0f] border border-[#242424] hover:border-red-500/30 rounded-3xl p-8 text-left cursor-pointer transition-all duration-300 hover:-translate-y-1 shadow-2xl flex flex-col justify-between"
-            >
+            <div className="bg-[#0f0f0f] border border-[#242424] hover:border-red-500/30 rounded-3xl p-8 text-left transition-all duration-300 hover:-translate-y-1 shadow-2xl flex flex-col justify-between">
               <div>
                 <div className="w-14 h-14 bg-gradient-to-br from-[#2a0008] to-[#2e0014] rounded-2xl border border-red-500/30 flex items-center justify-center text-3xl mb-6">
                   🎬
@@ -247,9 +243,17 @@ export default function CoursesPage() {
                   <span className="text-[9px] font-bold px-2.5 py-1 rounded bg-sky-500/10 border border-sky-500/20 text-sky-400">Lifetime Access</span>
                 </div>
               </div>
-              <button className="w-full py-3 bg-gradient-to-r from-red-600 to-red-800 text-white font-bold rounded-xl text-xs transition-all">
-                View Course →
-              </button>
+              <div className="flex flex-col gap-2">
+                <CourseEnrollButton
+                  courseId="ssg"
+                  className="w-full py-3 bg-gradient-to-r from-red-600 to-red-800 text-white font-bold rounded-xl text-xs transition-all"
+                >
+                  Enroll Now — ₦30,000
+                </CourseEnrollButton>
+                <Link href="/ssg-landing" className="w-full py-3 text-center border border-[#242424] hover:border-red-500/30 text-[#909090] hover:text-white font-bold rounded-xl text-xs transition-all">
+                  View Course →
+                </Link>
+              </div>
             </div>
           </div>
         </section>
@@ -403,10 +407,7 @@ export default function CoursesPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
             {/* Standard Enrollment */}
-            <div 
-              onClick={() => handleEnrollClick("Standard Enrollment")}
-              className="bg-[#0f0f0f] border border-[#242424] hover:border-[var(--gm)] rounded-3xl p-8 text-center transition-all duration-300 hover:-translate-y-1 shadow-2xl flex flex-col justify-between"
-            >
+            <div className="bg-[#0f0f0f] border border-[#242424] hover:border-[var(--gm)] rounded-3xl p-8 text-center transition-all duration-300 hover:-translate-y-1 shadow-2xl flex flex-col justify-between">
               <div>
                 <span className="text-[10px] font-bold text-[#606060] uppercase tracking-widest block mb-2">Standard Enrollment</span>
                 <span className="font-serif text-4xl md:text-5xl font-black text-[var(--gd)] block mb-2">₦35,000</span>
@@ -435,16 +436,16 @@ export default function CoursesPage() {
                   </div>
                 </div>
               </div>
-              <button className="w-full py-3 bg-[#161616] border border-[var(--gm)] hover:bg-[var(--gd)]/5 text-[var(--gd)] font-bold rounded-xl text-xs transition-all">
+              <CourseEnrollButton
+                courseId="witweb"
+                className="w-full py-3 bg-[#161616] border border-[var(--gm)] hover:bg-[var(--gd)]/5 text-[var(--gd)] font-bold rounded-xl text-xs transition-all"
+              >
                 Enroll — ₦35,000
-              </button>
+              </CourseEnrollButton>
             </div>
 
             {/* Bundle Premium Enrollment */}
-            <div 
-              onClick={() => handleEnrollClick("WIT-WEB + App Bundle")}
-              className="bg-gradient-to-br from-[#1a1200] to-[#0f0f0f] border border-[var(--gm)] rounded-3xl p-8 text-center transition-all duration-300 hover:-translate-y-1 shadow-2xl flex flex-col justify-between"
-            >
+            <div className="bg-gradient-to-br from-[#1a1200] to-[#0f0f0f] border border-[var(--gm)] rounded-3xl p-8 text-center transition-all duration-300 hover:-translate-y-1 shadow-2xl flex flex-col justify-between">
               <div>
                 <span className="inline-block px-3 py-1 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] text-zinc-950 font-bold text-[9px] rounded-full uppercase tracking-wider mb-4">Best Value</span>
                 <span className="text-[10px] font-bold text-[var(--gd)] uppercase tracking-widest block mb-2">WIT-WEB + App Bundle</span>
@@ -474,9 +475,13 @@ export default function CoursesPage() {
                   </div>
                 </div>
               </div>
-              <button className="w-full py-3 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] hover:from-[var(--gl)]/90 hover:to-[var(--gm)]/90 text-zinc-950 font-bold rounded-xl text-xs transition-all">
+              <CourseEnrollButton
+                courseId="witweb-bundle"
+                onCheckoutError={triggerToast}
+                className="w-full py-3 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] hover:from-[var(--gl)]/90 hover:to-[var(--gm)]/90 text-zinc-950 font-bold rounded-xl text-xs transition-all"
+              >
                 Get the Bundle — ₦55,000
-              </button>
+              </CourseEnrollButton>
             </div>
           </div>
         </section>
@@ -491,66 +496,14 @@ export default function CoursesPage() {
         </div>
         <div className="flex items-center gap-4">
           <span className="font-serif text-lg font-black text-[var(--gd)]">₦35,000</span>
-          <button 
-            onClick={() => handleEnrollClick("WIT-WEB Academy")}
+          <CourseEnrollButton
+            courseId="witweb"
             className="px-6 py-2.5 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] hover:from-[var(--gl)]/90 hover:to-[var(--gm)]/90 text-zinc-950 font-bold rounded-xl text-xs transition-all"
           >
             Enroll Now →
-          </button>
+          </CourseEnrollButton>
         </div>
       </div>
-
-      {/* ENROLLMENT MODAL TRIGGER */}
-      {isEnrollModalOpen && (
-        <div className="fixed inset-0 z-[120] bg-black/85 flex items-center justify-center p-6 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-[#0f0f0f] border border-[#242424] rounded-3xl p-8 max-w-md w-full relative space-y-6">
-            <button 
-              onClick={() => setIsEnrollModalOpen(false)}
-              className="absolute top-4 right-4 text-[#909090] hover:text-white text-base focus:outline-none"
-            >
-              ✕
-            </button>
-            <div className="text-center space-y-2">
-              <span className="text-[9px] font-bold text-[var(--gd)] uppercase tracking-widest block">Complete Signup</span>
-              <h3 className="font-serif text-xl font-bold text-white">Enroll in {selectedCourse}</h3>
-              <p className="text-xs text-[#909090] leading-relaxed">
-                Enter your details to create an account and unlock lifetime access keys to the training portal.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-[9px] font-bold text-[#606060] uppercase tracking-wider mb-2">Email Address</label>
-                <input 
-                  type="email" 
-                  placeholder="name@email.com"
-                  className="w-full bg-[#161616] border border-[#242424] rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-[var(--gm)]" 
-                />
-              </div>
-              <div>
-                <label className="block text-[9px] font-bold text-[#606060] uppercase tracking-wider mb-2">Pen Name / Full Name</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Writer Pen"
-                  className="w-full bg-[#161616] border border-[#242424] rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-[var(--gm)]" 
-                />
-              </div>
-              <button 
-                onClick={() => {
-                  setIsEnrollModalOpen(false);
-                  triggerToast("Enrollment successful! Check your email to set account password.");
-                }}
-                className="w-full py-3.5 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] text-zinc-950 font-bold rounded-xl text-xs transition-all"
-              >
-                Proceed to Payment
-              </button>
-              <p className="text-[9px] text-[#606060] text-center leading-relaxed">
-                Payments processed securely via Paystack in Nigerian Naira (₦).
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       <Footer />
     </div>

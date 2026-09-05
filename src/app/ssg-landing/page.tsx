@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import CourseEnrollButton from "@/components/CourseEnrollButton";
 import { useContent } from "@/hooks/useContent";
 
 export default function SsgLanding() {
@@ -80,12 +81,12 @@ export default function SsgLanding() {
             {content.heroSubtitle || "Master screenplay and script writing from concept to final draft. Feature films, TV series, audio dramas — and how to get your script into the right hands."}
           </p>
           <div className="lp-btns">
-            <Link 
-              href="/register" 
+            <CourseEnrollButton
+              courseId="ssg"
               style={{ background: "linear-gradient(135deg,#c0392b,#8B0000)", color: "#fff", fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: "15px", padding: "16px 40px", borderRadius: "12px", border: "none", cursor: "pointer", display: "inline-block", textDecoration: "none" }}
             >
               Enroll Now — ₦30,000
-            </Link>
+            </CourseEnrollButton>
             <Link href="/dashboard" className="btn-o" style={{ fontSize: "15px", padding: "15px 36px", display: "inline-block", textDecoration: "none" }}>
               Preview Free Lessons
             </Link>
@@ -206,7 +207,7 @@ export default function SsgLanding() {
             <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: "36px", fontWeight: 900, color: "var(--wh)" }}>Get Full Access</h2>
           </div>
           <div className="pb-inner">
-            <Link href="/register" className="pb-card" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+            <div className="pb-card" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
               <div>
                 <div className="pb-name">Standard Enrollment</div>
                 <div className="pb-price">₦30,000</div>
@@ -218,10 +219,15 @@ export default function SsgLanding() {
                   <div className="pb-item"><span style={{ color: "var(--ok)" }}>✓</span>Certificate of completion</div>
                   <div className="pb-item"><span style={{ color: "var(--ok)" }}>✓</span>Script Editor access on Ink2Wealth</div>
                 </div>
-                <button style={{ width: "100%", background: "linear-gradient(135deg,#c0392b,#8B0000)", color: "#fff", fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: "14px", padding: "14px", borderRadius: "12px", border: "none", cursor: "pointer" }}>Enroll — ₦30,000</button>
+                <CourseEnrollButton
+                  courseId="ssg"
+                  style={{ width: "100%", background: "linear-gradient(135deg,#c0392b,#8B0000)", color: "#fff", fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: "14px", padding: "14px", borderRadius: "12px", border: "none", cursor: "pointer" }}
+                >
+                  Enroll — ₦30,000
+                </CourseEnrollButton>
               </div>
-            </Link>
-            <Link href="/register" className="pb-card feat" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+            </div>
+            <div className="pb-card feat" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
               <div>
                 <div style={{ fontSize: "11px", fontWeight: 800, padding: "4px 16px", borderRadius: "20px", background: "linear-gradient(135deg,var(--gl),var(--gm))", color: "#080808", display: "inline-block", marginBottom: "12px" }}>SAVE MORE</div>
                 <div className="pb-name">Both Courses Bundle</div>
@@ -234,9 +240,11 @@ export default function SsgLanding() {
                   <div className="pb-item"><span style={{ color: "var(--ok)" }}>✓</span>Both certificates included</div>
                   <div className="pb-item"><span style={{ color: "var(--ok)" }}>✓</span>One private coaching session</div>
                 </div>
-                <button className="btn-g" style={{ width: "100%" }}>Get Both — ₦55,000</button>
+                <CourseEnrollButton courseId="ssg" className="btn-g" style={{ width: "100%" }}>
+                  Get Both — ₦55,000
+                </CourseEnrollButton>
               </div>
-            </Link>
+            </div>
           </div>
         </div>
       </main>
@@ -250,9 +258,12 @@ export default function SsgLanding() {
           </div>
           <div className="se-price">₦30,000</div>
         </div>
-        <Link href="/register" style={{ background: "linear-gradient(135deg,#c0392b,#8B0000)", color: "#fff", fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: "13px", padding: "12px 28px", borderRadius: "10px", border: "none", cursor: "pointer", textDecoration: "none", display: "inline-block" }}>
+        <CourseEnrollButton
+          courseId="ssg"
+          style={{ background: "linear-gradient(135deg,#c0392b,#8B0000)", color: "#fff", fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: "13px", padding: "12px 28px", borderRadius: "10px", border: "none", cursor: "pointer", textDecoration: "none", display: "inline-block" }}
+        >
           Enroll Now →
-        </Link>
+        </CourseEnrollButton>
       </div>
 
       <Footer />

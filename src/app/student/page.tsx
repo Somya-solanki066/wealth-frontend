@@ -11,10 +11,64 @@ import {
   Video,
   PenTool,
   BrainCircuit,
+  BookOpen,
+  School,
+  Pill,
+  Stethoscope,
+  Scale,
+  BarChart3,
 } from "lucide-react";
 
 export default function StudentPage() {
   const studentTools = [
+    {
+      icon: <BookOpen className="h-9 w-9 text-[var(--gd)]" />,
+      title: "JAMB UTME Practice",
+      desc: "CBT-style past questions with timer, mark for review, question map, and instant scoring.",
+      badge: "FREE",
+      premium: false,
+      href: "/dashboard?tab=student&tool=jamb-practice",
+    },
+    {
+      icon: <School className="h-9 w-9 text-[var(--gd)]" />,
+      title: "University Past Questions",
+      desc: "20 universities. All faculties — navigate University → Faculty → Department → Course → Year.",
+      badge: "3 YEARS FREE",
+      premium: false,
+      href: "/dashboard?tab=student&tool=university-past",
+    },
+    {
+      icon: <Pill className="h-9 w-9 text-[var(--gd)]" />,
+      title: "Nursing Hub",
+      desc: "Year 1–5. MedSurg, MCH, Community Health, Mental Health, ICU, Emergency. Drug Calculation Tool built in.",
+      badge: "FREE + PREMIUM",
+      premium: false,
+      href: "/dashboard?tab=student&tool=nursing-hub",
+    },
+    {
+      icon: <Stethoscope className="h-9 w-9 text-[var(--gd)]" />,
+      title: "MBBS Hub",
+      desc: "Complete 6-year programme. Pre-clinical, Para-clinical, Clinical. Clinical scenario questions — not just MCQs.",
+      badge: "FREE + PREMIUM",
+      premium: false,
+      href: "/dashboard?tab=student&tool=mbbs-hub",
+    },
+    {
+      icon: <Scale className="h-9 w-9 text-[var(--gd)]" />,
+      title: "All Professional Courses",
+      desc: "Law, Pharmacy, Med Lab Science, Radiography, Physiotherapy, Dentistry, Optometry, Nutrition, Public Health, Environmental Health.",
+      badge: "FREE + PREMIUM",
+      premium: false,
+      href: "/dashboard?tab=student&tool=professional-courses",
+    },
+    {
+      icon: <BarChart3 className="h-9 w-9 text-[var(--gd)]" />,
+      title: "Smart Performance Analytics",
+      desc: "Score history, subject breakdown, weak area detector, study streak — know exactly what to study today.",
+      badge: "FREE",
+      premium: false,
+      href: "/dashboard?tab=student&tool=performance-analytics",
+    },
     {
       icon: <Calendar className="h-9 w-9 text-[var(--gd)]" />,
       title: "Study Planner",
@@ -79,7 +133,7 @@ export default function StudentPage() {
               Study Smarter. <span className="text-[var(--gd)]">Write Better.</span>
             </h1>
             <p className="text-[#909090] text-sm md:text-base leading-relaxed">
-              Six powerful tools to help students plan, learn, cite, and write — all powered by AI.
+              Eight powerful tools to help students plan, learn, practice JAMB & university exams, nursing, cite, and write.
             </p>
           </div>
 

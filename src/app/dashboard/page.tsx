@@ -26,6 +26,8 @@ import Modal from "@/components/ui/Modal";
 import SmartEditSuite from "@/components/SmartEditSuite";
 import GhostWriterWorkspace from "@/components/GhostWriterWorkspace";
 import StudentHubWorkspace from "@/components/StudentHubWorkspace";
+import TransactionsWorkspace from "@/components/TransactionsWorkspace";
+import CoursesWorkspace from "@/components/CoursesWorkspace";
 import AiToolFeedback from "@/components/AiToolFeedback";
 import ScriptEditorToolbar from "@/components/ScriptEditorToolbar";
 import "@/app/home-worlds.css";
@@ -61,6 +63,7 @@ import {
   Layers,
   GraduationCap,
   Coins,
+  Receipt,
   Search,
   Trash2,
   Save,
@@ -908,6 +911,24 @@ function DashboardContent() {
               }`}
             >
               <GraduationCap className="h-4 w-4" /> Student Hub
+            </button>
+
+            <button
+              onClick={() => goToTab("courses")}
+              className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
+                activeTab === "courses" ? "bg-[var(--gd)]/10 text-[var(--gd)]" : "text-[#909090] hover:text-white"
+              }`}
+            >
+              <BookOpen className="h-4 w-4" /> Courses
+            </button>
+
+            <button
+              onClick={() => goToTab("transactions")}
+              className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
+                activeTab === "transactions" ? "bg-[var(--gd)]/10 text-[var(--gd)]" : "text-[#909090] hover:text-white"
+              }`}
+            >
+              <Receipt className="h-4 w-4" /> Transactions
             </button>
 
             <button
@@ -2281,6 +2302,22 @@ function DashboardContent() {
             {/* TAB 5: STUDENT HUB */}
             {activeTab === "student" && (
               <StudentHubWorkspace
+                initialTool={
+                  (searchParams.get("tool") as
+                    | "jamb-practice"
+                    | "university-past"
+                    | "nursing-hub"
+                    | "mbbs-hub"
+                    | "professional-courses"
+                    | "performance-analytics"
+                    | "study-planner"
+                    | "flashcards"
+                    | "citation"
+                    | "video-finder"
+                    | "essay-writer"
+                    | "exam-techniques"
+                    | null) || undefined
+                }
                 onToolChange={(tool) => {
                   if (tool) {
                     router.push(`/dashboard?tab=student&tool=${encodeURIComponent(tool)}`);
@@ -2459,6 +2496,16 @@ function DashboardContent() {
                   </div>
                 )}
               </div>
+            )}
+
+            {/* TAB: COURSES */}
+            {activeTab === "courses" && (
+              <CoursesWorkspace />
+            )}
+
+            {/* TAB: TRANSACTIONS */}
+            {activeTab === "transactions" && (
+              <TransactionsWorkspace />
             )}
 
             {/* TAB 7: PROFILE SETTINGS */}
