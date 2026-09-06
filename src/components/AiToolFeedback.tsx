@@ -7,7 +7,7 @@ import Button from "@/components/ui/Button";
 import Textarea from "@/components/ui/Textarea";
 import api from "@/services/api";
 
-type FeedbackTool = "chapter-analyzer" | "smart-edit";
+type FeedbackTool = "chapter-analyzer" | "smart-edit" | "script-analyzer";
 type FeedbackRating = "yes" | "partial" | "no";
 
 const RATING_OPTIONS: {

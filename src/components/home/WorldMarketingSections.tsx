@@ -12,6 +12,7 @@ import {
   type ActiveWorld,
   type PricingPlan,
 } from "@/lib/worldContent";
+import WriterLanesSection from "@/components/home/WriterLanesSection";
 import { getBackendApiUrl } from "@/lib/backendUrl";
 import { isFreePlan } from "@/lib/plans";
 
@@ -102,6 +103,7 @@ export function WorldFeaturesBlock({
           );
         })}
       </div>
+      {world === "writer" && <WriterLanesSection />}
     </section>
   );
 }

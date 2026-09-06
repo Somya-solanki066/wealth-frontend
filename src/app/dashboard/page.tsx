@@ -25,6 +25,7 @@ import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import Modal from "@/components/ui/Modal";
 import SmartEditSuite from "@/components/SmartEditSuite";
 import GhostWriterWorkspace from "@/components/GhostWriterWorkspace";
+import ScriptAnalyzerWorkspace from "@/components/ScriptAnalyzerWorkspace";
 import StudentHubWorkspace from "@/components/StudentHubWorkspace";
 import TransactionsWorkspace from "@/components/TransactionsWorkspace";
 import CoursesWorkspace from "@/components/CoursesWorkspace";
@@ -889,7 +890,7 @@ function DashboardContent() {
             <button
               onClick={() => goToTab("tools")}
               className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
-                activeTab === "tools" || activeTab === "ghost-writer" || activeTab === "smart-edit" || activeTab === "analyzer-workspace" ? "bg-[var(--gd)]/10 text-[var(--gd)]" : "text-[#909090] hover:text-white"
+                activeTab === "tools" || activeTab === "ghost-writer" || activeTab === "smart-edit" || activeTab === "analyzer-workspace" || activeTab === "script-analyzer-workspace" ? "bg-[var(--gd)]/10 text-[var(--gd)]" : "text-[#909090] hover:text-white"
               }`}
             >
               <Wrench className="h-4 w-4" /> Quick Tools
@@ -1074,6 +1075,15 @@ function DashboardContent() {
           {/* MAIN DISPLAY CONTENT */}
           <main className="flex-grow p-6 md:p-10 max-w-5xl w-full mx-auto max-lg:pt-8">
             
+            {activeTab === "script-analyzer-workspace" && (
+              <ScriptAnalyzerWorkspace
+                projects={projects}
+                onBack={() => goToTab("tools")}
+                onPaywall={openPaywall}
+                onToast={triggerToast}
+              />
+            )}
+
             {/* TAB: AI ANALYZER WORKSPACE */}
             {activeTab === "analyzer-workspace" && (
               <div className="space-y-6 animate-fadeIn">
@@ -2244,6 +2254,21 @@ function DashboardContent() {
                     </p>
                     <Button onClick={() => goToTab("analyzer-workspace")} className="w-full">
                       Open Analyzer Workspace
+                    </Button>
+                  </Card>
+
+                  <Card className="space-y-4">
+                    <div className="flex justify-between items-center border-b border-[#242424] pb-2">
+                      <h3 className="font-serif text-sm font-bold text-[var(--gd)] flex items-center gap-1.5">
+                        <Clapperboard className="h-4 w-4" /> Script Analyzer
+                      </h3>
+                      <Badge variant="gold">Screenwriter</Badge>
+                    </div>
+                    <p className="text-xs text-[#909090] leading-relaxed">
+                      Industry-calibrated pitch readiness scoring for Hollywood, Nollywood, BBC/UK, Netflix Africa, and Audio Drama scripts.
+                    </p>
+                    <Button onClick={() => goToTab("script-analyzer-workspace")} className="w-full">
+                      Open Script Analyzer
                     </Button>
                   </Card>
 

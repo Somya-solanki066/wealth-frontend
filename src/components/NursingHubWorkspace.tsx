@@ -1,621 +1,688 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ChevronRight, Syringe } from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  ChevronRight,
+  Clock,
+  GraduationCap,
+  Pill,
+  RefreshCw,
+  Stethoscope,
+  Syringe,
+} from "lucide-react";
 import api from "@/services/api";
 import Button from "@/components/ui/Button";
+import PaywallModal from "@/components/ui/PaywallModal";
 
-type NursingOptionKey = "A" | "B" | "C" | "D";
+type OptionKey = "A" | "B" | "C" | "D";
+type HubView = "home" | "setup" | "drug-calc" | "exams" | "exam-detail" | "clinical" | "practice" | "results" | "review";
+type DrugCalcTab = "iv-rate" | "dosage" | "reconstitution" | "paediatric";
 
-type NursingTopic = {
+type CourseProgress = {
+  courseId: string;
+  courseName: string;
+  topicId: string;
+  subtopics: string[];
+  attempted: number;
+  correct: number;
+  totalQuestions: number;
+  accuracy: number;
+  progress: number;
+};
+
+type ProfessionalExam = {
   id: string;
   name: string;
-  shortName: string;
   description: string;
-};
-
-type NursingYear = {
-  year: number;
-  label: string;
-  topics: NursingTopic[];
-};
-
-type NursingQuestion = {
-  id: string;
+  access: "free" | "premium" | "premium_only";
   topicId: string;
+};
+
+type Question = {
+  id: string;
   questionNumber: number;
   questionText: string;
-  options: Record<NursingOptionKey, string>;
+  options: Record<OptionKey, string>;
+  scenario?: string;
 };
 
-type Phase = "hub" | "drug-calc" | "practice" | "results";
-
-type BreakdownItem = {
-  questionId: string;
-  questionNumber: number;
-  chosen: NursingOptionKey | null;
-  correctAnswer: NursingOptionKey;
-  isCorrect: boolean;
-  rationale: string;
-};
-
-type DrugCalcMode = "liquid" | "iv-rate" | "tablets";
-
-function formatTime(seconds: number) {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${String(s).padStart(2, "0")}`;
+function progressColor(p: number) {
+  if (p >= 60) return "#52C07A";
+  if (p >= 30) return "#E8B84B";
+  return "#E85B5B";
 }
 
-function DrugCalculationTool({ onBack }: { onBack: () => void }) {
-  const [mode, setMode] = useState<DrugCalcMode>("liquid");
-  const [prescribedDose, setPrescribedDose] = useState("");
-  const [concentration, setConcentration] = useState("");
-  const [volumeOnHand, setVolumeOnHand] = useState("");
-  const [ivVolume, setIvVolume] = useState("");
-  const [ivMinutes, setIvMinutes] = useState("");
-  const [doseOrdered, setDoseOrdered] = useState("");
-  const [dosePerTablet, setDosePerTablet] = useState("");
+function DrugCalculator({ onBack }: { onBack: () => void }) {
+  const [tab, setTab] = useState<DrugCalcTab>("iv-rate");
+  const [result, setResult] = useState<{ result: string; formula?: string; secondary?: string; disclaimer?: string } | null>(null);
+  const [error, setError] = useState("");
 
-  const working = useMemo(() => {
-    if (mode === "liquid") {
-      const dose = parseFloat(prescribedDose);
-      const conc = parseFloat(concentration);
-      if (!dose || !conc) return null;
-      const actualMl = dose / conc;
-      return {
-        result: `${actualMl.toFixed(2)} mL`,
-        steps: [
-          `Prescribed dose = ${dose} mg`,
-          `Concentration on label = ${conc} mg/mL`,
-          `Formula: Volume (mL) = Prescribed dose ÷ Concentration`,
-          `Volume = ${dose} ÷ ${conc} = ${actualMl.toFixed(2)} mL`,
-          `Draw up ${actualMl.toFixed(2)} mL and administer as ordered.`,
-        ],
-      };
+  const [ivVolume, setIvVolume] = useState("500");
+  const [ivHours, setIvHours] = useState("8");
+  const [dropFactor, setDropFactor] = useState("20");
+
+  const [orderedDose, setOrderedDose] = useState("");
+  const [availableDose, setAvailableDose] = useState("");
+  const [availableVolume, setAvailableVolume] = useState("");
+
+  const [drugAmount, setDrugAmount] = useState("");
+  const [diluentVolume, setDiluentVolume] = useState("");
+
+  const [weight, setWeight] = useState("");
+  const [dosePerKg, setDosePerKg] = useState("");
+  const [frequency, setFrequency] = useState("1");
+  const [maxDose, setMaxDose] = useState("");
+
+  const calculate = async () => {
+    setError("");
+    setResult(null);
+    const params: Record<string, number> = {};
+    if (tab === "iv-rate") {
+      params.volume = parseFloat(ivVolume);
+      params.hours = parseFloat(ivHours);
+      params.dropFactor = parseFloat(dropFactor);
+    } else if (tab === "dosage") {
+      params.orderedDose = parseFloat(orderedDose);
+      params.availableDose = parseFloat(availableDose);
+      params.availableVolume = parseFloat(availableVolume);
+    } else if (tab === "reconstitution") {
+      params.drugAmount = parseFloat(drugAmount);
+      params.diluentVolume = parseFloat(diluentVolume);
+    } else {
+      params.weight = parseFloat(weight);
+      params.dosePerKg = parseFloat(dosePerKg);
+      params.frequency = parseFloat(frequency);
+      if (maxDose) params.maxDose = parseFloat(maxDose);
     }
-    if (mode === "iv-rate") {
-      const volume = parseFloat(ivVolume);
-      const minutes = parseFloat(ivMinutes);
-      if (!volume || !minutes) return null;
-      const mlPerHr = (volume / minutes) * 60;
-      const dropsPerMin = (volume * 20) / minutes;
-      return {
-        result: `${mlPerHr.toFixed(1)} mL/hr`,
-        steps: [
-          `Volume to infuse = ${volume} mL`,
-          `Time ordered = ${minutes} minutes`,
-          `Formula: mL/hr = (Volume ÷ Time in minutes) × 60`,
-          `mL/hr = (${volume} ÷ ${minutes}) × 60 = ${mlPerHr.toFixed(1)} mL/hr`,
-          `Using macro-drip (20 drops/mL): ≈ ${dropsPerMin.toFixed(0)} drops/min`,
-        ],
-      };
+    try {
+      const res = await api.post("/student/nursing/drug-calc", { type: tab, params });
+      setResult(res.data);
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Calculation failed.");
     }
-    const ordered = parseFloat(doseOrdered);
-    const perTab = parseFloat(dosePerTablet);
-    if (!ordered || !perTab) return null;
-    const tablets = ordered / perTab;
-    return {
-      result: `${tablets % 1 === 0 ? tablets : tablets.toFixed(2)} tablet(s)`,
-      steps: [
-        `Dose ordered = ${ordered} mg`,
-        `Dose per tablet = ${perTab} mg`,
-        `Formula: Number of tablets = Dose ordered ÷ Dose per tablet`,
-        `Tablets = ${ordered} ÷ ${perTab} = ${tablets % 1 === 0 ? tablets : tablets.toFixed(2)}`,
-        `Administer ${tablets % 1 === 0 ? tablets : tablets.toFixed(2)} tablet(s) as ordered.`,
-      ],
-    };
-  }, [mode, prescribedDose, concentration, volumeOnHand, ivVolume, ivMinutes, doseOrdered, dosePerTablet]);
+  };
+
+  const tabs: { id: DrugCalcTab; label: string }[] = [
+    { id: "iv-rate", label: "IV Rate" },
+    { id: "dosage", label: "Dosage" },
+    { id: "reconstitution", label: "Reconstitution" },
+    { id: "paediatric", label: "Paediatric" },
+  ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#242424] bg-[#161616] text-[#909090]"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </button>
-        <h3 className="font-serif text-xl font-bold text-white">Drug Calculation Tool</h3>
+    <div className="space-y-5 max-w-lg mx-auto">
+      <button type="button" onClick={onBack} className="text-xs text-[#909090] flex items-center gap-2">
+        <ArrowLeft className="h-4 w-4" /> Back to Nursing Hub
+      </button>
+      <div className="text-center">
+        <Pill className="h-8 w-8 text-[#5298E0] mx-auto mb-2" />
+        <h3 className="font-serif text-xl font-bold text-white">Drug Calculator</h3>
+        <p className="text-[10px] text-[#606060] mt-1">Unique to Ink2Wealth — deterministic clinical calculations</p>
       </div>
 
-      <p className="text-xs text-[#909090]">
-        Enter dose, concentration, and volume on hand — the tool works out mL/hr or tablet count for you, with the working shown step by step.
-      </p>
+      <div className="flex gap-1 overflow-x-auto">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => { setTab(t.id); setResult(null); setError(""); }}
+            className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold ${
+              tab === t.id ? "bg-[#5298E0] text-white" : "border border-[#242424] text-[#909090]"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-      <div className="rounded-2xl border border-[#242424] bg-[#161616] p-4">
-        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#5298E0] mb-3">Calculation type</p>
-        <div className="flex flex-wrap gap-2">
-          {(
-            [
-              ["liquid", "Liquid dose (mL)"],
-              ["iv-rate", "IV drip rate"],
-              ["tablets", "Tablet count"],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setMode(id)}
-              className={`rounded-full px-4 py-2 text-xs font-bold transition-all ${
-                mode === id
-                  ? "bg-[#5298E0] text-white"
-                  : "border border-[#242424] bg-[#080808] text-[#909090] hover:border-[#5298E0]/40"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+      <div className="rounded-2xl border border-[#242424] bg-[#0d1117] p-5 space-y-4">
+        {tab === "iv-rate" && (
+          <>
+            <label className="block text-xs text-[#909090]">Volume to Infuse (mL)<input type="number" value={ivVolume} onChange={(e) => setIvVolume(e.target.value)} className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2 text-white" /></label>
+            <label className="block text-xs text-[#909090]">Time (hours)<input type="number" value={ivHours} onChange={(e) => setIvHours(e.target.value)} className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2 text-white" /></label>
+            <label className="block text-xs text-[#909090]">Drop Factor (gtts/mL)<input type="number" value={dropFactor} onChange={(e) => setDropFactor(e.target.value)} className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2 text-white" /></label>
+          </>
+        )}
+        {tab === "dosage" && (
+          <>
+            <label className="block text-xs text-[#909090]">Ordered Dose (mg)<input type="number" value={orderedDose} onChange={(e) => setOrderedDose(e.target.value)} className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2 text-white" /></label>
+            <label className="block text-xs text-[#909090]">Available Dose (mg)<input type="number" value={availableDose} onChange={(e) => setAvailableDose(e.target.value)} className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2 text-white" /></label>
+            <label className="block text-xs text-[#909090]">Available Volume (mL)<input type="number" value={availableVolume} onChange={(e) => setAvailableVolume(e.target.value)} className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2 text-white" /></label>
+          </>
+        )}
+        {tab === "reconstitution" && (
+          <>
+            <label className="block text-xs text-[#909090]">Drug Amount (mg)<input type="number" value={drugAmount} onChange={(e) => setDrugAmount(e.target.value)} className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2 text-white" /></label>
+            <label className="block text-xs text-[#909090]">Diluent Volume (mL)<input type="number" value={diluentVolume} onChange={(e) => setDiluentVolume(e.target.value)} className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2 text-white" /></label>
+          </>
+        )}
+        {tab === "paediatric" && (
+          <>
+            <label className="block text-xs text-[#909090]">Weight (kg)<input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2 text-white" /></label>
+            <label className="block text-xs text-[#909090]">Prescribed Dose (mg/kg)<input type="number" value={dosePerKg} onChange={(e) => setDosePerKg(e.target.value)} className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2 text-white" /></label>
+            <label className="block text-xs text-[#909090]">Frequency<input type="number" value={frequency} onChange={(e) => setFrequency(e.target.value)} className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2 text-white" /></label>
+            <label className="block text-xs text-[#909090]">Maximum Dose (mg) — optional<input type="number" value={maxDose} onChange={(e) => setMaxDose(e.target.value)} className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2 text-white" /></label>
+          </>
+        )}
+        <Button onClick={calculate} className="w-full">Calculate</Button>
+      </div>
+
+      {error && <p className="text-xs text-red-400">{error}</p>}
+      {result && (
+        <div className="rounded-2xl border border-[#52C07A]/40 bg-[#52C07A]/10 p-5 text-center space-y-2">
+          <p className="text-[10px] font-bold uppercase text-[#52C07A]">Result</p>
+          <p className="font-serif text-4xl font-black text-white">{result.result}</p>
+          {result.secondary && <p className="text-sm text-[#909090]">{result.secondary}</p>}
+          {result.formula && <p className="text-[10px] text-[#606060] font-mono">{result.formula}</p>}
+          {result.disclaimer && <p className="text-[9px] text-[#606060] italic mt-2">{result.disclaimer}</p>}
         </div>
-      </div>
-
-      <div className="rounded-2xl border border-[#242424] bg-[#161616] p-5 space-y-4">
-        {mode === "liquid" && (
-          <>
-            <label className="block space-y-1">
-              <span className="text-[11px] font-bold text-[#909090]">Prescribed dose (mg)</span>
-              <input
-                type="number"
-                value={prescribedDose}
-                onChange={(e) => setPrescribedDose(e.target.value)}
-                placeholder="e.g. 500"
-                className="w-full rounded-xl border border-[#242424] bg-[#080808] px-4 py-2.5 text-sm text-white outline-none focus:border-[#5298E0]"
-              />
-            </label>
-            <label className="block space-y-1">
-              <span className="text-[11px] font-bold text-[#909090]">Concentration (mg/mL)</span>
-              <input
-                type="number"
-                value={concentration}
-                onChange={(e) => setConcentration(e.target.value)}
-                placeholder="e.g. 250"
-                className="w-full rounded-xl border border-[#242424] bg-[#080808] px-4 py-2.5 text-sm text-white outline-none focus:border-[#5298E0]"
-              />
-            </label>
-            <label className="block space-y-1">
-              <span className="text-[11px] font-bold text-[#909090]">Volume on hand (mL) — optional reference</span>
-              <input
-                type="number"
-                value={volumeOnHand}
-                onChange={(e) => setVolumeOnHand(e.target.value)}
-                placeholder="e.g. 2"
-                className="w-full rounded-xl border border-[#242424] bg-[#080808] px-4 py-2.5 text-sm text-white outline-none focus:border-[#5298E0]"
-              />
-            </label>
-          </>
-        )}
-        {mode === "iv-rate" && (
-          <>
-            <label className="block space-y-1">
-              <span className="text-[11px] font-bold text-[#909090]">Volume to infuse (mL)</span>
-              <input
-                type="number"
-                value={ivVolume}
-                onChange={(e) => setIvVolume(e.target.value)}
-                placeholder="e.g. 1000"
-                className="w-full rounded-xl border border-[#242424] bg-[#080808] px-4 py-2.5 text-sm text-white outline-none focus:border-[#5298E0]"
-              />
-            </label>
-            <label className="block space-y-1">
-              <span className="text-[11px] font-bold text-[#909090]">Time (minutes)</span>
-              <input
-                type="number"
-                value={ivMinutes}
-                onChange={(e) => setIvMinutes(e.target.value)}
-                placeholder="e.g. 480"
-                className="w-full rounded-xl border border-[#242424] bg-[#080808] px-4 py-2.5 text-sm text-white outline-none focus:border-[#5298E0]"
-              />
-            </label>
-          </>
-        )}
-        {mode === "tablets" && (
-          <>
-            <label className="block space-y-1">
-              <span className="text-[11px] font-bold text-[#909090]">Dose ordered (mg)</span>
-              <input
-                type="number"
-                value={doseOrdered}
-                onChange={(e) => setDoseOrdered(e.target.value)}
-                placeholder="e.g. 1000"
-                className="w-full rounded-xl border border-[#242424] bg-[#080808] px-4 py-2.5 text-sm text-white outline-none focus:border-[#5298E0]"
-              />
-            </label>
-            <label className="block space-y-1">
-              <span className="text-[11px] font-bold text-[#909090]">Dose per tablet (mg)</span>
-              <input
-                type="number"
-                value={dosePerTablet}
-                onChange={(e) => setDosePerTablet(e.target.value)}
-                placeholder="e.g. 500"
-                className="w-full rounded-xl border border-[#242424] bg-[#080808] px-4 py-2.5 text-sm text-white outline-none focus:border-[#5298E0]"
-              />
-            </label>
-          </>
-        )}
-      </div>
-
-      {working ? (
-        <div className="rounded-2xl border border-[#5298E0]/40 bg-[rgba(82,152,224,0.08)] p-5 space-y-4">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#5298E0]">Answer</p>
-            <p className="font-serif text-3xl font-black text-white mt-1">{working.result}</p>
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#909090] mb-2">Step-by-step working</p>
-            <ol className="list-decimal list-inside space-y-1.5 text-xs text-[#F0EBE0] leading-relaxed">
-              {working.steps.map((step) => (
-                <li key={step}>{step}</li>
-              ))}
-            </ol>
-          </div>
-        </div>
-      ) : (
-        <p className="text-xs text-[#606060]">Fill in the fields above to see your answer and working.</p>
       )}
     </div>
   );
 }
 
 export default function NursingHubWorkspace({ onBack }: { onBack?: () => void }) {
-  const [phase, setPhase] = useState<Phase>("hub");
-  const [years, setYears] = useState<NursingYear[]>([]);
-  const [selectedYear, setSelectedYear] = useState(3);
-  const [activeTopic, setActiveTopic] = useState<NursingTopic | null>(null);
-  const [questions, setQuestions] = useState<NursingQuestion[]>([]);
-  const [durationMinutes, setDurationMinutes] = useState(30);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, NursingOptionKey | null>>({});
-  const [timeLeft, setTimeLeft] = useState(1800);
+  const [view, setView] = useState<HubView>("home");
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [results, setResults] = useState<{
-    percentageScore: number;
-    correctCount: number;
-    incorrectCount: number;
-    skippedCount: number;
-    totalQuestions: number;
-    breakdown: BreakdownItem[];
-  } | null>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
 
+  const [profile, setProfile] = useState<any>(null);
+  const [setupRequired, setSetupRequired] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(3);
+  const [courses, setCourses] = useState<CourseProgress[]>([]);
+  const [overallProgress, setOverallProgress] = useState(0);
+  const [weakAreas, setWeakAreas] = useState<CourseProgress[]>([]);
+  const [professionalExams, setProfessionalExams] = useState<ProfessionalExam[]>([]);
+  const [clinicalTopics, setClinicalTopics] = useState<any[]>([]);
+  const [universities, setUniversities] = useState<any[]>([]);
+  const [schools, setSchools] = useState<string[]>([]);
+  const [years, setYears] = useState<any[]>([]);
+
+  const [setupUni, setSetupUni] = useState("");
+  const [setupSchool, setSetupSchool] = useState("School of Nursing");
+  const [setupYear, setSetupYear] = useState(3);
+  const [savingSetup, setSavingSetup] = useState(false);
+
+  const [activeExam, setActiveExam] = useState<ProfessionalExam | null>(null);
+  const [activeCourse, setActiveCourse] = useState<CourseProgress | null>(null);
+  const [clinicalTopic, setClinicalTopic] = useState("");
+
+  const [sessionToken, setSessionToken] = useState("");
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [practiceType, setPracticeType] = useState<"course" | "clinical" | "exam">("course");
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, OptionKey | null>>({});
+  const [feedback, setFeedback] = useState<{ isCorrect: boolean; correctAnswer: string; rationale: string; topic: string } | null>(null);
+  const [answered, setAnswered] = useState<Set<string>>(new Set());
+  const [submitting, setSubmitting] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(1800);
   const submittedRef = useRef(false);
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        const res = await api.get("/student/nursing/catalog");
-        const list: NursingYear[] = res.data.years || [];
-        setYears(list);
-        if (list.length) setSelectedYear(list.find((y) => y.year === 3)?.year || list[0].year);
-      } catch (err: any) {
-        setError(err.response?.data?.error || "Failed to load nursing catalog.");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+  const [results, setResults] = useState<any>(null);
+  const [reviewIndex, setReviewIndex] = useState(0);
 
-  const yearData = useMemo(
-    () => years.find((y) => y.year === selectedYear),
-    [years, selectedYear]
-  );
-
-  const startTopicPractice = async (topic: NursingTopic) => {
+  const loadHome = useCallback(async () => {
     setLoading(true);
-    setError("");
     try {
-      const res = await api.get(`/student/nursing/questions/${topic.id}/${selectedYear}`);
-      setQuestions(res.data.questions || []);
-      setDurationMinutes(res.data.durationMinutes || 30);
-      setActiveTopic(topic);
-      setAnswers({});
-      setCurrentIndex(0);
-      setResults(null);
-      submittedRef.current = false;
-      const secs = (res.data.durationMinutes || 30) * 60;
-      setTimeLeft(secs);
-      setPhase("practice");
+      const res = await api.get("/student/nursing/home");
+      const data = res.data;
+      setProfile(data.profile);
+      setSetupRequired(data.setupRequired);
+      setSelectedYear(data.year || 3);
+      setCourses(data.courses || []);
+      setOverallProgress(data.overallProgress || 0);
+      setWeakAreas(data.weakAreas || []);
+      setProfessionalExams(data.professionalExams || []);
+      setClinicalTopics(data.clinicalTopics || []);
+      setUniversities(data.universities || []);
+      setSchools(data.schools || []);
+      setYears(data.years || []);
+      if (data.setupRequired) setView("setup");
+      else setView("home");
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to load questions.");
+      setError(err.response?.data?.error || "Failed to load Nursing Hub.");
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => { loadHome(); }, [loadHome]);
+
+  const saveSetup = async () => {
+    setSavingSetup(true);
+    try {
+      await api.post("/student/nursing/profile", { university: setupUni, school: setupSchool, year: setupYear });
+      await loadHome();
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Failed to save profile.");
+    } finally {
+      setSavingSetup(false);
+    }
   };
 
-  const submitExam = useCallback(async () => {
-    if (submittedRef.current || !activeTopic) return;
-    submittedRef.current = true;
+  const startPractice = async (opts: Record<string, unknown>) => {
     setSubmitting(true);
     setError("");
     try {
-      const res = await api.post("/student/nursing/submit", {
-        topicId: activeTopic.id,
-        year: selectedYear,
-        answers,
-      });
-      setResults({
-        percentageScore: res.data.percentageScore,
-        correctCount: res.data.correctCount,
-        incorrectCount: res.data.incorrectCount,
-        skippedCount: res.data.skippedCount,
-        totalQuestions: res.data.totalQuestions,
-        breakdown: res.data.breakdown || [],
-      });
-      setPhase("results");
-    } catch (err: any) {
+      const res = await api.post("/student/nursing/start", opts);
+      setSessionToken(res.data.sessionToken);
+      setQuestions(res.data.questions || []);
+      setAnswers({});
+      setAnswered(new Set());
+      setFeedback(null);
+      setCurrentIndex(0);
       submittedRef.current = false;
-      setError(err.response?.data?.error || "Failed to submit.");
+      setTimeLeft((res.data.durationMinutes || 30) * 60);
+      setPracticeType((opts.questionType as string) === "clinical" ? "clinical" : opts.examId ? "exam" : "course");
+      setView("practice");
+    } catch (err: any) {
+      if (err.response?.data?.premiumRequired) setShowPaywall(true);
+      else setError(err.response?.data?.error || "Failed to start practice.");
     } finally {
       setSubmitting(false);
     }
-  }, [activeTopic, selectedYear, answers]);
+  };
+
+  const handleClinicalAnswer = async (key: OptionKey) => {
+    const q = questions[currentIndex];
+    if (!q || answered.has(q.id)) return;
+    setAnswers((p) => ({ ...p, [q.id]: key }));
+    try {
+      const res = await api.post("/student/nursing/check-answer", { questionId: q.id, chosen: key });
+      setFeedback(res.data);
+      setAnswered((p) => new Set(p).add(q.id));
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Failed to check answer.");
+    }
+  };
+
+  const submitPractice = useCallback(async () => {
+    if (submittedRef.current) return;
+    submittedRef.current = true;
+    setSubmitting(true);
+    try {
+      const res = await api.post("/student/nursing/submit", { sessionToken, answers });
+      setResults(res.data);
+      setView("results");
+      await loadHome();
+    } catch (err: any) {
+      submittedRef.current = false;
+      setError(err.response?.data?.error || "Submit failed.");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [sessionToken, answers, loadHome]);
 
   useEffect(() => {
-    if (phase !== "practice") return;
+    if (view !== "practice" || practiceType === "clinical") return;
     const timer = window.setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 1) {
-          window.clearInterval(timer);
-          submitExam();
-          return 0;
-        }
+        if (prev <= 1) { window.clearInterval(timer); submitPractice(); return 0; }
         return prev - 1;
       });
     }, 1000);
     return () => window.clearInterval(timer);
-  }, [phase, submitExam]);
+  }, [view, practiceType, submitPractice]);
 
   const current = questions[currentIndex];
-  const answeredCount = useMemo(
-    () => Object.values(answers).filter(Boolean).length,
-    [answers]
-  );
+  const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
-  const selectAnswer = (key: NursingOptionKey) => {
-    if (!current) return;
-    setAnswers((prev) => ({ ...prev, [current.id]: key }));
-  };
+  if (loading && view === "home") return <p className="text-xs text-[#909090]">Loading Nursing Hub…</p>;
 
-  if (phase === "drug-calc") {
-    return <DrugCalculationTool onBack={() => setPhase("hub")} />;
-  }
-
-  if (phase === "results" && results) {
+  if (view === "setup") {
     return (
-      <div className="space-y-6">
-        <div className="rounded-2xl border border-[#242424] bg-[#161616] p-6 text-center">
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#5298E0]">Practice Complete</p>
-          <h3 className="font-serif text-4xl font-black text-white mt-2">{results.percentageScore}%</h3>
-          <p className="text-xs text-[#909090] mt-2">
-            {activeTopic?.name} · Year {selectedYear}
-          </p>
-          <p className="text-xs text-[#909090] mt-1">
-            {results.correctCount} correct · {results.incorrectCount} wrong · {results.skippedCount} skipped
-          </p>
+      <div className="max-w-md mx-auto space-y-6">
+        <div className="text-center">
+          <Building2 className="h-10 w-10 text-[#5298E0] mx-auto mb-2" />
+          <h3 className="font-serif text-xl font-bold text-white">Nursing Profile Setup</h3>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[320px] overflow-y-auto">
-          {results.breakdown.map((item) => (
-            <div
-              key={item.questionId}
-              className={`rounded-xl border p-3 text-xs ${
-                item.isCorrect
-                  ? "border-[#52C07A]/40 bg-[#52C07A]/10"
-                  : item.chosen
-                    ? "border-red-900/40 bg-red-950/20"
-                    : "border-[#242424] bg-[#161616]"
-              }`}
-            >
-              <p className="font-bold text-white mb-1">Q{item.questionNumber}</p>
-              <p className="text-[#909090]">
-                Your answer: {item.chosen || "—"} · Correct: {item.correctAnswer}
-              </p>
-              {item.rationale ? (
-                <p className="text-[#606060] mt-1 leading-relaxed">{item.rationale}</p>
-              ) : null}
-            </div>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" onClick={() => setPhase("hub")}>
-            Back to Nursing Hub
-          </Button>
+        {error && <p className="text-xs text-red-400 text-center">{error}</p>}
+        <div className="rounded-2xl border border-[#242424] bg-[#0d1117] p-5 space-y-4">
+          <label className="block text-xs text-[#909090]">University
+            <select value={setupUni} onChange={(e) => setSetupUni(e.target.value)} className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2.5 text-white">
+              <option value="">Select university...</option>
+              {universities.map((u: any) => <option key={u.id} value={u.id}>{u.label}</option>)}
+            </select>
+          </label>
+          <label className="block text-xs text-[#909090]">School / Faculty
+            <select value={setupSchool} onChange={(e) => setSetupSchool(e.target.value)} className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2.5 text-white">
+              {schools.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </label>
+          <label className="block text-xs text-[#909090]">Current Year
+            <select value={setupYear} onChange={(e) => setSetupYear(Number(e.target.value))} className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2.5 text-white">
+              {[1, 2, 3, 4, 5].map((y) => <option key={y} value={y}>Year {y}</option>)}
+            </select>
+          </label>
+          <Button onClick={saveSetup} isLoading={savingSetup} className="w-full">Continue</Button>
         </div>
       </div>
     );
   }
 
-  if (phase === "practice" && current) {
+  if (view === "drug-calc") return <DrugCalculator onBack={() => setView("home")} />;
+
+  if (view === "results" && results) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              if (window.confirm("Leave this practice session? Progress will be lost.")) {
-                setPhase("hub");
-              }
-            }}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#242424] bg-[#161616] text-[#909090]"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <div>
-            <h3 className="font-serif text-lg font-bold text-white">{activeTopic?.name}</h3>
-            <p className="text-[11px] text-[#909090]">Year {selectedYear} · {questions.length} questions</p>
-          </div>
+      <div className="space-y-5 max-w-lg mx-auto">
+        <div className="rounded-2xl border border-[#5298E0]/40 bg-[#0d1117] p-6 text-center">
+          <p className="text-[10px] font-bold uppercase text-[#5298E0]">Practice Complete</p>
+          <h3 className="font-serif text-4xl font-black text-white mt-2">{results.percentageScore}%</h3>
+          <p className="text-xs text-[#909090] mt-2">{results.correctCount}/{results.totalQuestions} correct</p>
+        </div>
+        {results.breakdown?.length > 0 && (
+          <Button variant="outline" onClick={() => { setReviewIndex(0); setView("review"); }} className="w-full">
+            Full Review
+          </Button>
+        )}
+        <Button onClick={() => setView("home")} className="w-full">Back to Nursing Hub</Button>
+      </div>
+    );
+  }
+
+  if (view === "review" && results?.breakdown) {
+    const item = results.breakdown[reviewIndex];
+    if (!item) { setView("results"); return null; }
+    return (
+      <div className="space-y-4 max-w-lg mx-auto">
+        <button type="button" onClick={() => setView("results")} className="text-xs text-[#909090] flex items-center gap-2"><ArrowLeft className="h-4 w-4" /> Back</button>
+        <p className="text-[10px] text-[#5298E0]">Q{reviewIndex + 1} of {results.breakdown.length}</p>
+        {item.scenario && <p className="text-xs text-[#909090] whitespace-pre-wrap bg-[#161616] p-3 rounded-xl">{item.scenario}</p>}
+        <p className="text-sm text-white">{item.questionText}</p>
+        <p className={item.isCorrect ? "text-[#52C07A] text-sm" : "text-red-400 text-sm"}>Your answer: {item.chosen || "—"} {item.isCorrect ? "✓" : "✗"}</p>
+        {!item.isCorrect && <p className="text-[#52C07A] text-sm">Correct: {item.correctAnswer}</p>}
+        <p className="text-xs text-[#C0C0C0] leading-relaxed">{item.rationale}</p>
+        <div className="flex gap-3">
+          <Button variant="outline" disabled={reviewIndex === 0} onClick={() => setReviewIndex((i) => i - 1)}>← Prev</Button>
+          <Button disabled={reviewIndex >= results.breakdown.length - 1} onClick={() => setReviewIndex((i) => i + 1)} className="flex-1">Next →</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (view === "practice" && current) {
+    const isClinical = practiceType === "clinical";
+    const isLast = currentIndex >= questions.length - 1;
+    const hasAnswered = answered.has(current.id);
+
+    return (
+      <div className="space-y-4 max-w-2xl mx-auto">
+        <div className="flex items-center justify-between">
+          <button type="button" onClick={() => setView("home")} className="text-[#909090]"><ArrowLeft className="h-5 w-5" /></button>
+          <p className="text-xs text-[#909090]">
+            {isClinical ? "Clinical Scenario" : "Practice"} · Q{currentIndex + 1}/{questions.length}
+          </p>
+          {!isClinical && (
+            <div className="flex items-center gap-1 text-sm font-bold text-[#5298E0] tabular-nums">
+              <Clock className="h-3.5 w-3.5" /> {formatTime(timeLeft)}
+            </div>
+          )}
         </div>
 
-        {error ? <p className="text-xs text-red-400">{error}</p> : null}
-
-        <div className="rounded-2xl border border-[#242424] bg-[#161616] p-5 space-y-5">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-xs text-[#909090]">
-              Question {currentIndex + 1} of {questions.length}
-            </p>
-            <p className={`text-sm font-bold tabular-nums ${timeLeft < 300 ? "text-red-400" : "text-[#5298E0]"}`}>
-              {formatTime(timeLeft)}
-            </p>
-          </div>
-
-          <p className="text-sm leading-relaxed text-[#F0EBE0]">{current.questionText}</p>
-
+        <div className="rounded-2xl border border-[#242424] bg-[#0d1117] p-5 space-y-4">
+          {current.scenario && (
+            <div className="rounded-xl bg-[#161616] border border-[#242424] p-4 text-xs text-[#C0C0C0] whitespace-pre-wrap leading-relaxed">
+              {current.scenario}
+            </div>
+          )}
+          <p className="text-sm text-[#F0EBE0] leading-relaxed">{current.questionText}</p>
           <div className="space-y-2">
-            {(["A", "B", "C", "D"] as NursingOptionKey[]).map((key) => {
-              const selected = answers[current.id] === key;
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => selectAnswer(key)}
-                  className={`w-full flex items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition-all ${
-                    selected
-                      ? "border-[#5298E0] bg-[rgba(82,152,224,0.15)] text-white"
-                      : "border-[#242424] bg-[#080808] text-[#F0EBE0] hover:border-[#5298E0]/40"
-                  }`}
-                >
-                  <span
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
-                      selected ? "bg-[#5298E0] text-white" : "bg-[#161616] text-[#909090]"
-                    }`}
-                  >
-                    {key}
-                  </span>
-                  <span>{current.options[key]}</span>
-                </button>
-              );
-            })}
+            {(["A", "B", "C", "D"] as OptionKey[]).map((key) => (
+              <button
+                key={key}
+                type="button"
+                disabled={isClinical && hasAnswered}
+                onClick={() => isClinical ? handleClinicalAnswer(key) : setAnswers((p) => ({ ...p, [current.id]: key }))}
+                className={`w-full flex items-start gap-3 rounded-xl border px-4 py-3 text-left text-sm ${
+                  answers[current.id] === key
+                    ? feedback?.isCorrect ? "border-[#52C07A] bg-[#52C07A]/10" : feedback && !feedback.isCorrect ? "border-red-500 bg-red-950/20" : "border-[#5298E0] bg-[#5298E0]/10"
+                    : "border-[#242424] bg-[#080808] hover:border-[#5298E0]/40"
+                }`}
+              >
+                <span className="font-bold text-[#5298E0] shrink-0">{key}.</span>
+                <span>{current.options[key]}</span>
+              </button>
+            ))}
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={currentIndex === 0}
-              onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
-            >
-              Previous
-            </Button>
-            {currentIndex < questions.length - 1 ? (
-              <Button type="button" size="sm" onClick={() => setCurrentIndex((i) => i + 1)}>
-                Next →
-              </Button>
+          {isClinical && feedback && hasAnswered && (
+            <div className={`rounded-xl p-4 text-sm ${feedback.isCorrect ? "bg-[#52C07A]/10 border border-[#52C07A]/30" : "bg-red-950/20 border border-red-900/30"}`}>
+              <p className="font-bold text-white mb-1">{feedback.isCorrect ? `✓ Correct — ${feedback.correctAnswer}` : `✗ Correct — ${feedback.correctAnswer}`}</p>
+              <p className="text-[#C0C0C0] leading-relaxed">{feedback.rationale}</p>
+              <p className="text-[10px] text-[#606060] mt-2">Topic: {feedback.topic}</p>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2">
+            {isClinical ? (
+              hasAnswered && (
+                <Button onClick={() => { if (isLast) submitPractice(); else { setCurrentIndex((i) => i + 1); setFeedback(null); } }} isLoading={submitting && isLast}>
+                  {isLast ? "Complete" : "Next →"}
+                </Button>
+              )
             ) : (
-              <Button type="button" size="sm" onClick={submitExam} disabled={submitting}>
-                {submitting ? "Submitting…" : "Submit"}
-              </Button>
+              <>
+                <Button variant="outline" disabled={currentIndex === 0} onClick={() => setCurrentIndex((i) => i - 1)}>Previous</Button>
+                {isLast ? (
+                  <Button onClick={submitPractice} isLoading={submitting}>Submit</Button>
+                ) : (
+                  <Button onClick={() => setCurrentIndex((i) => i + 1)}>Next →</Button>
+                )}
+              </>
             )}
           </div>
         </div>
+      </div>
+    );
+  }
 
-        <div className="rounded-2xl border border-[#242424] bg-[#161616] p-4">
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#909090] mb-3">
-            Question map · {answeredCount}/{questions.length} answered
-          </p>
-          <div className="grid grid-cols-8 gap-2">
-            {questions.map((qn, idx) => {
-              const answered = Boolean(answers[qn.id]);
-              const isCurrent = idx === currentIndex;
-              return (
-                <button
-                  key={qn.id}
-                  type="button"
-                  onClick={() => setCurrentIndex(idx)}
-                  className={`aspect-square rounded-lg text-[11px] font-bold transition-all ${
-                    isCurrent
-                      ? "bg-[#5298E0] text-white"
-                      : answered
-                        ? "border border-[#5298E0] text-[#5298E0] bg-[rgba(82,152,224,0.1)]"
-                        : "border border-[#242424] text-[#606060] bg-[#080808]"
-                  }`}
-                >
-                  {qn.questionNumber}
-                </button>
-              );
-            })}
-          </div>
+  if (view === "exams") {
+    return (
+      <div className="space-y-5 max-w-lg mx-auto">
+        <button type="button" onClick={() => setView("home")} className="text-xs text-[#909090] flex items-center gap-2"><ArrowLeft className="h-4 w-4" /> Back</button>
+        <h3 className="font-serif text-xl font-bold text-white flex items-center gap-2"><GraduationCap className="h-5 w-5 text-[#5298E0]" /> Professional Exams</h3>
+        <div className="space-y-3">
+          {professionalExams.map((exam) => (
+            <button
+              key={exam.id}
+              type="button"
+              onClick={() => { setActiveExam(exam); setView("exam-detail"); }}
+              className={`w-full text-left rounded-2xl border p-4 ${
+                exam.access === "free" ? "border-[#52C07A]/40 bg-[#52C07A]/5"
+                  : exam.access === "premium_only" ? "border-yellow-600/40 bg-yellow-950/10"
+                  : "border-[#5298E0]/30 bg-[#0d1117]"
+              }`}
+            >
+              <div className="flex justify-between items-start gap-2">
+                <p className="font-bold text-white text-sm">{exam.name}</p>
+                <span className={`text-[9px] font-bold shrink-0 ${exam.access === "free" ? "text-[#52C07A]" : "text-yellow-500"}`}>
+                  {exam.access === "free" ? "FREE" : exam.access === "premium_only" ? "PREMIUM ONLY" : "PREMIUM"}
+                </span>
+              </div>
+              <p className="text-[11px] text-[#606060] mt-1">{exam.description}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (view === "exam-detail" && activeExam) {
+    return (
+      <div className="space-y-5 max-w-lg mx-auto">
+        <button type="button" onClick={() => setView("exams")} className="text-xs text-[#909090] flex items-center gap-2"><ArrowLeft className="h-4 w-4" /> Back</button>
+        <h3 className="font-serif text-xl font-bold text-white">{activeExam.name}</h3>
+        <p className="text-xs text-[#909090]">{activeExam.description}</p>
+        <div className="space-y-2">
+          <Button onClick={() => startPractice({ examId: activeExam.id, topicId: activeExam.topicId, year: selectedYear, limit: 20 })} isLoading={submitting} className="w-full">Start Practice</Button>
+          <Button variant="outline" onClick={() => startPractice({ examId: activeExam.id, topicId: activeExam.topicId, year: selectedYear, limit: 40 })} className="w-full">Mock Exam (40 Q)</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (view === "clinical") {
+    return (
+      <div className="space-y-5 max-w-lg mx-auto">
+        <button type="button" onClick={() => setView("home")} className="text-xs text-[#909090] flex items-center gap-2"><ArrowLeft className="h-4 w-4" /> Back</button>
+        <h3 className="font-serif text-xl font-bold text-white flex items-center gap-2"><Stethoscope className="h-5 w-5 text-[#5298E0]" /> Clinical Scenarios</h3>
+        <p className="text-xs text-[#909090]">Practice clinical reasoning with real patient scenarios</p>
+        <div className="space-y-2">
+          {clinicalTopics.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => startPractice({ topicId: "medsurg-ii", year: selectedYear, questionType: "clinical", clinicalTopic: t.id, limit: 10 })}
+              className="w-full flex justify-between items-center rounded-xl border border-[#242424] bg-[#0d1117] px-4 py-3 text-left hover:border-[#5298E0]/40"
+            >
+              <span className="text-sm font-bold text-white">{t.name}</span>
+              <ChevronRight className="h-4 w-4 text-[#606060]" />
+            </button>
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {!onBack ? (
-        <div className="flex items-center gap-3">
-          <div>
-            <h3 className="font-serif text-xl font-bold text-white">Nursing Hub</h3>
-            <p className="text-xs text-[#909090] mt-1">
-              Year 1 through Year 5. MedSurg, MCH, Community Health, Mental Health, ICU, Emergency Nursing.
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="font-serif text-xl font-bold text-white flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-[#5298E0]" /> Nursing Hub
+          </h3>
+          {profile && (
+            <p className="text-xs text-[#5298E0] mt-0.5">
+              Year {profile.year} · {profile.universityLabel} · {profile.school}
             </p>
-          </div>
+          )}
         </div>
-      ) : null}
+        {onBack && <Button variant="outline" size="sm" onClick={onBack}>All Tools</Button>}
+      </div>
 
-      {error ? <p className="text-xs text-red-400">{error}</p> : null}
+      {error && <p className="text-xs text-red-400">{error}</p>}
 
-      {loading && !years.length ? (
-        <p className="text-xs text-[#909090]">Loading Nursing Hub…</p>
-      ) : (
-        <>
-          <div className="rounded-2xl border border-[#242424] bg-[#161616] p-4">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#909090] mb-3">Select year</p>
-            <div className="flex flex-wrap gap-2">
-              {years.map((y) => (
-                <button
-                  key={y.year}
-                  type="button"
-                  onClick={() => setSelectedYear(y.year)}
-                  className={`rounded-full px-4 py-2 text-xs font-bold transition-all ${
-                    selectedYear === y.year
-                      ? "bg-[#5298E0] text-white"
-                      : "border border-[#242424] bg-[#080808] text-[#909090] hover:border-[#5298E0]/40"
-                  }`}
-                >
-                  {y.label}
-                </button>
-              ))}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Panel 1: My Progress */}
+        <div className="rounded-2xl border border-[#242424] bg-[#0d1117] p-5 space-y-4 lg:col-span-1">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-[#909090]">Your Progress</p>
+            <div className="flex items-center gap-3 mt-2">
+              <p className="font-serif text-3xl font-black text-white">{overallProgress}%</p>
+              <div className="flex-1 h-2 bg-[#242424] rounded-full overflow-hidden">
+                <div className="h-full bg-[#5298E0] rounded-full transition-all" style={{ width: `${overallProgress}%` }} />
+              </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#242424] bg-[#161616] p-4 space-y-3">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#909090]">
-              Year {selectedYear} topics
-            </p>
-            {yearData?.topics.map((topic) => (
+          <div className="flex gap-2 flex-wrap">
+            {years.map((y: any) => (
               <button
-                key={topic.id}
+                key={y.year}
                 type="button"
-                onClick={() => startTopicPractice(topic)}
-                disabled={loading}
-                className="w-full flex items-center justify-between gap-3 rounded-xl border border-[#242424] bg-[#080808] px-4 py-4 text-left transition-all hover:border-[#5298E0]/40 disabled:opacity-50"
+                onClick={async () => {
+                  setSelectedYear(y.year);
+                  const res = await api.get(`/student/nursing/home?year=${y.year}`);
+                  setCourses(res.data.courses || []);
+                  setOverallProgress(res.data.overallProgress || 0);
+                  setWeakAreas(res.data.weakAreas || []);
+                }}
+                className={`rounded-full px-3 py-1.5 text-xs font-bold ${
+                  selectedYear === y.year ? "bg-[#5298E0] text-white" : "border border-[#242424] text-[#606060]"
+                }`}
               >
-                <span className="text-sm font-semibold text-white">{topic.name}</span>
-                <ChevronRight className="h-4 w-4 text-[#606060] shrink-0" />
+                {y.label}{selectedYear === y.year ? " ✓" : ""}
               </button>
             ))}
           </div>
 
-          <div className="rounded-2xl border border-[#242424] bg-[#161616] p-5 space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Syringe className="h-4 w-4 text-[#5298E0]" />
-                <h4 className="font-serif text-sm font-bold text-white">Drug Calculation Tool</h4>
-              </div>
-              <Button type="button" size="sm" onClick={() => setPhase("drug-calc")}>
-                Open
-              </Button>
+          {weakAreas.length > 0 && (
+            <div className="rounded-xl border border-red-900/40 bg-red-950/20 p-3">
+              <p className="text-[10px] font-bold text-red-400 mb-2">⚠ NEEDS ATTENTION</p>
+              {weakAreas.map((c) => (
+                <button
+                  key={c.courseId}
+                  type="button"
+                  onClick={() => { setActiveCourse(c); startPractice({ topicId: c.topicId, year: selectedYear, courseId: c.courseId, limit: 20 }); }}
+                  className="w-full flex justify-between text-xs text-white hover:text-[#5298E0] py-1"
+                >
+                  <span>{c.courseName}</span>
+                  <span className="text-red-400">{c.progress}%</span>
+                </button>
+              ))}
             </div>
-            <p className="text-[11px] text-[#909090] leading-relaxed">
-              Enter dose, concentration, and volume on hand — the tool works the mL/hr or tablet count for you, with the working shown step by step.
-            </p>
+          )}
+
+          <p className="text-[10px] font-bold uppercase text-[#606060]">Year {selectedYear} Courses</p>
+          <div className="space-y-3">
+            {courses.map((c) => (
+              <button
+                key={c.courseId}
+                type="button"
+                onClick={() => { setActiveCourse(c); startPractice({ topicId: c.topicId, year: selectedYear, courseId: c.courseId, limit: 20 }); }}
+                className="w-full text-left rounded-xl border border-[#242424] bg-[#080808] p-3 hover:border-[#5298E0]/40 transition-all"
+              >
+                <div className="flex justify-between items-center mb-1">
+                  <p className="text-xs font-bold text-white">{c.courseName}</p>
+                  <span className="text-xs font-bold" style={{ color: progressColor(c.progress) }}>{c.progress}%</span>
+                </div>
+                <div className="h-1.5 bg-[#242424] rounded-full overflow-hidden mb-1.5">
+                  <div className="h-full rounded-full transition-all" style={{ width: `${c.progress}%`, background: progressColor(c.progress) }} />
+                </div>
+                <p className="text-[10px] text-[#606060]">{c.subtopics.join(" · ")}</p>
+              </button>
+            ))}
           </div>
-        </>
-      )}
+        </div>
+
+        {/* Panel 2: Drug Calculator */}
+        <div className="rounded-2xl border border-[#242424] bg-[#0d1117] p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <Syringe className="h-5 w-5 text-[#5298E0]" />
+            <p className="font-bold text-white text-sm">Drug Calculator</p>
+          </div>
+          <p className="text-[10px] text-[#606060]">IV Rate · Dosage · Reconstitution · Paediatric</p>
+          <p className="text-[10px] text-[#5298E0] italic">Unique to Ink2Wealth — no other app has this</p>
+          <Button onClick={() => setView("drug-calc")} className="w-full">Open Drug Calculator</Button>
+        </div>
+
+        {/* Panel 3: Professional Exams */}
+        <div className="rounded-2xl border border-[#242424] bg-[#0d1117] p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <GraduationCap className="h-5 w-5 text-[#5298E0]" />
+            <p className="font-bold text-white text-sm">Professional Exam Prep</p>
+          </div>
+          <div className="space-y-2">
+            {professionalExams.slice(0, 4).map((exam) => (
+              <div key={exam.id} className="flex justify-between items-center text-xs">
+                <span className="text-[#C0C0C0] truncate">{exam.name}</span>
+                <span className={`font-bold shrink-0 ml-2 ${exam.access === "free" ? "text-[#52C07A]" : "text-yellow-500"}`}>
+                  {exam.access === "free" ? "FREE" : "PREMIUM"}
+                </span>
+              </div>
+            ))}
+          </div>
+          <Button variant="outline" onClick={() => setView("exams")} className="w-full">View All Exams</Button>
+        </div>
+
+        {/* Panel 4: Clinical Scenarios */}
+        <div className="rounded-2xl border border-[#242424] bg-[#0d1117] p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <Stethoscope className="h-5 w-5 text-[#5298E0]" />
+            <p className="font-bold text-white text-sm">Clinical Scenario Q</p>
+          </div>
+          <p className="text-[10px] text-[#606060]">MedSurg · Cardiovascular · Respiratory · Emergency</p>
+          <div className="rounded-xl bg-[#161616] border border-[#242424] p-3 text-[10px] text-[#909090] leading-relaxed">
+            A 52-year-old male with crushing chest pain... ECG shows ST elevation. Practice your clinical reasoning.
+          </div>
+          <Button variant="outline" onClick={() => setView("clinical")} className="w-full">Practice Clinical Scenarios</Button>
+        </div>
+      </div>
+
+      <PaywallModal isOpen={showPaywall} onClose={() => setShowPaywall(false)} featureName="Nursing Hub Premium" />
     </div>
   );
 }

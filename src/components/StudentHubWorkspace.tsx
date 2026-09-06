@@ -304,7 +304,10 @@ export default function StudentHubWorkspace({
             <NursingHubWorkspace onBack={() => selectTool(null)} />
           )}
           {activeTool === "mbbs-hub" && (
-            <MbbsHubWorkspace onBack={() => selectTool(null)} />
+            <MbbsHubWorkspace
+              onBack={() => selectTool(null)}
+              onOpenStudyPlanner={() => selectTool("study-planner")}
+            />
           )}
           {activeTool === "professional-courses" && (
             <ProfessionalCoursesWorkspace onBack={() => selectTool(null)} />
