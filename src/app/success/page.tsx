@@ -19,6 +19,8 @@ function SuccessContent() {
   const [planName, setPlanName] = useState("");
   const [enrollmentId, setEnrollmentId] = useState("");
   const [courseName, setCourseName] = useState("");
+  const [marketplaceTitle, setMarketplaceTitle] = useState("");
+  const [marketplaceOk, setMarketplaceOk] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -39,13 +41,21 @@ function SuccessContent() {
       }
 
       try {
-        const endpoint = paymentType === "course" ? "/courses/verify-session" : "/stripe/verify-session";
+        const endpoint =
+          paymentType === "course"
+            ? "/courses/verify-session"
+            : paymentType === "marketplace"
+              ? "/marketplace/verify-session"
+              : "/stripe/verify-session";
         const response = await api.post(endpoint, { sessionId });
         if (cancelled) return;
         if (response.data?.success) {
           if (paymentType === "course") {
             setEnrollmentId(response.data.enrollmentId || "");
             setCourseName(response.data.courseName || "");
+          } else if (paymentType === "marketplace") {
+            setMarketplaceOk(true);
+            setMarketplaceTitle(response.data.listingTitle || response.data.title || "Your script");
           } else {
             setPlanName(response.data.planName || "");
           }
@@ -70,7 +80,12 @@ function SuccessContent() {
   }, [sessionId, user, authLoading, paymentType]);
 
   const isCourse = paymentType === "course";
-  const success = isCourse ? Boolean(enrollmentId) : Boolean(planName);
+  const isMarketplace = paymentType === "marketplace";
+  const success = isCourse
+    ? Boolean(enrollmentId)
+    : isMarketplace
+      ? marketplaceOk
+      : Boolean(planName);
 
   return (
     <div className="min-h-screen bg-[#080808] text-[#F0EBE0] font-sans flex flex-col justify-between">
@@ -126,6 +141,14 @@ function SuccessContent() {
                     Save this ID — you will find it in your Transactions tab on the dashboard.
                   </p>
                 </div>
+              ) : isMarketplace ? (
+                <div className="space-y-2">
+                  <p className="text-[#909090] text-sm leading-relaxed">
+                    {marketplaceTitle
+                      ? `Access to “${marketplaceTitle}” is unlocked. Open My Purchases to read or download.`
+                      : "Your marketplace purchase is confirmed. Full script access is unlocked."}
+                  </p>
+                </div>
               ) : (
                 <p className="text-[#909090] text-sm leading-relaxed">
                   {planName
@@ -137,10 +160,20 @@ function SuccessContent() {
 
               <div className="pt-6 flex flex-col gap-2">
                 <Link
-                  href={isCourse ? "/dashboard?tab=transactions" : "/dashboard"}
+                  href={
+                    isCourse
+                      ? "/dashboard?tab=transactions"
+                      : isMarketplace
+                        ? "/dashboard?tab=script-marketplace"
+                        : "/dashboard"
+                  }
                   className="w-full text-center py-3 font-bold rounded-xl text-xs block bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] text-zinc-950 hover:opacity-90 transition-all"
                 >
-                  {isCourse ? "View My Transactions" : "Go to Dashboard"}
+                  {isCourse
+                    ? "View My Transactions"
+                    : isMarketplace
+                      ? "Open Script Marketplace"
+                      : "Go to Dashboard"}
                 </Link>
               </div>
             </>

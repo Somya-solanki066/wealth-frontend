@@ -10,14 +10,12 @@ import api from "@/services/api";
 import { OpenCallCard } from "@/components/wealth/OpenCallCard";
 import WealthIndustryNav from "@/components/wealth/WealthIndustryNav";
 import type { OpenCall } from "@/lib/industry";
-import { CALL_TYPES, LOCATION_TYPES } from "@/lib/industry";
+import { INDUSTRY_GENRE_FILTERS } from "@/lib/industry";
 
 export default function IndustryFeedPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [search, setSearch] = useState("");
-  const [callType, setCallType] = useState("");
-  const [locationType, setLocationType] = useState("");
+  const [genre, setGenre] = useState("All genres");
   const [calls, setCalls] = useState<OpenCall[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -28,36 +26,32 @@ export default function IndustryFeedPage() {
     }
   }, [authLoading, user, router]);
 
-  const load = useCallback(async (overrides?: {
-    search?: string;
-    callType?: string;
-    locationType?: string;
-  }) => {
+  const load = useCallback(async (selectedGenre = genre) => {
     setLoading(true);
     setError("");
     try {
       const params = new URLSearchParams();
-      const s = overrides?.search ?? search;
-      const ct = overrides?.callType ?? callType;
-      const lt = overrides?.locationType ?? locationType;
-      if (s.trim()) params.set("search", s.trim());
-      if (ct) params.set("callType", ct);
-      if (lt) params.set("locationType", lt);
+      if (selectedGenre && selectedGenre !== "All genres") {
+        params.set("genre", selectedGenre);
+      }
       const res = await api.get(`/wealth/industry?${params.toString()}`);
-      setCalls(res.data.calls || []);
+      let list: OpenCall[] = res.data.calls || [];
+      if (list.length === 0 && selectedGenre === "All genres") {
+        const seed = await api.post("/wealth/industry/seed-demo");
+        list = seed.data?.calls || [];
+      }
+      setCalls(list);
     } catch (err: any) {
       setError(err.response?.data?.error || "Failed to load open calls.");
     } finally {
       setLoading(false);
     }
-  }, [search, callType, locationType]);
+  }, [genre]);
 
   useEffect(() => {
     if (!user) return;
-    load();
-    // initial load only when user becomes available
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+    void load(genre);
+  }, [user, genre]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (authLoading || !user) {
     return (
@@ -71,14 +65,16 @@ export default function IndustryFeedPage() {
     <div className="min-h-screen bg-[#080808] text-[#F0EBE0] flex flex-col">
       <Navbar />
       <main className="flex-grow px-[5%] pt-6 pb-16">
-        <div className="mx-auto max-w-[1200px]">
+        <div className="mx-auto max-w-[720px]">
           <WealthIndustryNav active="browse" />
           <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[3px] text-[var(--gd)]">
-                Industry Connect
+                Industry Hub
               </p>
-              <h1 className="font-serif text-3xl font-black text-white mt-1">Open Calls</h1>
+              <h1 className="font-serif text-3xl font-black text-white mt-1">
+                Industry Hub & Open Calls
+              </h1>
               <p className="text-xs text-[#909090] mt-1">
                 Directors and producers seeking scripts, stories, and collaborations.
               </p>
@@ -91,44 +87,26 @@ export default function IndustryFeedPage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search…"
-              className="rounded-xl border border-[#242424] bg-[#161616] px-3 py-2.5 text-xs text-[#F0EBE0] outline-none focus:border-[var(--gm)]"
-            />
-            <select
-              value={callType}
-              onChange={(e) => setCallType(e.target.value)}
-              className="rounded-xl border border-[#242424] bg-[#1c1c1c] px-3 py-2.5 text-xs text-[#F0EBE0] outline-none"
-            >
-              <option value="">All types</option>
-              {CALL_TYPES.map((c) => (
-                <option key={c.value} value={c.value}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-            <select
-              value={locationType}
-              onChange={(e) => setLocationType(e.target.value)}
-              className="rounded-xl border border-[#242424] bg-[#1c1c1c] px-3 py-2.5 text-xs text-[#F0EBE0] outline-none"
-            >
-              <option value="">Any location</option>
-              {LOCATION_TYPES.map((l) => (
-                <option key={l.value} value={l.value}>
-                  {l.label}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={() => load()}
-              className="rounded-xl border border-[var(--gm)] bg-[var(--gf)] px-3 py-2.5 text-xs font-bold text-[var(--gd)]"
-            >
-              Apply Filters
-            </button>
+          <div className="rounded-2xl border border-[#242424] bg-[#1c1c1c] p-3 mb-6">
+            <div className="flex flex-wrap gap-2">
+              {INDUSTRY_GENRE_FILTERS.map((g) => {
+                const active = genre === g;
+                return (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setGenre(g)}
+                    className={`rounded-full px-3.5 py-2 text-xs font-semibold transition ${
+                      active
+                        ? "bg-[var(--gd)] text-[#080808]"
+                        : "bg-[#161616] text-[#a0a0a0] hover:text-[#f0ebe0]"
+                    }`}
+                  >
+                    {g}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {error ? <p className="text-xs text-red-400 mb-4">{error}</p> : null}
@@ -140,7 +118,7 @@ export default function IndustryFeedPage() {
               <p className="text-xs text-[#606060]">No active open calls yet. Check back soon.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-4">
               {calls.map((call) => (
                 <OpenCallCard key={call.id} call={call} />
               ))}

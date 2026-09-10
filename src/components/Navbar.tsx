@@ -13,10 +13,11 @@ import {
   Menu,
   X,
   Home,
-  Wrench,
   Coins,
   GraduationCap,
   Settings,
+  PenLine,
+  Receipt,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import api from "@/services/api";
@@ -147,33 +148,49 @@ function NavbarContent() {
 
   const navLinkClass = (active: boolean) =>
     `mobile-nav-link rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
-      active ? accentText : "text-[#909090] hover:text-[#F0EBE0] hover:bg-[#161616]"
+      active
+        ? `${accentText} bg-[var(--gd)]/10`
+        : "text-[#909090] hover:text-[#F0EBE0] hover:bg-[#161616]"
     }`;
 
   const isDashboardTabActive = (tab: string) => {
     if (!isDashboard) return false;
     if (tab === "home") return !dashboardTab || dashboardTab === "home";
-    if (tab === "novels-list") {
-      return (
-        dashboardTab === "novels-list" ||
-        dashboardTab === "view-novel" ||
-        dashboardTab === "novel"
-      );
+    if (tab === "writer") {
+      const writerTabs = new Set([
+        "writer",
+        "novels-list",
+        "view-novel",
+        "novel",
+        "analyzer-workspace",
+        "smart-edit",
+        "ghost-writer",
+        "writing-vault",
+        "book-cover-generator",
+        "tools",
+      ]);
+      if (dashboardTab === "ghost-writer" && searchParams.get("mode") === "script") {
+        return false;
+      }
+      return writerTabs.has(dashboardTab || "");
     }
-    if (tab === "scripts-list") {
-      return (
-        dashboardTab === "scripts-list" ||
-        dashboardTab === "view-script" ||
-        dashboardTab === "script"
-      );
-    }
-    if (tab === "tools") {
-      return (
-        dashboardTab === "tools" ||
-        dashboardTab === "ghost-writer" ||
-        dashboardTab === "smart-edit" ||
-        dashboardTab === "analyzer-workspace"
-      );
+    if (tab === "script-hub") {
+      const scriptTabs = new Set([
+        "script-hub",
+        "scripts-list",
+        "view-script",
+        "script",
+        "script-analyzer-workspace",
+        "industry-hub",
+        "short-film-showcase",
+        "script-marketplace",
+        "screenwriter-community",
+        "pitch-query-builder",
+      ]);
+      if (dashboardTab === "ghost-writer" && searchParams.get("mode") === "script") {
+        return true;
+      }
+      return scriptTabs.has(dashboardTab || "");
     }
     return dashboardTab === tab;
   };
@@ -455,31 +472,23 @@ function NavbarContent() {
                 </Link>
 
                 <Link
-                  href="/dashboard?tab=novels-list"
+                  href="/dashboard?tab=writer"
                   onClick={closeMobileMenu}
-                  className={navLinkClass(isDashboardTabActive("novels-list"))}
+                  className={navLinkClass(isDashboardTabActive("writer"))}
                 >
-                  <BookOpen className="h-4 w-4 shrink-0" />
-                  <span>Novels</span>
+                  <PenLine className="h-4 w-4 shrink-0" />
+                  <span>Writer Hub</span>
                 </Link>
 
                 <Link
-                  href="/dashboard?tab=scripts-list"
+                  href="/dashboard?tab=script-hub"
                   onClick={closeMobileMenu}
-                  className={navLinkClass(isDashboardTabActive("scripts-list"))}
+                  className={navLinkClass(isDashboardTabActive("script-hub"))}
                 >
                   <Clapperboard className="h-4 w-4 shrink-0" />
-                  <span>Scripts</span>
+                  <span>Script Hub</span>
                 </Link>
 
-                <Link
-                  href="/dashboard?tab=tools"
-                  onClick={closeMobileMenu}
-                  className={navLinkClass(isDashboardTabActive("tools"))}
-                >
-                  <Wrench className="h-4 w-4 shrink-0" />
-                  <span>Quick Tools</span>
-                </Link>
                 <Link
                   href="/dashboard?tab=wealth"
                   onClick={closeMobileMenu}
@@ -488,6 +497,7 @@ function NavbarContent() {
                   <Coins className="h-4 w-4 shrink-0" />
                   <span>WEALTH Engine</span>
                 </Link>
+
                 <Link
                   href="/dashboard?tab=student"
                   onClick={closeMobileMenu}
@@ -496,6 +506,25 @@ function NavbarContent() {
                   <GraduationCap className="h-4 w-4 shrink-0" />
                   <span>Student Hub</span>
                 </Link>
+
+                <Link
+                  href="/dashboard?tab=courses"
+                  onClick={closeMobileMenu}
+                  className={navLinkClass(isDashboardTabActive("courses"))}
+                >
+                  <BookOpen className="h-4 w-4 shrink-0" />
+                  <span>Courses</span>
+                </Link>
+
+                <Link
+                  href="/dashboard?tab=transactions"
+                  onClick={closeMobileMenu}
+                  className={navLinkClass(isDashboardTabActive("transactions"))}
+                >
+                  <Receipt className="h-4 w-4 shrink-0" />
+                  <span>Transactions</span>
+                </Link>
+
                 <Link
                   href="/dashboard?tab=profile"
                   onClick={closeMobileMenu}

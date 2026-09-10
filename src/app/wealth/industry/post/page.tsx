@@ -23,6 +23,8 @@ export default function PostOpenCallPage() {
   const [deadline, setDeadline] = useState("");
   const [prize, setPrize] = useState("");
   const [fee, setFee] = useState("");
+  const [budget, setBudget] = useState("");
+  const [location, setLocation] = useState("");
   const [locationType, setLocationType] = useState("remote");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -60,8 +62,10 @@ export default function PostOpenCallPage() {
         description: description.trim(),
         requirements: requirements.trim(),
         deadline,
-        prize: prize.trim(),
+        prize: prize.trim() || budget.trim(),
         fee: fee.trim(),
+        budget: budget.trim() || prize.trim(),
+        location: location.trim(),
         locationType,
       });
       setSuccess(res.data.message || "Submitted for review.");
@@ -107,7 +111,16 @@ export default function PostOpenCallPage() {
             ))}
           </select>
           <label className={label}>Genre</label>
-          <input className={field} value={genre} onChange={(e) => setGenre(e.target.value)} placeholder="e.g. Thriller, Romance" />
+          <select className={field} value={genre} onChange={(e) => setGenre(e.target.value)}>
+            <option value="">Select genre</option>
+            {["Drama", "Thriller", "Comedy", "Romance", "Action", "Horror", "Fantasy", "Sci-Fi"].map(
+              (g) => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              )
+            )}
+          </select>
           <label className={label}>Target Market</label>
           <input className={field} value={targetMarket} onChange={(e) => setTargetMarket(e.target.value)} placeholder="e.g. Nollywood, Netflix Africa" />
           <label className={label}>Description</label>
@@ -120,15 +133,35 @@ export default function PostOpenCallPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className={label}>Prize / Budget</label>
+              <label className={label}>Budget</label>
+              <input
+                className={field}
+                value={budget}
+                onChange={(e) => setBudget(e.target.value)}
+                placeholder="e.g. ₦2M–5M"
+              />
+            </div>
+            <div>
+              <label className={label}>Prize (optional)</label>
               <input className={field} value={prize} onChange={(e) => setPrize(e.target.value)} placeholder="Optional" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className={label}>City / Location</label>
+              <input
+                className={field}
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. Lagos"
+              />
             </div>
             <div>
               <label className={label}>Entry Fee</label>
               <input className={field} value={fee} onChange={(e) => setFee(e.target.value)} placeholder="Optional / Free" />
             </div>
           </div>
-          <label className={label}>Location</label>
+          <label className={label}>Work arrangement</label>
           <select className={field} value={locationType} onChange={(e) => setLocationType(e.target.value)}>
             {LOCATION_TYPES.map((l) => (
               <option key={l.value} value={l.value}>{l.label}</option>

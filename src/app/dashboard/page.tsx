@@ -25,7 +25,16 @@ import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import Modal from "@/components/ui/Modal";
 import SmartEditSuite from "@/components/SmartEditSuite";
 import GhostWriterWorkspace from "@/components/GhostWriterWorkspace";
+import WritingVaultWorkspace from "@/components/WritingVaultWorkspace";
+import BookCoverGeneratorWorkspace from "@/components/BookCoverGeneratorWorkspace";
+import IndustryHubWorkspace from "@/components/IndustryHubWorkspace";
+import ShortFilmShowcaseWorkspace from "@/components/ShortFilmShowcaseWorkspace";
+import ScriptMarketplaceWorkspace from "@/components/ScriptMarketplaceWorkspace";
+import ScreenwriterCommunityWorkspace from "@/components/ScreenwriterCommunityWorkspace";
+import PitchQueryBuilderWorkspace from "@/components/PitchQueryBuilderWorkspace";
 import ScriptAnalyzerWorkspace from "@/components/ScriptAnalyzerWorkspace";
+import WriterHubWorkspace, { WRITER_SECTION_TABS } from "@/components/WriterHubWorkspace";
+import ScriptHubWorkspace, { SCRIPT_SECTION_TABS } from "@/components/ScriptHubWorkspace";
 import StudentHubWorkspace from "@/components/StudentHubWorkspace";
 import TransactionsWorkspace from "@/components/TransactionsWorkspace";
 import CoursesWorkspace from "@/components/CoursesWorkspace";
@@ -77,7 +86,8 @@ import {
   FileEdit,
   Shield,
   Ghost,
-  Pencil
+  Pencil,
+  PenLine,
 } from "lucide-react";
 import { 
   BarChart, 
@@ -110,8 +120,13 @@ function DashboardContent() {
 
   useEffect(() => {
     const tabParam = searchParams.get("tab");
+    if (tabParam === "tools") {
+      setActiveTab("writer");
+      router.replace("/dashboard?tab=writer");
+      return;
+    }
     setActiveTab(tabParam || "home");
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -866,34 +881,28 @@ function DashboardContent() {
             </button>
 
             <button
-              onClick={() => goToTab("novels-list")}
+              onClick={() => goToTab("writer")}
               className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
-                activeTab === "novels-list" || activeTab === "view-novel" || activeTab === "novel"
+                activeTab === "writer" ||
+                (WRITER_SECTION_TABS.has(activeTab) &&
+                  !(activeTab === "ghost-writer" && searchParams.get("mode") === "script"))
                   ? "bg-[var(--gd)]/10 text-[var(--gd)]"
                   : "text-[#909090] hover:text-white"
               }`}
             >
-              <BookOpen className="h-4 w-4" /> Novels
+              <PenLine className="h-4 w-4" /> Writer Hub
             </button>
 
             <button
-              onClick={() => goToTab("scripts-list")}
+              onClick={() => goToTab("script-hub")}
               className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
-                activeTab === "scripts-list" || activeTab === "view-script" || activeTab === "script"
+                SCRIPT_SECTION_TABS.has(activeTab) ||
+                (activeTab === "ghost-writer" && searchParams.get("mode") === "script")
                   ? "bg-[var(--gd)]/10 text-[var(--gd)]"
                   : "text-[#909090] hover:text-white"
               }`}
             >
-              <Clapperboard className="h-4 w-4" /> Scripts
-            </button>
-
-            <button
-              onClick={() => goToTab("tools")}
-              className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-left transition-colors ${
-                activeTab === "tools" || activeTab === "ghost-writer" || activeTab === "smart-edit" || activeTab === "analyzer-workspace" || activeTab === "script-analyzer-workspace" ? "bg-[var(--gd)]/10 text-[var(--gd)]" : "text-[#909090] hover:text-white"
-              }`}
-            >
-              <Wrench className="h-4 w-4" /> Quick Tools
+              <Clapperboard className="h-4 w-4" /> Script Hub
             </button>
 
             <button
@@ -1078,7 +1087,7 @@ function DashboardContent() {
             {activeTab === "script-analyzer-workspace" && (
               <ScriptAnalyzerWorkspace
                 projects={projects}
-                onBack={() => goToTab("tools")}
+                onBack={() => goToTab("script-hub")}
                 onPaywall={openPaywall}
                 onToast={triggerToast}
               />
@@ -1092,8 +1101,8 @@ function DashboardContent() {
                     <h2 className="font-serif text-2xl md:text-3xl font-black text-white">AI Chapter Analyzer</h2>
                     <p className="text-xs text-[#909090] mt-1">Verify editorial compliance against target serialization platforms.</p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => goToTab("tools")}>
-                    Back to Tools
+                  <Button variant="outline" size="sm" onClick={() => goToTab("writer")}>
+                    Back to Writer
                   </Button>
                 </div>
 
@@ -1396,34 +1405,17 @@ function DashboardContent() {
               <div className="space-y-8 animate-fadeIn">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#242424] pb-4">
                   <div>
+                    <button
+                      type="button"
+                      onClick={() => goToTab("writer")}
+                      className="text-[10px] text-[var(--gd)] font-bold mb-1 hover:underline"
+                    >
+                      ← Writer Hub
+                    </button>
                     <h2 className="font-serif text-2xl md:text-3xl font-black text-white">My Novels</h2>
                     <p className="text-xs text-[#909090] mt-1">Manage and write your serialized web novels.</p>
                   </div>
                   <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
-                    {/* Segmented switch toggle */}
-                    <div className="flex items-center gap-1 bg-[#161616] border border-[#242424] p-1 rounded-xl shrink-0">
-                      <button
-                        onClick={() => goToTab("novels-list")}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${
-                          (activeTab as string) === "novels-list"
-                            ? "bg-[var(--gd)] text-[#080808]"
-                            : "text-[#909090] hover:text-white"
-                        }`}
-                      >
-                        Novels
-                      </button>
-                      <button
-                        onClick={() => goToTab("scripts-list")}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${
-                          (activeTab as string) === "scripts-list"
-                            ? "bg-red-600 text-white"
-                            : "text-[#909090] hover:text-white"
-                        }`}
-                      >
-                        Scripts
-                      </button>
-                    </div>
-
                     <Button 
                       onClick={() => {
                         setNewProjectType("novel");
@@ -1523,34 +1515,17 @@ function DashboardContent() {
               <div className="space-y-8 animate-fadeIn">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#242424] pb-4">
                   <div>
+                    <button
+                      type="button"
+                      onClick={() => goToTab("script-hub")}
+                      className="text-[10px] text-[var(--gd)] font-bold mb-1 hover:underline"
+                    >
+                      ← Script Hub
+                    </button>
                     <h2 className="font-serif text-2xl md:text-3xl font-black text-white">My Scripts</h2>
                     <p className="text-xs text-[#909090] mt-1">Manage and format screenplays for screen production.</p>
                   </div>
                   <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
-                    {/* Segmented switch toggle */}
-                    <div className="flex items-center gap-1 bg-[#161616] border border-[#242424] p-1 rounded-xl shrink-0">
-                      <button
-                        onClick={() => goToTab("novels-list")}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${
-                          (activeTab as string) === "novels-list"
-                            ? "bg-[var(--gd)] text-[#080808]"
-                            : "text-[#909090] hover:text-white"
-                        }`}
-                      >
-                        Novels
-                      </button>
-                      <button
-                        onClick={() => goToTab("scripts-list")}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${
-                          (activeTab as string) === "scripts-list"
-                            ? "bg-red-600 text-white"
-                            : "text-[#909090] hover:text-white"
-                        }`}
-                      >
-                        Scripts
-                      </button>
-                    </div>
-
                     <Button 
                       onClick={() => {
                         setNewProjectType("script");
@@ -1858,8 +1833,11 @@ function DashboardContent() {
                       <Button onClick={() => setIsCreateOpen(true)} size="sm">
                         Create Project
                       </Button>
-                      <Button onClick={() => goToTab("tools")} variant="outline" size="sm">
-                        Use AI Tools
+                      <Button onClick={() => goToTab("writer")} variant="outline" size="sm">
+                        Writer Hub
+                      </Button>
+                      <Button onClick={() => goToTab("script-hub")} variant="outline" size="sm">
+                        Script Hub
                       </Button>
                     </div>
                   </div>
@@ -1960,47 +1938,6 @@ function DashboardContent() {
                   </div>
                 </div>
 
-                {/* Quick Tools */}
-                <div className="space-y-4">
-                  <h3 className="font-serif text-lg font-bold text-white border-b border-[#242424] pb-2">
-                    Quick Tools
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div
-                      onClick={() => goToTab("tools")}
-                      className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-xl p-5 cursor-pointer flex gap-4 items-start transition-all"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-[var(--gd)]/10 border border-[var(--gm)] flex items-center justify-center text-[var(--gd)] shrink-0">
-                        <Sparkles className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-                          Chapter Analyzer <CornerDownRight className="h-3 w-3 text-[#606060]" />
-                        </h4>
-                        <p className="text-[10px] text-[#909090] leading-relaxed mt-1">
-                          Scan drafts against platform editorial guidelines (PocketFM, Dreame, GoodNovel compliance check).
-                        </p>
-                      </div>
-                    </div>
-
-                    <div
-                      onClick={() => goToTab("tools")}
-                      className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-xl p-5 cursor-pointer flex gap-4 items-start transition-all"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-[var(--gd)]/10 border border-[var(--gm)] flex items-center justify-center text-[var(--gd)] shrink-0">
-                        <PenTool className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-                          Smart Edit Suite <CornerDownRight className="h-3 w-3 text-[#606060]" />
-                        </h4>
-                        <p className="text-[10px] text-[#909090] leading-relaxed mt-1">
-                          Instantly refine grammar, pacing, vocabulary, and paragraph transitions for optimized reading flow.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             )}
 
@@ -2232,80 +2169,32 @@ function DashboardContent() {
               </div>
             )}
 
-            {/* TAB 4: QUICK TOOLS */}
-            {activeTab === "tools" && (
-              <div className="space-y-8 animate-fadeIn">
-                <div>
-                  <h2 className="font-serif text-2xl font-bold text-white">AI Writing Tools</h2>
-                  <p className="text-xs text-[#909090]">Use platform analysis algorithms and prose editing suites to polish your manuscripts.</p>
-                </div>
+            {/* WRITER HUB — feature cards */}
+            {activeTab === "writer" && (
+              <WriterHubWorkspace
+                onSelect={(id) => {
+                  if (id === "ghost-writer") {
+                    router.push("/dashboard?tab=ghost-writer");
+                    setActiveTab("ghost-writer");
+                    return;
+                  }
+                  goToTab(id);
+                }}
+              />
+            )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                  {/* Chapter Analyzer Widget */}
-                  <Card className="space-y-4">
-                    <div className="flex justify-between items-center border-b border-[#242424] pb-2">
-                      <h3 className="font-serif text-sm font-bold text-[var(--gd)] flex items-center gap-1.5">
-                        <Sparkles className="h-4 w-4" /> AI Chapter Analyzer
-                      </h3>
-                      <Badge variant="gold">OpenAI Engine</Badge>
-                    </div>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Select your projects, select the target serialization platform, and scan compliance quality metrics including hooks, pacing, conflict, and emotion.
-                    </p>
-                    <Button onClick={() => goToTab("analyzer-workspace")} className="w-full">
-                      Open Analyzer Workspace
-                    </Button>
-                  </Card>
-
-                  <Card className="space-y-4">
-                    <div className="flex justify-between items-center border-b border-[#242424] pb-2">
-                      <h3 className="font-serif text-sm font-bold text-[var(--gd)] flex items-center gap-1.5">
-                        <Clapperboard className="h-4 w-4" /> Script Analyzer
-                      </h3>
-                      <Badge variant="gold">Screenwriter</Badge>
-                    </div>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Industry-calibrated pitch readiness scoring for Hollywood, Nollywood, BBC/UK, Netflix Africa, and Audio Drama scripts.
-                    </p>
-                    <Button onClick={() => goToTab("script-analyzer-workspace")} className="w-full">
-                      Open Script Analyzer
-                    </Button>
-                  </Card>
-
-                  {/* Smart Edit Prose Widget */}
-                  <Card className="space-y-4">
-                    <h3 className="font-serif text-sm font-bold text-[var(--gd)] flex items-center gap-1.5">
-                      <PenTool className="h-4 w-4" /> AI Smart Edit Suite
-                    </h3>
-                    
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Analyze your text for grammar, pacing, repetition, and more using advanced AI.
-                    </p>
-                    <Button
-                      onClick={() => goToTab("smart-edit")}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      Open Smart Edit Suite
-                    </Button>
-                  </Card>
-
-                  <Card className="space-y-4">
-                    <div className="flex justify-between items-center border-b border-[#242424] pb-2">
-                      <h3 className="font-serif text-sm font-bold text-[var(--gd)] flex items-center gap-1.5">
-                        <Ghost className="h-4 w-4" /> AI Ghost Writer
-                      </h3>
-                      <Badge variant="gold">PREMIUM</Badge>
-                    </div>
-                    <p className="text-xs text-[#909090] leading-relaxed">
-                      Generate a full serialized chapter or screenplay scene from your plot notes, then copy, rewrite, or save it into Novel Editor or Script Editor.
-                    </p>
-                    <Button onClick={() => goToTab("ghost-writer")} className="w-full">
-                      Open Ghost Writer
-                    </Button>
-                  </Card>
-                </div>
-              </div>
+            {/* SCRIPT HUB — feature cards */}
+            {activeTab === "script-hub" && (
+              <ScriptHubWorkspace
+                onSelect={(id) => {
+                  if (id === "ghost-writer-script") {
+                    router.push("/dashboard?tab=ghost-writer&mode=script");
+                    setActiveTab("ghost-writer");
+                    return;
+                  }
+                  goToTab(id);
+                }}
+              />
             )}
 
             {/* TAB: SMART EDIT SUITE */}
@@ -2322,6 +2211,47 @@ function DashboardContent() {
                 onOpenProject={handleSelectProject}
                 onProjectCreated={(proj) => setProjects((prev) => [proj, ...prev])}
               />
+            )}
+
+            {activeTab === "writing-vault" && (
+              <WritingVaultWorkspace
+                projects={projects}
+                onBack={() => goToTab("writer")}
+                onOpenProject={handleSelectProject}
+              />
+            )}
+
+            {activeTab === "book-cover-generator" && (
+              <BookCoverGeneratorWorkspace
+                projects={projects}
+                onBack={() => goToTab("writer")}
+                onOpenProject={handleSelectProject}
+                onProjectUpdated={(proj) =>
+                  setProjects((prev) =>
+                    prev.map((p) => (p.id === proj.id ? { ...p, ...proj } : p))
+                  )
+                }
+              />
+            )}
+
+            {activeTab === "industry-hub" && (
+              <IndustryHubWorkspace onBack={() => goToTab("script-hub")} />
+            )}
+
+            {activeTab === "short-film-showcase" && (
+              <ShortFilmShowcaseWorkspace onBack={() => goToTab("script-hub")} />
+            )}
+
+            {activeTab === "script-marketplace" && (
+              <ScriptMarketplaceWorkspace onBack={() => goToTab("script-hub")} />
+            )}
+
+            {activeTab === "screenwriter-community" && (
+              <ScreenwriterCommunityWorkspace onBack={() => goToTab("script-hub")} />
+            )}
+
+            {activeTab === "pitch-query-builder" && (
+              <PitchQueryBuilderWorkspace onBack={() => goToTab("script-hub")} />
             )}
 
             {/* TAB 5: STUDENT HUB */}
@@ -2437,20 +2367,25 @@ function DashboardContent() {
 
                     <Card className="space-y-4">
                       <h3 className="font-serif text-sm font-bold text-white border-b border-[#242424] pb-2">
-                        Industry Connect
+                        Industry Hub & Open Calls
                       </h3>
                       <p className="text-[10px] text-[#909090] mt-1 leading-relaxed">
-                        Open calls, pitches, and producer connections ship in the next phase. Writing
-                        Jobs marketplace is live now.
+                        Browse producer open calls by genre, apply with a pitch, or post your own
+                        listing for admin review.
                       </p>
-                      <Button
-                        onClick={() => router.push("/wealth")}
-                        variant="outline"
-                        size="sm"
-                        className="mt-3"
-                      >
-                        Open WEALTH Hub
-                      </Button>
+                      <div className="flex flex-col gap-2 mt-3">
+                        <Button onClick={() => goToTab("industry-hub")} size="sm" className="w-full">
+                          Open Industry Hub
+                        </Button>
+                        <Button
+                          onClick={() => router.push("/wealth/industry")}
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                        >
+                          Full board →
+                        </Button>
+                      </div>
                     </Card>
                   </div>
                 ) : (
