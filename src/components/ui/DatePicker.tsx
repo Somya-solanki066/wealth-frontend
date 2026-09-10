@@ -139,7 +139,7 @@ export default function DatePicker({
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className={`flex w-full items-center justify-between gap-3 rounded-lg border bg-[#161616] px-3.5 py-2.5 text-left text-xs transition-all duration-200 focus:outline-none focus:ring-2 ${
+          className={`flex w-full items-center justify-between gap-3 rounded-xl border bg-[#080808] px-3.5 py-2.5 text-left text-sm transition-all duration-200 focus:outline-none focus:ring-2 cursor-pointer ${
             error ? "border-red-500/50" : "border-[#242424]"
           } ${open ? "ring-2" : ""}`}
           style={
@@ -156,7 +156,7 @@ export default function DatePicker({
           <span className={value ? "text-[#F0EBE0]" : "text-[#606060]"}>
             {value ? formatDisplay(value) : placeholder}
           </span>
-          <Calendar className="h-4 w-4 shrink-0" style={{ color: accentColor }} />
+          <Calendar className="h-4 w-4 shrink-0 pointer-events-none" style={{ color: accentColor }} />
         </button>
 
         {open ? (

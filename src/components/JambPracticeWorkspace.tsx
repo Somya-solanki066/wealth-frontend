@@ -14,6 +14,19 @@ import {
 import api from "@/services/api";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
+import DatePicker from "@/components/ui/DatePicker";
+
+const OTHER_OPTION = "__other__";
+
+const ALL_SUBJECT_OPTIONS = [
+  { id: "english", label: "Use of English" },
+  { id: "biology", label: "Biology" },
+  { id: "chemistry", label: "Chemistry" },
+  { id: "physics", label: "Physics" },
+  { id: "mathematics", label: "Mathematics" },
+  { id: "economics", label: "Economics" },
+  { id: "government", label: "Government" },
+];
 
 type OptionKey = "A" | "B" | "C" | "D";
 
@@ -106,7 +119,9 @@ export default function JambPracticeWorkspace({ onBack }: { onBack?: () => void 
 
   // Setup form
   const [targetCourse, setTargetCourse] = useState("");
+  const [customCourseLabel, setCustomCourseLabel] = useState("");
   const [targetInstitution, setTargetInstitution] = useState("");
+  const [customInstitutionLabel, setCustomInstitutionLabel] = useState("");
   const [examDate, setExamDate] = useState("");
   const [setupSubjects, setSetupSubjects] = useState<string[]>([]);
   const [savingSetup, setSavingSetup] = useState(false);
@@ -189,15 +204,40 @@ export default function JambPracticeWorkspace({ onBack }: { onBack?: () => void 
   }, [loadHome]);
 
   useEffect(() => {
-    if (!targetCourse || !catalog?.courses) return;
+    if (!targetCourse || targetCourse === OTHER_OPTION || !catalog?.courses) return;
     const course = catalog.courses.find((c: any) => c.id === targetCourse);
     if (course) setSetupSubjects(course.subjects || []);
   }, [targetCourse, catalog]);
 
+  const toggleSetupSubject = (id: string) => {
+    setSetupSubjects((prev) => {
+      if (id === "english" && prev.includes(id)) return prev;
+      if (prev.includes(id)) return prev.filter((s) => s !== id);
+      if (prev.length >= 4) return prev;
+      return [...prev, id];
+    });
+  };
+
   const saveSetup = async () => {
-    if (!targetCourse || !targetInstitution || !examDate) {
+    const courseOk =
+      targetCourse &&
+      (targetCourse !== OTHER_OPTION || customCourseLabel.trim().length > 0);
+    const institutionOk =
+      targetInstitution &&
+      (targetInstitution !== OTHER_OPTION || customInstitutionLabel.trim().length > 0);
+    if (!courseOk || !institutionOk || !examDate) {
       setError("Please fill in all setup fields.");
       return;
+    }
+    if (targetCourse === OTHER_OPTION) {
+      if (setupSubjects.length < 3 || setupSubjects.length > 4) {
+        setError("Select 3 or 4 UTME subjects for your custom course.");
+        return;
+      }
+      if (!setupSubjects.includes("english")) {
+        setError("Use of English is required.");
+        return;
+      }
     }
     setSavingSetup(true);
     setError("");
@@ -207,6 +247,10 @@ export default function JambPracticeWorkspace({ onBack }: { onBack?: () => void 
         targetInstitution,
         examDate,
         subjects: setupSubjects,
+        customCourseLabel:
+          targetCourse === OTHER_OPTION ? customCourseLabel.trim() : undefined,
+        customInstitutionLabel:
+          targetInstitution === OTHER_OPTION ? customInstitutionLabel.trim() : undefined,
       });
       setProfile(res.data.profile);
       await loadHome();
@@ -353,14 +397,38 @@ export default function JambPracticeWorkspace({ onBack }: { onBack?: () => void 
             Target Course
             <select
               value={targetCourse}
-              onChange={(e) => setTargetCourse(e.target.value)}
+              onChange={(e) => {
+                const v = e.target.value;
+                setTargetCourse(v);
+                if (v === OTHER_OPTION) {
+                  setSetupSubjects((prev) =>
+                    prev.includes("english") ? prev : ["english", ...prev].slice(0, 4)
+                  );
+                }
+              }}
               className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2.5 text-sm text-white"
             >
               {(catalog?.courses || []).map((c: any) => (
-                <option key={c.id} value={c.id}>{c.label}</option>
+                <option key={c.id} value={c.id}>
+                  {c.label}
+                </option>
               ))}
+              <option value={OTHER_OPTION}>Other — type my course</option>
             </select>
           </label>
+          {targetCourse === OTHER_OPTION && (
+            <label className="block text-xs text-[#909090]">
+              Your course name
+              <input
+                type="text"
+                value={customCourseLabel}
+                onChange={(e) => setCustomCourseLabel(e.target.value)}
+                placeholder="e.g. Architecture, Biochemistry…"
+                className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2.5 text-sm text-white outline-none focus:border-[#5298E0]"
+              />
+            </label>
+          )}
+
           <label className="block text-xs text-[#909090]">
             Target Institution
             <select
@@ -369,28 +437,74 @@ export default function JambPracticeWorkspace({ onBack }: { onBack?: () => void 
               className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2.5 text-sm text-white"
             >
               {(catalog?.institutions || []).map((i: any) => (
-                <option key={i.id} value={i.id}>{i.label}</option>
+                <option key={i.id} value={i.id}>
+                  {i.label}
+                </option>
               ))}
+              <option value={OTHER_OPTION}>Other — type my university</option>
             </select>
           </label>
-          <label className="block text-xs text-[#909090]">
-            Exam Date
-            <input
-              type="date"
-              value={examDate}
-              onChange={(e) => setExamDate(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2.5 text-sm text-white"
-            />
-          </label>
+          {targetInstitution === OTHER_OPTION && (
+            <label className="block text-xs text-[#909090]">
+              Your university / institution
+              <input
+                type="text"
+                value={customInstitutionLabel}
+                onChange={(e) => setCustomInstitutionLabel(e.target.value)}
+                placeholder="Type your university name"
+                className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2.5 text-sm text-white outline-none focus:border-[#5298E0]"
+              />
+            </label>
+          )}
+
           <div>
-            <p className="text-xs text-[#909090] mb-2">Your UTME Subjects</p>
-            <div className="space-y-2">
-              {setupSubjects.map((s) => (
-                <div key={s} className="flex items-center gap-2 text-sm text-[#52C07A]">
-                  <span>✓</span> {SUBJECT_LABELS[s] || s}
-                </div>
-              ))}
-            </div>
+            <p className="mb-1.5 text-xs text-[#909090]">Exam Date</p>
+            <DatePicker
+              value={examDate}
+              onChange={setExamDate}
+              accent="blue"
+              placeholder="dd-mm-yyyy"
+            />
+            <p className="mt-1 text-[10px] text-[#606060]">
+              Tap anywhere on the field to open the calendar.
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs text-[#909090] mb-2">
+              Your UTME Subjects
+              {targetCourse === OTHER_OPTION ? " (pick 3–4, English required)" : ""}
+            </p>
+            {targetCourse === OTHER_OPTION ? (
+              <div className="flex flex-wrap gap-2">
+                {ALL_SUBJECT_OPTIONS.map((s) => {
+                  const on = setupSubjects.includes(s.id);
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => toggleSetupSubject(s.id)}
+                      className={`rounded-full px-3 py-1.5 text-xs font-semibold border transition-colors ${
+                        on
+                          ? "border-[#5298E0] bg-[#5298E0]/15 text-[#5298E0]"
+                          : "border-[#333] text-[#909090]"
+                      }`}
+                    >
+                      {on ? "✓ " : ""}
+                      {s.label}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {setupSubjects.map((s) => (
+                  <div key={s} className="flex items-center gap-2 text-sm text-[#52C07A]">
+                    <span>✓</span> {SUBJECT_LABELS[s] || s}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <Button type="button" onClick={saveSetup} isLoading={savingSetup} className="w-full">
             Start Practising

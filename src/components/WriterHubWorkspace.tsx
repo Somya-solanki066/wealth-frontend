@@ -3,23 +3,29 @@
 import type { ReactNode } from "react";
 import {
   BookOpen,
-  Clapperboard,
   Ghost,
   Image,
   Lightbulb,
   PenTool,
   Sparkles,
   Coins,
+  Briefcase,
+  Zap,
+  Smile,
 } from "lucide-react";
 
 export type WriterHubToolId =
   | "novels-list"
+  | "content-freelance"
   | "analyzer-workspace"
   | "smart-edit"
   | "ghost-writer"
   | "writing-vault"
   | "book-cover-generator"
-  | "wealth";
+  | "wealth"
+  | "short-fiction"
+  | "nonfiction-ghost"
+  | "web3";
 
 const TOOLS: {
   id: WriterHubToolId;
@@ -34,6 +40,34 @@ const TOOLS: {
     desc: "Create and manage serialized web novels. Open the Novel Editor with autosave and chapter tools.",
     badge: "FREE",
     icon: <BookOpen className="h-5 w-5" />,
+  },
+  {
+    id: "content-freelance",
+    title: "Content & Freelance",
+    desc: "Write Something — blogs, social, newsletters, memos, UGC scripts. Brief → structure → draft.",
+    badge: "NEW",
+    icon: <Briefcase className="h-5 w-5" />,
+  },
+  {
+    id: "short-fiction",
+    title: "Short-Form Fiction",
+    desc: "Flash prompts, one-shots, and sprint tools — write a complete story in minutes.",
+    badge: "NEW",
+    icon: <Zap className="h-5 w-5" />,
+  },
+  {
+    id: "nonfiction-ghost",
+    title: "Nonfiction & Ghostwriting",
+    desc: "Memoirs, self-help, business books — write your own or ghostwrite for a client.",
+    badge: "NEW",
+    icon: <Smile className="h-5 w-5" />,
+  },
+  {
+    id: "web3",
+    title: "Web3 Writing",
+    desc: "Explainers for Web3 projects, plus on-chain fiction tools.",
+    badge: "NEW",
+    icon: <Coins className="h-5 w-5" />,
   },
   {
     id: "analyzer-workspace",
@@ -132,6 +166,32 @@ export const WRITER_SECTION_TABS = new Set([
   "novels-list",
   "view-novel",
   "novel",
+  "content-freelance",
+  "write-something",
+  "brief-builder",
+  "rate-calculator",
+  "pitch-templates",
+  "portfolio-builder",
+  "short-fiction",
+  "flash-prompts",
+  "one-shot-formatter",
+  "sprint-timer",
+  "micro-serial",
+  "nonfiction-ghost",
+  "self-interview-builder",
+  "outline-builder",
+  "pacing-guide",
+  "publishing-checklist",
+  "client-handoff",
+  "web3",
+  "explainer-article-builder",
+  "whitepaper-docs",
+  "social-thread",
+  "community-templates",
+  "nft-minting",
+  "token-gated",
+  "dao-vote",
+  "wallet-royalties",
   "analyzer-workspace",
   "smart-edit",
   "ghost-writer",

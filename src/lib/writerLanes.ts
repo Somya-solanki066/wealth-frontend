@@ -26,6 +26,12 @@ export const WRITER_LANES: WriterLane[] = [
     icon: "align-left",
     tools: [
       {
+        id: "write-something",
+        title: "Write Something",
+        desc: "Blog, social, newsletter, memo, or UGC — structure then draft.",
+        icon: "pencil",
+      },
+      {
         id: "brief-builder",
         title: "Brief Builder",
         desc: "Turn a client ask into a working brief.",
@@ -96,7 +102,7 @@ export const WRITER_LANES: WriterLane[] = [
     icon: "message-square",
     tools: [
       {
-        id: "interview-manuscript",
+        id: "self-interview-builder",
         title: "Interview → Manuscript",
         desc: "Turn recorded interviews into chapters",
         icon: "user",
@@ -119,17 +125,47 @@ export const WRITER_LANES: WriterLane[] = [
         desc: "Chapter length and structure for nonfiction",
         icon: "bar-chart-3",
       },
+      {
+        id: "publishing-checklist",
+        title: "Publishing Checklist",
+        desc: "Steps to get KDP-ready and self-publish",
+        icon: "square",
+      },
     ],
   },
   {
     id: "web3",
     listTitle: "Web3 Writing",
     title: "Web3 Writing",
-    subtitle: "NFT chapters, tokenized serials",
+    subtitle: "Project explainers & on-chain fiction",
     description:
-      "Blockchain-native fiction — the frontier lane, lightweight for now.",
+      "Blockchain-native writing — real paid work explaining Web3 projects, and on-chain fiction for readers who want to own what they read.",
     icon: "box",
     tools: [
+      {
+        id: "explainer-article-builder",
+        title: "Explainer Article Builder",
+        desc: "Turn a technical concept into a plain-English post",
+        icon: "user",
+      },
+      {
+        id: "whitepaper-docs",
+        title: "Whitepaper & Docs Assistant",
+        desc: "Structure documentation and user guides",
+        icon: "align-left",
+      },
+      {
+        id: "social-thread",
+        title: "Social Thread Generator",
+        desc: "Turn one idea into a Twitter/X thread",
+        icon: "align-left",
+      },
+      {
+        id: "community-templates",
+        title: "Community Post Templates",
+        desc: "Announcements, AMA recaps, updates",
+        icon: "send",
+      },
       {
         id: "nft-minting",
         title: "NFT Chapter Minting",
@@ -146,13 +182,13 @@ export const WRITER_LANES: WriterLane[] = [
         id: "dao-vote",
         title: "DAO Vote Tracker",
         desc: "Readers vote on plot direction",
-        icon: "bar-chart-3",
+        icon: "align-left",
       },
       {
         id: "wallet-royalties",
         title: "Wallet Royalties",
         desc: "Track earnings paid to a linked wallet",
-        icon: "clock",
+        icon: "wallet",
       },
     ],
   },

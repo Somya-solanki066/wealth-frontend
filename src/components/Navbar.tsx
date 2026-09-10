@@ -16,7 +16,7 @@ import {
   Coins,
   GraduationCap,
   Settings,
-  PenLine,
+  Pencil,
   Receipt,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -162,6 +162,32 @@ function NavbarContent() {
         "novels-list",
         "view-novel",
         "novel",
+        "content-freelance",
+        "write-something",
+        "brief-builder",
+        "rate-calculator",
+        "pitch-templates",
+        "portfolio-builder",
+        "short-fiction",
+        "flash-prompts",
+        "one-shot-formatter",
+        "sprint-timer",
+        "micro-serial",
+        "nonfiction-ghost",
+        "self-interview-builder",
+        "outline-builder",
+        "pacing-guide",
+        "publishing-checklist",
+        "client-handoff",
+        "web3",
+        "explainer-article-builder",
+        "whitepaper-docs",
+        "social-thread",
+        "community-templates",
+        "nft-minting",
+        "token-gated",
+        "dao-vote",
+        "wallet-royalties",
         "analyzer-workspace",
         "smart-edit",
         "ghost-writer",
@@ -186,6 +212,7 @@ function NavbarContent() {
         "script-marketplace",
         "screenwriter-community",
         "pitch-query-builder",
+        "screenwriter-portfolio",
       ]);
       if (dashboardTab === "ghost-writer" && searchParams.get("mode") === "script") {
         return true;
@@ -476,7 +503,7 @@ function NavbarContent() {
                   onClick={closeMobileMenu}
                   className={navLinkClass(isDashboardTabActive("writer"))}
                 >
-                  <PenLine className="h-4 w-4 shrink-0" />
+                  <Pencil className="h-4 w-4 shrink-0" />
                   <span>Writer Hub</span>
                 </Link>
 

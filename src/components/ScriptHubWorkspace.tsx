@@ -10,6 +10,7 @@ import {
   LayoutTemplate,
   Briefcase,
   ScrollText,
+  IdCard,
 } from "lucide-react";
 
 export type ScriptHubToolId =
@@ -20,7 +21,8 @@ export type ScriptHubToolId =
   | "short-film-showcase"
   | "script-marketplace"
   | "screenwriter-community"
-  | "pitch-query-builder";
+  | "pitch-query-builder"
+  | "screenwriter-portfolio";
 
 const TOOLS: {
   id: ScriptHubToolId;
@@ -85,6 +87,13 @@ const TOOLS: {
     badge: "PREMIUM",
     icon: <LayoutTemplate className="h-5 w-5" />,
   },
+  {
+    id: "screenwriter-portfolio",
+    title: "Screenwriter Portfolio",
+    desc: "Public profile — rate, past work, social links, and achievements. What directors check before they hire you.",
+    badge: "FREE",
+    icon: <IdCard className="h-5 w-5" />,
+  },
 ];
 
 export default function ScriptHubWorkspace({
@@ -145,4 +154,5 @@ export const SCRIPT_SECTION_TABS = new Set([
   "script-marketplace",
   "screenwriter-community",
   "pitch-query-builder",
+  "screenwriter-portfolio",
 ]);

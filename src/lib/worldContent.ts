@@ -167,11 +167,13 @@ export const WORLD_PAGES: Record<ActiveWorld, WorldPageData> = {
     features: [
       { icon: "📝", title: "Professional Script Editor", desc: "Courier Prime font. One-tap element switching — scene heading, action, character, dialogue, parenthetical. Hollywood standard formatting built in.", tag: "FREE", link: "/dashboard?tab=scripts-list" },
       { icon: "👻", title: "AI Script Writer", desc: "Generate a complete screenplay scene from your characters, format, and plot beats — then save it into Script Editor.", tag: "PREMIUM", link: "/dashboard?tab=ghost-writer&mode=script" },
+      { icon: "🔍", title: "Script Analyzer", desc: "Pitch-readiness scoring for Hollywood, Nollywood, BBC/UK, Netflix Africa, and Audio Drama — the same tool in Script Hub.", tag: "PREMIUM", link: "/dashboard?tab=script-analyzer-workspace" },
       { icon: "🏭", title: "Industry Hub & Open Calls", desc: "Directors and producers post open calls. Board refreshes every midnight and 7am. Filter by genre, industry, budget. Apply directly through the platform.", tag: "FREE — 3/day", link: "/dashboard?tab=industry-hub" },
       { icon: "🎥", title: "Short Film Showcase", desc: "Upload your short film, logline, script, and budget. Directors and producers browse, watch, and reach out. Cinema-style browsing experience.", tag: "PREMIUM", link: "/dashboard?tab=short-film-showcase" },
       { icon: "📜", title: "Script Marketplace", desc: "Upload completed scripts for sale or option. Producers preview the first 10 pages free then purchase. You earn. Ink2Wealth takes 10-15% commission.", tag: "PREMIUM", link: "/dashboard?tab=script-marketplace" },
       { icon: "🤝", title: "Screenwriter Community", desc: "Public script reading room, genre-based rooms, weekly feedback threads, collaboration board, mentorship matching. Your industry family.", tag: "FREE", link: "/dashboard?tab=screenwriter-community" },
       { icon: "📊", title: "Pitch Deck & Query Builder", desc: "AI builds your complete pitch deck for publishers and producers. Query letter, synopsis, logline — your full submission package ready to send.", tag: "PREMIUM", link: "/dashboard?tab=pitch-query-builder" },
+      { icon: "🪪", title: "Screenwriter Portfolio", desc: "Your public profile — rate, past work, social links, and achievements in one place. What directors and producers check before they hire you.", tag: "FREE", link: "/dashboard?tab=screenwriter-portfolio" },
     ],
     pricing: [
       {
@@ -189,6 +191,7 @@ export const WORLD_PAGES: Record<ActiveWorld, WorldPageData> = {
         id: "6-month", name: "6-Month", price: "₦24,900", period: "every 6 months", featured: true, badge: "⭐ BEST VALUE", cta: "Get 6-Month Access", variant: "primary",
         features: [
           { text: "Unlimited Open Calls access", included: true },
+          { text: "Script Analyzer — pitch-readiness scoring", included: true },
           { text: "Script Marketplace — sell scripts", included: true },
           { text: "Short Film Showcase — pitch films", included: true },
           { text: "Pitch Deck and Query Builder", included: true },

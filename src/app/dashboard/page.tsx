@@ -32,9 +32,36 @@ import ShortFilmShowcaseWorkspace from "@/components/ShortFilmShowcaseWorkspace"
 import ScriptMarketplaceWorkspace from "@/components/ScriptMarketplaceWorkspace";
 import ScreenwriterCommunityWorkspace from "@/components/ScreenwriterCommunityWorkspace";
 import PitchQueryBuilderWorkspace from "@/components/PitchQueryBuilderWorkspace";
+import ScreenwriterPortfolioWorkspace from "@/components/ScreenwriterPortfolioWorkspace";
 import ScriptAnalyzerWorkspace from "@/components/ScriptAnalyzerWorkspace";
 import WriterHubWorkspace, { WRITER_SECTION_TABS } from "@/components/WriterHubWorkspace";
 import ScriptHubWorkspace, { SCRIPT_SECTION_TABS } from "@/components/ScriptHubWorkspace";
+import ContentFreelanceHubWorkspace from "@/components/ContentFreelanceHubWorkspace";
+import WriteSomethingWorkspace from "@/components/WriteSomethingWorkspace";
+import BriefBuilderWorkspace from "@/components/BriefBuilderWorkspace";
+import RateCalculatorWorkspace from "@/components/RateCalculatorWorkspace";
+import PitchTemplatesWorkspace from "@/components/PitchTemplatesWorkspace";
+import PortfolioBuilderWorkspace from "@/components/PortfolioBuilderWorkspace";
+import ShortFictionHubWorkspace from "@/components/ShortFictionHubWorkspace";
+import FlashPromptsWorkspace from "@/components/FlashPromptsWorkspace";
+import OneShotFormatterWorkspace from "@/components/OneShotFormatterWorkspace";
+import SprintTimerWorkspace from "@/components/SprintTimerWorkspace";
+import MicroSerialWorkspace from "@/components/MicroSerialWorkspace";
+import NonfictionHubWorkspace from "@/components/NonfictionHubWorkspace";
+import SelfInterviewBuilderWorkspace from "@/components/SelfInterviewBuilderWorkspace";
+import OutlineBuilderWorkspace from "@/components/OutlineBuilderWorkspace";
+import PacingGuideWorkspace from "@/components/PacingGuideWorkspace";
+import PublishingChecklistWorkspace from "@/components/PublishingChecklistWorkspace";
+import ClientHandoffWorkspace from "@/components/ClientHandoffWorkspace";
+import Web3HubWorkspace from "@/components/Web3HubWorkspace";
+import ExplainerArticleBuilderWorkspace from "@/components/ExplainerArticleBuilderWorkspace";
+import WhitepaperDocsWorkspace from "@/components/WhitepaperDocsWorkspace";
+import SocialThreadWorkspace from "@/components/SocialThreadWorkspace";
+import CommunityTemplatesWorkspace from "@/components/CommunityTemplatesWorkspace";
+import NftMintingWorkspace from "@/components/NftMintingWorkspace";
+import TokenGatedWorkspace from "@/components/TokenGatedWorkspace";
+import DaoVoteWorkspace from "@/components/DaoVoteWorkspace";
+import WalletRoyaltiesWorkspace from "@/components/WalletRoyaltiesWorkspace";
 import StudentHubWorkspace from "@/components/StudentHubWorkspace";
 import TransactionsWorkspace from "@/components/TransactionsWorkspace";
 import CoursesWorkspace from "@/components/CoursesWorkspace";
@@ -87,7 +114,6 @@ import {
   Shield,
   Ghost,
   Pencil,
-  PenLine,
 } from "lucide-react";
 import { 
   BarChart, 
@@ -690,6 +716,8 @@ function DashboardContent() {
 
   // Interactive WEALTH Engine states
   const [wealthSubTab, setWealthSubTab] = useState("jobs");
+  const [nonfictionMode, setNonfictionMode] = useState<"own" | "client">("own");
+  const [web3Mode, setWeb3Mode] = useState<"project" | "fiction">("project");
   const [blurbTitle, setBlurbTitle] = useState("");
   const [blurbGenre, setBlurbGenre] = useState("Werewolf Romance");
   const [isGeneratingBlurb, setIsGeneratingBlurb] = useState(false);
@@ -890,7 +918,7 @@ function DashboardContent() {
                   : "text-[#909090] hover:text-white"
               }`}
             >
-              <PenLine className="h-4 w-4" /> Writer Hub
+              <Pencil className="h-4 w-4" /> Writer Hub
             </button>
 
             <button
@@ -2183,6 +2211,171 @@ function DashboardContent() {
               />
             )}
 
+            {activeTab === "content-freelance" && (
+              <ContentFreelanceHubWorkspace
+                onBack={() => goToTab("writer")}
+                onSelect={(id) => {
+                  if (id === "write-something") goToTab("write-something");
+                  if (id === "brief-builder") goToTab("brief-builder");
+                  if (id === "rate-calculator") goToTab("rate-calculator");
+                  if (id === "pitch-templates") goToTab("pitch-templates");
+                  if (id === "portfolio-builder") goToTab("portfolio-builder");
+                }}
+              />
+            )}
+
+            {activeTab === "write-something" && (
+              <WriteSomethingWorkspace onBack={() => goToTab("content-freelance")} />
+            )}
+
+            {activeTab === "brief-builder" && (
+              <BriefBuilderWorkspace
+                onBack={() => goToTab("content-freelance")}
+                onStartWriting={() => goToTab("write-something")}
+                onOpenClientHandoff={() => goToTab("client-handoff")}
+              />
+            )}
+
+            {activeTab === "rate-calculator" && (
+              <RateCalculatorWorkspace onBack={() => goToTab("content-freelance")} />
+            )}
+
+            {activeTab === "pitch-templates" && (
+              <PitchTemplatesWorkspace onBack={() => goToTab("content-freelance")} />
+            )}
+
+            {activeTab === "portfolio-builder" && (
+              <PortfolioBuilderWorkspace onBack={() => goToTab("content-freelance")} />
+            )}
+
+            {activeTab === "short-fiction" && (
+              <ShortFictionHubWorkspace
+                onBack={() => goToTab("writer")}
+                onSelect={(id) => {
+                  if (id === "flash-prompts") goToTab("flash-prompts");
+                  if (id === "one-shot-formatter") goToTab("one-shot-formatter");
+                  if (id === "sprint-timer") goToTab("sprint-timer");
+                  if (id === "micro-serial") goToTab("micro-serial");
+                }}
+              />
+            )}
+
+            {activeTab === "flash-prompts" && (
+              <FlashPromptsWorkspace onBack={() => goToTab("short-fiction")} />
+            )}
+
+            {activeTab === "one-shot-formatter" && (
+              <OneShotFormatterWorkspace onBack={() => goToTab("short-fiction")} />
+            )}
+
+            {activeTab === "sprint-timer" && (
+              <SprintTimerWorkspace onBack={() => goToTab("short-fiction")} />
+            )}
+
+            {activeTab === "micro-serial" && (
+              <MicroSerialWorkspace onBack={() => goToTab("short-fiction")} />
+            )}
+
+            {activeTab === "nonfiction-ghost" && (
+              <NonfictionHubWorkspace
+                onBack={() => goToTab("writer")}
+                mode={nonfictionMode}
+                onModeChange={setNonfictionMode}
+                onSelect={(id, mode) => {
+                  setNonfictionMode(mode);
+                  if (id === "self-interview-builder") goToTab("self-interview-builder");
+                  if (id === "outline-builder") goToTab("outline-builder");
+                  if (id === "pacing-guide") goToTab("pacing-guide");
+                  if (id === "publishing-checklist") goToTab("publishing-checklist");
+                  if (id === "client-handoff") goToTab("client-handoff");
+                }}
+              />
+            )}
+
+            {activeTab === "self-interview-builder" && (
+              <SelfInterviewBuilderWorkspace
+                onBack={() => goToTab("nonfiction-ghost")}
+                mode={nonfictionMode}
+              />
+            )}
+
+            {activeTab === "outline-builder" && (
+              <OutlineBuilderWorkspace
+                onBack={() => goToTab("nonfiction-ghost")}
+                mode={nonfictionMode}
+                onOpenSelfInterview={() => goToTab("self-interview-builder")}
+              />
+            )}
+
+            {activeTab === "pacing-guide" && (
+              <PacingGuideWorkspace
+                onBack={() => goToTab("nonfiction-ghost")}
+                onOpenOutlineBuilder={() => goToTab("outline-builder")}
+              />
+            )}
+
+            {activeTab === "publishing-checklist" && (
+              <PublishingChecklistWorkspace onBack={() => goToTab("nonfiction-ghost")} />
+            )}
+
+            {activeTab === "client-handoff" && (
+              <ClientHandoffWorkspace
+                onBack={() => goToTab("nonfiction-ghost")}
+                onOpenBriefBuilder={() => goToTab("brief-builder")}
+              />
+            )}
+
+            {activeTab === "web3" && (
+              <Web3HubWorkspace
+                onBack={() => goToTab("writer")}
+                mode={web3Mode}
+                onModeChange={setWeb3Mode}
+                onSelect={(id, mode) => {
+                  setWeb3Mode(mode);
+                  if (id === "explainer-article-builder") goToTab("explainer-article-builder");
+                  if (id === "whitepaper-docs") goToTab("whitepaper-docs");
+                  if (id === "social-thread") goToTab("social-thread");
+                  if (id === "community-templates") goToTab("community-templates");
+                  if (id === "nft-minting") goToTab("nft-minting");
+                  if (id === "token-gated") goToTab("token-gated");
+                  if (id === "dao-vote") goToTab("dao-vote");
+                  if (id === "wallet-royalties") goToTab("wallet-royalties");
+                }}
+              />
+            )}
+
+            {activeTab === "explainer-article-builder" && (
+              <ExplainerArticleBuilderWorkspace onBack={() => goToTab("web3")} />
+            )}
+
+            {activeTab === "whitepaper-docs" && (
+              <WhitepaperDocsWorkspace onBack={() => goToTab("web3")} />
+            )}
+
+            {activeTab === "social-thread" && (
+              <SocialThreadWorkspace onBack={() => goToTab("web3")} />
+            )}
+
+            {activeTab === "community-templates" && (
+              <CommunityTemplatesWorkspace onBack={() => goToTab("web3")} />
+            )}
+
+            {activeTab === "nft-minting" && (
+              <NftMintingWorkspace onBack={() => goToTab("web3")} />
+            )}
+
+            {activeTab === "token-gated" && (
+              <TokenGatedWorkspace onBack={() => goToTab("web3")} />
+            )}
+
+            {activeTab === "dao-vote" && (
+              <DaoVoteWorkspace onBack={() => goToTab("web3")} />
+            )}
+
+            {activeTab === "wallet-royalties" && (
+              <WalletRoyaltiesWorkspace onBack={() => goToTab("web3")} />
+            )}
+
             {/* SCRIPT HUB — feature cards */}
             {activeTab === "script-hub" && (
               <ScriptHubWorkspace
@@ -2252,6 +2445,10 @@ function DashboardContent() {
 
             {activeTab === "pitch-query-builder" && (
               <PitchQueryBuilderWorkspace onBack={() => goToTab("script-hub")} />
+            )}
+
+            {activeTab === "screenwriter-portfolio" && (
+              <ScreenwriterPortfolioWorkspace onBack={() => goToTab("script-hub")} />
             )}
 
             {/* TAB 5: STUDENT HUB */}

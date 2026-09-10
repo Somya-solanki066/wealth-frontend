@@ -202,6 +202,7 @@ export default function NursingHubWorkspace({ onBack }: { onBack?: () => void })
   const [years, setYears] = useState<any[]>([]);
 
   const [setupUni, setSetupUni] = useState("");
+  const [customUniversityLabel, setCustomUniversityLabel] = useState("");
   const [setupSchool, setSetupSchool] = useState("School of Nursing");
   const [setupYear, setSetupYear] = useState(3);
   const [savingSetup, setSavingSetup] = useState(false);
@@ -253,8 +254,23 @@ export default function NursingHubWorkspace({ onBack }: { onBack?: () => void })
 
   const saveSetup = async () => {
     setSavingSetup(true);
+    setError("");
     try {
-      await api.post("/student/nursing/profile", { university: setupUni, school: setupSchool, year: setupYear });
+      if (!setupUni) {
+        setError("Please select a university.");
+        return;
+      }
+      if (setupUni === "__other__" && !customUniversityLabel.trim()) {
+        setError("Please type your university name.");
+        return;
+      }
+      await api.post("/student/nursing/profile", {
+        university: setupUni,
+        school: setupSchool,
+        year: setupYear,
+        customUniversityLabel:
+          setupUni === "__other__" ? customUniversityLabel.trim() : undefined,
+      });
       await loadHome();
     } catch (err: any) {
       setError(err.response?.data?.error || "Failed to save profile.");
@@ -342,11 +358,32 @@ export default function NursingHubWorkspace({ onBack }: { onBack?: () => void })
         {error && <p className="text-xs text-red-400 text-center">{error}</p>}
         <div className="rounded-2xl border border-[#242424] bg-[#0d1117] p-5 space-y-4">
           <label className="block text-xs text-[#909090]">University
-            <select value={setupUni} onChange={(e) => setSetupUni(e.target.value)} className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2.5 text-white">
+            <select
+              value={setupUni}
+              onChange={(e) => setSetupUni(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2.5 text-white"
+            >
               <option value="">Select university...</option>
-              {universities.map((u: any) => <option key={u.id} value={u.id}>{u.label}</option>)}
+              {universities.map((u: any) => (
+                <option key={u.id} value={u.id}>
+                  {u.label}
+                </option>
+              ))}
+              <option value="__other__">Other — type my university</option>
             </select>
           </label>
+          {setupUni === "__other__" && (
+            <label className="block text-xs text-[#909090]">
+              Your university name
+              <input
+                type="text"
+                value={customUniversityLabel}
+                onChange={(e) => setCustomUniversityLabel(e.target.value)}
+                placeholder="Type your university / school of nursing"
+                className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2.5 text-sm text-white outline-none focus:border-[#5298E0]"
+              />
+            </label>
+          )}
           <label className="block text-xs text-[#909090]">School / Faculty
             <select value={setupSchool} onChange={(e) => setSetupSchool(e.target.value)} className="mt-1 w-full rounded-xl border border-[#242424] bg-[#080808] px-3 py-2.5 text-white">
               {schools.map((s) => <option key={s} value={s}>{s}</option>)}
