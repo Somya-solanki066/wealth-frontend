@@ -1,6 +1,8 @@
-import { getBackendOrigin } from "@/lib/backendUrl";
-
-/** Absolute HTTPS URL for /uploads assets (avoids slow Next rewrite + mixed content). */
+/**
+ * Resolve media/upload URLs for the public site.
+ * - Firebase / absolute HTTPS URLs → use as-is (durable cloud files)
+ * - Relative /uploads/... → same-origin (Next.js rewrite) for local disk files
+ */
 export function resolveUploadUrl(url: string): string {
   if (!url) return "";
   let value = String(url).trim();
@@ -10,32 +12,36 @@ export function resolveUploadUrl(url: string): string {
     value = `https://${value.slice(7)}`;
   }
 
-  let pathname = value;
+  // Durable cloud / CDN URLs
+  if (
+    /^https:\/\//i.test(value) &&
+    (value.includes("storage.googleapis.com") ||
+      value.includes("firebasestorage.googleapis.com") ||
+      value.includes("cloudinary.com") ||
+      value.includes("amazonaws.com"))
+  ) {
+    return value;
+  }
+
   if (/^https?:\/\//i.test(value)) {
     try {
       const parsed = new URL(value);
       if (parsed.pathname.startsWith("/uploads/")) {
-        pathname = parsed.pathname;
-      } else {
-        parsed.protocol = "https:";
-        return parsed.toString();
+        // Prefer same-origin proxy so frontend doesn't depend on backend host CORS/tmp
+        return parsed.pathname;
       }
+      parsed.protocol = "https:";
+      return parsed.toString();
     } catch {
       return value;
     }
-  } else if (!value.startsWith("/")) {
-    pathname = `/${value}`;
   }
 
-  if (!pathname.startsWith("/uploads/")) {
-    return pathname.startsWith("/") ? pathname : value;
+  if (!value.startsWith("/")) {
+    value = `/${value}`;
   }
 
-  let origin = getBackendOrigin();
-  if (/^http:\/\//i.test(origin) && !/localhost|127\.0\.0\.1/i.test(origin)) {
-    origin = origin.replace(/^http:\/\//i, "https://");
-  }
-  return `${origin}${pathname}`;
+  return value;
 }
 
 /** Start downloading an image ASAP (before React paints the <img>). */
