@@ -54,10 +54,24 @@ function FlagshipCourseBlock({ course }: { course: CourseContent }) {
       <div className="flagship-course-grid">
         <div className="flagship-course-card">
           <div
-            className="flagship-course-banner"
-            style={{ background: course.bannerGradient }}
+            className={`flagship-course-banner${
+              course.bannerImageUrl ? " flagship-course-banner--image" : ""
+            }`}
+            style={
+              course.bannerImageUrl
+                ? undefined
+                : { background: course.bannerGradient }
+            }
           >
-            {course.bannerEmoji}
+            {course.bannerImageUrl ? (
+              <img
+                src={resolveMediaUrl(course.bannerImageUrl)}
+                alt={course.courseName || course.title || "Course"}
+                className="flagship-course-banner-img"
+              />
+            ) : (
+              course.bannerEmoji
+            )}
           </div>
           <div className="flagship-course-body">
             <div className="flagship-course-kicker">{course.kicker}</div>
@@ -239,6 +253,64 @@ function CoachVictorBlock({ course }: { course: CourseContent }) {
   );
 }
 
+function MyStudentBanner({ course }: { course: CourseContent }) {
+  const url = resolveMediaUrl(course.myStudentBannerImageUrl || "");
+  if (!url) return null;
+
+  const heading = course.myStudentBannerHeading?.trim() || "My Students";
+  const sub =
+    course.myStudentBannerSubtext?.trim() ||
+    "A growing community of writers learning, shipping, and building wealth with their words.";
+  const youtubeUrl = (course.myStudentBannerYoutubeUrl || "").trim();
+
+  const openYoutube = () => {
+    if (!youtubeUrl) return;
+    const href = /^https?:\/\//i.test(youtubeUrl) ? youtubeUrl : `https://${youtubeUrl}`;
+    window.open(href, "_blank", "noopener,noreferrer");
+  };
+
+  return (
+    <section className="my-student-banner-section" aria-label={heading}>
+      <span className="sec-label">Community</span>
+      <h2 className="sec-h2">{heading}</h2>
+      <p className="my-student-banner-lead">{sub}</p>
+      <div className="my-student-banner-wrap">
+        <div
+          className={`my-student-banner-card${youtubeUrl ? " my-student-banner-card--clickable" : ""}`}
+          role={youtubeUrl ? "link" : undefined}
+          tabIndex={youtubeUrl ? 0 : undefined}
+          onClick={youtubeUrl ? openYoutube : undefined}
+          onKeyDown={
+            youtubeUrl
+              ? (e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    openYoutube();
+                  }
+                }
+              : undefined
+          }
+          title={youtubeUrl ? "Watch on YouTube" : undefined}
+        >
+          <div className="my-student-banner-media">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={url}
+              alt={heading}
+              className="my-student-banner-img"
+            />
+            {youtubeUrl ? (
+              <span className="my-student-banner-play" aria-hidden>
+                ▶
+              </span>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /** Render a list of full course + coach sections (world courses CMS). */
 export function FlagshipCoursesList({
   courses,
@@ -254,6 +326,7 @@ export function FlagshipCoursesList({
           <AlsoFromDivider subtitle={course.dividerSubtitle} />
           <div className="flagship-stack-inner">
             <FlagshipCourseBlock course={course} />
+            <MyStudentBanner course={course} />
             <CoachVictorBlock course={course} />
           </div>
         </div>
@@ -281,6 +354,7 @@ export function FlagshipCourseStack({
             <AlsoFromDivider subtitle={course.dividerSubtitle} />
             <div className="flagship-stack-inner">
               <FlagshipCourseBlock course={course} />
+              <MyStudentBanner course={course} />
               <CoachVictorBlock course={course} />
             </div>
           </div>

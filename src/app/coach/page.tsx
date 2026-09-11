@@ -1,121 +1,157 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { User, Play, Users, BookOpen } from "lucide-react";
+import { User, Play, Users } from "lucide-react";
+import { useCoachPage } from "@/hooks/useCoachPage";
+
+function resolveMediaUrl(url: string): string {
+  if (!url) return "";
+  if (url.startsWith("/")) return url;
+  try {
+    const parsed = new URL(url);
+    if (parsed.pathname.startsWith("/uploads/")) {
+      return parsed.pathname;
+    }
+  } catch {
+    // keep as-is
+  }
+  return url;
+}
+
+function openExternal(url: string) {
+  if (!url) return;
+  const href = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+  window.open(href, "_blank", "noopener,noreferrer");
+}
 
 export default function CoachPage() {
-  const [toastMessage, setToastMessage] = useState("");
-
-  const triggerToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage("");
-    }, 2200);
-  };
+  const { page } = useCoachPage();
+  const photoUrl = resolveMediaUrl(page.photoUrl || "");
 
   return (
     <div className="min-h-screen bg-[#080808] text-[#F0EBE0] font-sans flex flex-col justify-between">
       <Navbar />
 
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-[#161616] border border-[var(--gm)] text-[var(--gd)] font-semibold text-xs px-6 py-3 rounded-xl shadow-2xl transition-all duration-300">
-          {toastMessage}
-        </div>
-      )}
-
-      {/* Main Content */}
       <main className="flex-grow pb-16">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 py-16 space-y-12">
-          
-          {/* Coach Hero block */}
           <div className="bg-gradient-to-br from-[#0a1428] to-[#040c1e] border border-[#5298E0]/25 rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 md:gap-12 shadow-2xl shadow-[#5298E0]/5">
-            <div className="w-[120px] h-[120px] rounded-full border-[3px] border-[#5298E0] bg-gradient-to-br from-[#001428] to-[#002040] flex items-center justify-center text-[#5298E0] shrink-0 shadow-lg select-none">
-              <User className="h-16 w-16" />
+            <div className="w-[120px] h-[120px] rounded-full border-[3px] border-[#5298E0] bg-gradient-to-br from-[#001428] to-[#002040] flex items-center justify-center text-[#5298E0] shrink-0 shadow-lg select-none overflow-hidden">
+              {photoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={photoUrl}
+                  alt={page.name || "Coach"}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="h-16 w-16" />
+              )}
             </div>
-            
+
             <div className="space-y-4">
               <h2 className="font-serif text-3xl md:text-4xl font-black text-white">
-                Victor Daniels
+                {page.name}
               </h2>
               <p className="text-xs font-semibold text-[#5298E0] uppercase tracking-wider">
-                Writing Coach · Screenwriter · Author · Founder
+                {page.role}
               </p>
               <p className="text-sm md:text-base text-[#909090] leading-relaxed">
-                WIT-WEB Academy founder. Serialized fiction expert. Helping writers across Nigeria, the UK, the US, and beyond turn their words into sustainable income through coaching, courses, and community.
+                {page.bio}
               </p>
-              
-              {/* Stats row */}
+
               <div className="flex flex-wrap gap-8 pt-2">
-                <div>
-                  <div className="font-serif text-2xl font-black text-[var(--gd)]">2,400+</div>
-                  <div className="text-[10px] text-[#606060] font-bold tracking-wider uppercase">Community Writers</div>
-                </div>
-                <div>
-                  <div className="font-serif text-2xl font-black text-[var(--gd)]">9</div>
-                  <div className="text-[10px] text-[#606060] font-bold tracking-wider uppercase">Platforms Mastered</div>
-                </div>
-                <div>
-                  <div className="font-serif text-2xl font-black text-[var(--gd)]">2</div>
-                  <div className="text-[10px] text-[#606060] font-bold tracking-wider uppercase">Flagship Courses</div>
-                </div>
+                {(page.stats || []).map((stat, index) => (
+                  <div key={`${stat.label}-${index}`}>
+                    <div className="font-serif text-2xl font-black text-[var(--gd)]">
+                      {stat.value}
+                    </div>
+                    <div className="text-[10px] text-[#606060] font-bold tracking-wider uppercase">
+                      {stat.label}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Social / Community row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Card 1 */}
             <div
-              onClick={() => triggerToast("Opening YouTube channel...")}
+              role="link"
+              tabIndex={0}
+              onClick={() => openExternal(page.youtubeUrl)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  openExternal(page.youtubeUrl);
+                }
+              }}
               className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-3xl p-8 flex gap-6 items-start cursor-pointer transition-all duration-200"
             >
               <Play className="h-12 w-12 text-red-600 shrink-0 fill-current" />
               <div className="space-y-3">
                 <h3 className="font-serif text-lg font-bold text-white leading-tight">
-                  @CoachVictorDaniels
+                  {page.youtubeHandle}
                 </h3>
                 <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest block">
-                  YouTube Channel
+                  {page.youtubeLabel}
                 </span>
                 <p className="text-xs text-[#909090] leading-relaxed">
-                  Free writing tutorials, platform guides, and live coaching sessions every week. Subscribe and never miss an upload.
+                  {page.youtubeDescription}
                 </p>
-                <button className="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs transition-colors">
-                  ▶ Subscribe on YouTube
+                <button
+                  type="button"
+                  className="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openExternal(page.youtubeUrl);
+                  }}
+                >
+                  {page.youtubeButtonLabel}
                 </button>
               </div>
             </div>
 
-            {/* Card 2 */}
             <div
-              onClick={() => triggerToast("Joining WIT-WEB Community...")}
+              role="link"
+              tabIndex={0}
+              onClick={() => openExternal(page.communityUrl)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  openExternal(page.communityUrl);
+                }
+              }}
               className="bg-[#161616] border border-[#242424] hover:border-[var(--gm)] rounded-3xl p-8 flex gap-6 items-start cursor-pointer transition-all duration-200"
             >
               <Users className="h-12 w-12 text-[var(--gd)] shrink-0" />
               <div className="space-y-3">
                 <h3 className="font-serif text-lg font-bold text-white leading-tight">
-                  WIT-WEB Community
+                  {page.communityTitle}
                 </h3>
                 <span className="text-[10px] font-bold text-[var(--gd)] uppercase tracking-widest block">
-                  2,400+ Active Writers
+                  {page.communityBadge}
                 </span>
                 <p className="text-xs text-[#909090] leading-relaxed">
-                  Connect with writers worldwide. Get feedback, find accountability partners, and access exclusive coaching sessions from Coach Victor.
+                  {page.communityDescription}
                 </p>
-                <button className="px-5 py-2.5 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] hover:from-[var(--gl)]/90 hover:to-[var(--gm)]/90 text-zinc-950 font-bold rounded-xl text-xs">
-                  Join the Community
+                <button
+                  type="button"
+                  className="px-5 py-2.5 bg-gradient-to-r from-[var(--gl)] to-[var(--gm)] hover:from-[var(--gl)]/90 hover:to-[var(--gm)]/90 text-zinc-950 font-bold rounded-xl text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openExternal(page.communityUrl);
+                  }}
+                >
+                  {page.communityButtonLabel}
                 </button>
               </div>
             </div>
           </div>
-
         </div>
       </main>
 
-      {/* Footer */}
       <Footer />
     </div>
   );
