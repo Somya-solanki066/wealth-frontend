@@ -67,12 +67,15 @@ import TransactionsWorkspace from "@/components/TransactionsWorkspace";
 import CoursesWorkspace from "@/components/CoursesWorkspace";
 import AiToolFeedback from "@/components/AiToolFeedback";
 import ScriptEditorToolbar from "@/components/ScriptEditorToolbar";
+import ScriptUploadModal from "@/components/ScriptUploadModal";
 import "@/app/home-worlds.css";
 import "@/app/script-editor.css";
 import {
   applyScriptElement,
+  DEFAULT_SCRIPT_PAGE_BG,
   execEditorCommand,
   handleScriptEnter,
+  isLightPageBackground,
   SCRIPT_ELEMENT_CLASS,
   type ScriptElementKey,
 } from "@/lib/scriptEditor";
@@ -83,6 +86,7 @@ import {
   Clapperboard,
   Download,
   FileText,
+  FileUp,
   Play,
   Lock,
   Mail,
@@ -209,6 +213,7 @@ function DashboardContent() {
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectType, setNewProjectType] = useState<"novel" | "script">("novel");
   const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const [isScriptUploadOpen, setIsScriptUploadOpen] = useState(false);
 
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -229,6 +234,11 @@ function DashboardContent() {
 
   // Novel Editor content state
   const editorRef = useRef<HTMLDivElement>(null);
+  const pageBgSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scriptHistoryRef = useRef<{ stack: string[]; index: number }>({ stack: [""], index: 0 });
+  const scriptHistoryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [canUndoScript, setCanUndoScript] = useState(false);
+  const [canRedoScript, setCanRedoScript] = useState(false);
   const [editorContent, setEditorContent] = useState("");
   const [isAutosaving, setIsAutosaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState("Saved");
@@ -454,6 +464,11 @@ function DashboardContent() {
     if (editorRef.current) {
       editorRef.current.innerHTML = content;
     }
+    if (type === "script") {
+      scriptHistoryRef.current = { stack: [content], index: 0 };
+      setCanUndoScript(false);
+      setCanRedoScript(false);
+    }
     // Calculate page counts for script editor (approx 180 words per page in screenplay formatting)
     const wordCount = chap.wordCount || 5;
     setScriptPageCount(Math.max(1, Math.ceil(wordCount / 180)));
@@ -606,31 +621,153 @@ function DashboardContent() {
     }
   };
 
+  const syncScriptHistoryFlags = () => {
+    const h = scriptHistoryRef.current;
+    setCanUndoScript(h.index > 0);
+    setCanRedoScript(h.index < h.stack.length - 1);
+  };
+
+  const commitScriptHistory = (html: string) => {
+    const h = scriptHistoryRef.current;
+    if (h.stack[h.index] === html) {
+      syncScriptHistoryFlags();
+      return;
+    }
+    const stack = h.stack.slice(0, h.index + 1);
+    stack.push(html);
+    if (stack.length > 80) {
+      stack.shift();
+      scriptHistoryRef.current = { stack, index: stack.length - 1 };
+    } else {
+      scriptHistoryRef.current = { stack, index: stack.length - 1 };
+    }
+    syncScriptHistoryFlags();
+  };
+
+  const scheduleScriptHistoryCommit = () => {
+    if (scriptHistoryTimerRef.current) clearTimeout(scriptHistoryTimerRef.current);
+    scriptHistoryTimerRef.current = setTimeout(() => {
+      if (editorRef.current) commitScriptHistory(editorRef.current.innerHTML);
+    }, 400);
+  };
+
+  const undoScriptEditor = () => {
+    const h = scriptHistoryRef.current;
+    if (h.index <= 0 || !editorRef.current) return;
+    if (scriptHistoryTimerRef.current) clearTimeout(scriptHistoryTimerRef.current);
+    // Capture latest typed text before stepping back
+    const live = editorRef.current.innerHTML;
+    if (live !== h.stack[h.index]) commitScriptHistory(live);
+    if (scriptHistoryRef.current.index <= 0) return;
+    scriptHistoryRef.current.index -= 1;
+    const html = scriptHistoryRef.current.stack[scriptHistoryRef.current.index];
+    editorRef.current.innerHTML = html;
+    setEditorContent(html);
+    syncScriptHistoryFlags();
+  };
+
+  const redoScriptEditor = () => {
+    const h = scriptHistoryRef.current;
+    if (h.index >= h.stack.length - 1 || !editorRef.current) return;
+    if (scriptHistoryTimerRef.current) clearTimeout(scriptHistoryTimerRef.current);
+    scriptHistoryRef.current.index += 1;
+    const html = scriptHistoryRef.current.stack[scriptHistoryRef.current.index];
+    editorRef.current.innerHTML = html;
+    setEditorContent(html);
+    syncScriptHistoryFlags();
+  };
+
   const execFormat = (command: string, value?: string) => {
+    if (command === "undo") {
+      undoScriptEditor();
+      return;
+    }
+    if (command === "redo") {
+      redoScriptEditor();
+      return;
+    }
+    if (editorRef.current) {
+      commitScriptHistory(editorRef.current.innerHTML);
+    }
     execEditorCommand(command, value);
     syncEditorFromDom();
+    scheduleScriptHistoryCommit();
   };
 
   const handleScriptElementApply = (key: ScriptElementKey) => {
     setScriptElement(key);
     if (editorRef.current) {
+      commitScriptHistory(editorRef.current.innerHTML);
       applyScriptElement(editorRef.current, key);
       syncEditorFromDom();
+      scheduleScriptHistoryCommit();
     }
   };
 
+  const handlePageBackgroundChange = (color: string) => {
+    if (!activeProject?.id) return;
+    const projectId = activeProject.id;
+    setActiveProject((prev: any) => (prev ? { ...prev, pageBackgroundColor: color } : prev));
+    setProjects((prev) =>
+      prev.map((p) => (p.id === projectId ? { ...p, pageBackgroundColor: color } : p))
+    );
+    setSelectedViewProject((prev: any) =>
+      prev?.id === projectId ? { ...prev, pageBackgroundColor: color } : prev
+    );
+
+    if (pageBgSaveTimerRef.current) clearTimeout(pageBgSaveTimerRef.current);
+    pageBgSaveTimerRef.current = setTimeout(async () => {
+      try {
+        await api.put(`/projects/${projectId}`, { pageBackgroundColor: color });
+      } catch (err) {
+        console.error("Failed to save page background:", err);
+        triggerToast("Failed to save page background.");
+      }
+    }, 400);
+  };
+
+  const scriptPageBg =
+    activeProject?.pageBackgroundColor || DEFAULT_SCRIPT_PAGE_BG;
+  const scriptPageFg = isLightPageBackground(scriptPageBg) ? "#1a1a1a" : "#F0EBE0";
+  const viewScriptPageBg =
+    selectedViewProject?.pageBackgroundColor || DEFAULT_SCRIPT_PAGE_BG;
+  const viewScriptPageFg = isLightPageBackground(viewScriptPageBg)
+    ? "#1a1a1a"
+    : "#F0EBE0";
+
   const handleScriptKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const mod = e.ctrlKey || e.metaKey;
+    if (mod && e.key.toLowerCase() === "z") {
+      e.preventDefault();
+      if (e.shiftKey) redoScriptEditor();
+      else undoScriptEditor();
+      return;
+    }
+    if (mod && e.key.toLowerCase() === "y") {
+      e.preventDefault();
+      redoScriptEditor();
+      return;
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (editorRef.current) {
+        commitScriptHistory(editorRef.current.innerHTML);
         handleScriptEnter(editorRef.current, scriptElement);
         syncEditorFromDom();
+        scheduleScriptHistoryCommit();
       }
     }
   };
 
   const handleEditorInput = () => {
     syncEditorFromDom();
+    scheduleScriptHistoryCommit();
+  };
+
+  const handleScriptPaste = () => {
+    if (editorRef.current) {
+      commitScriptHistory(editorRef.current.innerHTML);
+    }
   };
 
   // Interactive AI Tools States
@@ -1039,6 +1176,87 @@ function DashboardContent() {
               </div>
             </div>
           </Modal>
+
+          <ScriptUploadModal
+            isOpen={isScriptUploadOpen}
+            onClose={() => setIsScriptUploadOpen(false)}
+            scripts={projects.filter((p) => p.type === "script")}
+            defaultTargetId={
+              activeProject?.type === "script" ? activeProject.id : undefined
+            }
+            defaultChapterId={
+              activeProject?.type === "script" ? activeChapter?.id : undefined
+            }
+            onToast={triggerToast}
+            onDone={async (project) => {
+              const keepChapterId = activeChapter?.id;
+              const prevHtml =
+                activeProject?.type === "script" &&
+                project?.id &&
+                activeProject?.id === project.id &&
+                editorRef.current
+                  ? editorRef.current.innerHTML
+                  : null;
+
+              let nextProject = project;
+              try {
+                const res = await api.get("/projects");
+                const list = res.data || [];
+                setProjects(list);
+                if (project?.id) {
+                  nextProject = list.find((p: any) => p.id === project.id) || project;
+                }
+              } catch {
+                if (project?.id) {
+                  setProjects((prev) => {
+                    const exists = prev.some((p) => p.id === project.id);
+                    return exists
+                      ? prev.map((p) => (p.id === project.id ? { ...p, ...project } : p))
+                      : [project, ...prev];
+                  });
+                }
+              }
+              if (!nextProject?.id) return;
+
+              setActiveProject(nextProject);
+              setIsChaptersLoading(true);
+              goToTab(nextProject.type || "script");
+              try {
+                const response = await api.get(`/projects/${nextProject.id}/chapters`);
+                const chaptersList = response.data || [];
+                setChapters(chaptersList);
+                const preferred =
+                  (keepChapterId &&
+                    chaptersList.find((c: any) => c.id === keepChapterId)) ||
+                  chaptersList[0];
+                if (preferred) {
+                  handleSelectChapter(preferred, nextProject.type);
+                  if (
+                    prevHtml != null &&
+                    keepChapterId &&
+                    preferred.id === keepChapterId &&
+                    editorRef.current
+                  ) {
+                    const nextHtml = editorRef.current.innerHTML;
+                    if (prevHtml !== nextHtml) {
+                      scriptHistoryRef.current = { stack: [prevHtml, nextHtml], index: 1 };
+                      setCanUndoScript(true);
+                      setCanRedoScript(false);
+                    }
+                  }
+                } else {
+                  setActiveChapter(null);
+                  setEditorContent("");
+                  if (editorRef.current) editorRef.current.innerHTML = "";
+                }
+              } catch (err) {
+                console.error("Failed to reload after upload:", err);
+                await handleSelectProject(nextProject);
+              } finally {
+                setIsChaptersLoading(false);
+              }
+            }}
+          />
 
           {/* Modals check */}
           <PaywallModal
@@ -1553,7 +1771,14 @@ function DashboardContent() {
                     <h2 className="font-serif text-2xl md:text-3xl font-black text-white">My Scripts</h2>
                     <p className="text-xs text-[#909090] mt-1">Manage and format screenplays for screen production.</p>
                   </div>
-                  <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                    <Button
+                      variant="secondary"
+                      onClick={() => setIsScriptUploadOpen(true)}
+                      size="sm"
+                    >
+                      <FileUp className="h-4 w-4 mr-1.5 inline" /> Upload Script
+                    </Button>
                     <Button 
                       onClick={() => {
                         setNewProjectType("script");
@@ -1572,6 +1797,7 @@ function DashboardContent() {
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {[
+                      "Upload full script or scene-by-scene (TXT, PDF, Word · max 20 MB)",
                       "Scene-by-scene writing and saving",
                       "Courier Prime Hollywood screenplay format",
                       "One-tap elements — heading, action, character, dialogue",
@@ -1633,15 +1859,24 @@ function DashboardContent() {
                   ) : (
                     <div className="col-span-full text-center py-16 border border-dashed border-[#242424] rounded-2xl text-xs text-[#606060] space-y-4">
                       <p>You haven't added any scripts yet.</p>
-                      <Button 
-                        size="sm" 
-                        onClick={() => {
-                          setNewProjectType("script");
-                          setIsCreateOpen(true);
-                        }}
-                      >
-                        + Create First Script
-                      </Button>
+                      <div className="flex flex-wrap items-center justify-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => setIsScriptUploadOpen(true)}
+                        >
+                          <FileUp className="h-4 w-4 mr-1.5 inline" /> Upload Script
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={() => {
+                            setNewProjectType("script");
+                            setIsCreateOpen(true);
+                          }}
+                        >
+                          + Create First Script
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1827,10 +2062,22 @@ function DashboardContent() {
                             <span className="text-[10px] text-[#606060] mt-1 block">{(activePreviewChapter.wordCount || 0).toLocaleString()} words in this scene</span>
                           </div>
                           
-                          <div 
-                            className="text-sm leading-relaxed max-w-none select-text whitespace-pre-wrap max-h-[400px] overflow-y-auto pr-2 custom-scrollbar font-mono text-[#F0EBE0]"
-                            style={{ fontFamily: "'Courier New', Courier, monospace" }}
-                            dangerouslySetInnerHTML={{ __html: activePreviewChapter.content || "<p className='italic text-[#606060]'>This scene is empty.</p>" }}
+                          <div
+                            className={`script-editor-surface text-sm leading-relaxed max-w-none select-text whitespace-pre-wrap max-h-[400px] overflow-y-auto pr-2 custom-scrollbar rounded-xl p-4 border border-[#242424] ${
+                              isLightPageBackground(viewScriptPageBg)
+                                ? "script-editor-surface--light"
+                                : ""
+                            }`}
+                            style={{
+                              fontFamily: "'Courier New', Courier, monospace",
+                              backgroundColor: viewScriptPageBg,
+                              color: viewScriptPageFg,
+                            }}
+                            dangerouslySetInnerHTML={{
+                              __html:
+                                activePreviewChapter.content ||
+                                "<p class='italic' style='opacity:0.5'>This scene is empty.</p>",
+                            }}
                           />
                         </div>
                       ) : (
@@ -2103,12 +2350,22 @@ function DashboardContent() {
                     <div className="space-y-4">
                       <div className="flex justify-between items-center border-b border-[#242424] pb-2">
                         <h4 className="text-[10px] font-bold text-[#606060] uppercase tracking-wider">Scenes</h4>
-                        <button
-                          onClick={handleAddChapter}
-                          className="text-[var(--gd)] hover:text-[var(--gl)] font-bold text-xs"
-                        >
-                          + Add
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setIsScriptUploadOpen(true)}
+                            className="text-[var(--gd)] hover:text-[var(--gl)] font-bold text-xs"
+                            title="Upload script"
+                          >
+                            Upload
+                          </button>
+                          <button
+                            onClick={handleAddChapter}
+                            className="text-[var(--gd)] hover:text-[var(--gl)] font-bold text-xs"
+                          >
+                            + Add
+                          </button>
+                        </div>
                       </div>
                       <div className="space-y-1 max-h-[400px] overflow-y-auto custom-scrollbar">
                         {isChaptersLoading ? (
@@ -2169,6 +2426,10 @@ function DashboardContent() {
                         scriptElement={scriptElement}
                         onScriptElement={handleScriptElementApply}
                         onCommand={execFormat}
+                        canUndo={canUndoScript}
+                        canRedo={canRedoScript}
+                        pageBackgroundColor={scriptPageBg}
+                        onPageBackgroundChange={handlePageBackgroundChange}
                       />
 
                       {/* Screenplay workspace contentEditable with Courier Prime specs */}
@@ -2177,8 +2438,17 @@ function DashboardContent() {
                         contentEditable
                         onInput={handleEditorInput}
                         onKeyDown={handleScriptKeyDown}
+                        onPaste={handleScriptPaste}
                         data-placeholder="Write screenplay script..."
-                        className="script-editor-surface w-full min-h-[380px] bg-[#161616] border border-[#242424] rounded-2xl p-6 sm:p-10 outline-none focus:border-[var(--gm)] overflow-y-auto whitespace-pre-wrap select-text text-[#F0EBE0]"
+                        className={`script-editor-surface w-full min-h-[380px] border border-[#242424] rounded-2xl p-6 sm:p-10 outline-none focus:border-[var(--gm)] overflow-y-auto whitespace-pre-wrap select-text ${
+                          isLightPageBackground(scriptPageBg)
+                            ? "script-editor-surface--light"
+                            : ""
+                        }`}
+                        style={{
+                          backgroundColor: scriptPageBg,
+                          color: scriptPageFg,
+                        }}
                       />
 
                       {/* Footer Metrics */}

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Clapperboard, Save, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Clapperboard, FileUp, Save, Sparkles, Upload } from "lucide-react";
 import api from "@/services/api";
 import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
@@ -12,6 +12,13 @@ import Loader from "@/components/ui/Loader";
 import ScoreRing from "@/components/ui/ScoreRing";
 import ProgressBar from "@/components/ui/ProgressBar";
 import AiToolFeedback from "@/components/AiToolFeedback";
+import {
+  parseScreenplayIntoScenes,
+  readScriptFileAsText,
+  SCRIPT_UPLOAD_ACCEPT,
+  SCRIPT_UPLOAD_HINT,
+  type ParsedScene,
+} from "@/lib/scriptUpload";
 
 type ProjectOption = {
   id: string;
@@ -53,6 +60,8 @@ type ScriptAnalyzerResult = {
   line_notes: ScriptAnalyzerLineNote[];
 };
 
+type UploadMode = "full" | "scene-by-scene";
+
 const CATEGORY_META: { key: keyof ScriptAnalyzerScores; label: string; weight: string }[] = [
   { key: "premise", label: "Premise", weight: "20%" },
   { key: "dialogue", label: "Dialogue", weight: "15%" },
@@ -67,6 +76,21 @@ function verdictBadgeVariant(verdict: string): "green" | "gold" | "red" {
   if (verdict === "STRONG CONTENDER") return "gold";
   if (verdict === "REVISE BEFORE PITCHING") return "gold";
   return "red";
+}
+
+function htmlToPlainText(html: string) {
+  return String(html || "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 export default function ScriptAnalyzerWorkspace({
@@ -97,6 +121,13 @@ export default function ScriptAnalyzerWorkspace({
   const [format, setFormat] = useState("feature");
   const [analysisMode, setAnalysisMode] = useState("full_script");
 
+  const [uploadMode, setUploadMode] = useState<UploadMode>("full");
+  const [uploadFileName, setUploadFileName] = useState("");
+  const [uploadedScenes, setUploadedScenes] = useState<ParsedScene[]>([]);
+  const [uploadSceneIndex, setUploadSceneIndex] = useState(0);
+  const [isReadingFile, setIsReadingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [isSaving, setIsSaving] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<ScriptAnalyzerResult | null>(null);
@@ -120,7 +151,6 @@ export default function ScriptAnalyzerWorkspace({
     if (!selectedProjectId) {
       setScenes([]);
       setSelectedSceneId("");
-      setScriptText("");
       return;
     }
 
@@ -131,7 +161,9 @@ export default function ScriptAnalyzerWorkspace({
         setScenes(list);
         if (list.length > 0) {
           setSelectedSceneId(list[0].id);
-          setScriptText(list[0].content || "");
+          setScriptText(htmlToPlainText(list[0].content || "") || list[0].content || "");
+          setUploadedScenes([]);
+          setUploadFileName("");
         } else {
           setSelectedSceneId("");
           setScriptText("");
@@ -144,9 +176,69 @@ export default function ScriptAnalyzerWorkspace({
 
   useEffect(() => {
     if (!selectedSceneId || !scenes.length) return;
+    if (uploadedScenes.length > 0) return;
     const scene = scenes.find((s) => s.id === selectedSceneId);
-    if (scene) setScriptText(scene.content || "");
-  }, [selectedSceneId, scenes]);
+    if (scene) {
+      setScriptText(htmlToPlainText(scene.content || "") || scene.content || "");
+    }
+  }, [selectedSceneId, scenes, uploadedScenes.length]);
+
+  const loadUploadedScene = (index: number, list: ParsedScene[] = uploadedScenes) => {
+    if (!list[index]) return;
+    setUploadSceneIndex(index);
+    setScriptText(list[index].rawText);
+    setResult(null);
+  };
+
+  const handleUploadFile = async (file: File | null) => {
+    if (!file) return;
+    setIsReadingFile(true);
+    setResult(null);
+    try {
+      const text = await readScriptFileAsText(file);
+      if (!text.trim()) {
+        onToast?.("File is empty.");
+        return;
+      }
+      setUploadFileName(file.name);
+      setSelectedProjectId("");
+      setSelectedSceneId("");
+      setScenes([]);
+
+      if (uploadMode === "full") {
+        setUploadedScenes([]);
+        setUploadSceneIndex(0);
+        setScriptText(text);
+        if (analysisModes.some((m) => m.id === "full_script")) {
+          setAnalysisMode("full_script");
+        }
+        onToast?.("Full script loaded into Script Text — ready to analyze.");
+      } else {
+        const parsed = parseScreenplayIntoScenes(text, file.name.replace(/\.[^.]+$/, ""));
+        setUploadedScenes(parsed);
+        setUploadSceneIndex(0);
+        if (parsed[0]) {
+          setScriptText(parsed[0].rawText);
+        } else {
+          setScriptText(text);
+        }
+        const sceneMode =
+          analysisModes.find((m) => m.id === "single_scene" || m.id === "scene")?.id ||
+          analysisMode;
+        setAnalysisMode(sceneMode);
+        onToast?.(
+          parsed.length > 1
+            ? `${parsed.length} scenes detected. Analyze one by one from the list.`
+            : "Scene loaded into Script Text — ready to analyze."
+        );
+      }
+    } catch (e: any) {
+      onToast?.(e.message || "Could not read file.");
+    } finally {
+      setIsReadingFile(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const handleSaveScene = async () => {
     if (!selectedProjectId || !selectedSceneId) return;
@@ -169,7 +261,7 @@ export default function ScriptAnalyzerWorkspace({
 
   const runAnalysis = async () => {
     if (!scriptText.trim()) {
-      onToast?.("Paste or load script text before running analysis.");
+      onToast?.("Paste, load, or upload script text before running analysis.");
       return;
     }
     setIsAnalyzing(true);
@@ -233,8 +325,8 @@ export default function ScriptAnalyzerWorkspace({
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 xl:gap-2">
           {[
-            { step: "01", title: "Pick a script", desc: "Choose a screenplay project from Script Editor." },
-            { step: "02", title: "Load a scene", desc: "Open the scene text. You can edit before analyzing." },
+            { step: "01", title: "Upload or pick", desc: "Upload a full script / scenes, or open a Script Editor project." },
+            { step: "02", title: "Review text", desc: "Uploaded content appears in Script Text — edit before analyzing." },
             { step: "03", title: "Set industry", desc: "Hollywood, Nollywood, BBC/UK, Netflix Africa, or Audio Drama." },
             { step: "04", title: "Run analysis", desc: "GPT scores premise, dialogue, structure, character, scenes, and format." },
             { step: "05", title: "Revise & re-run", desc: "Use issues and line notes to improve pitch readiness." },
@@ -261,15 +353,139 @@ export default function ScriptAnalyzerWorkspace({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <div className="lg:col-span-7 space-y-6">
           <Card hoverable={false} className="p-6 space-y-5">
+            <div className="space-y-3 rounded-2xl border border-[#242424] bg-[#0c0c0c] p-4">
+              <div className="flex items-center gap-2">
+                <FileUp className="h-4 w-4 text-[var(--gd)]" />
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#909090]">
+                  Upload script document
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUploadMode("full");
+                    setUploadedScenes([]);
+                    setUploadFileName("");
+                  }}
+                  className={`rounded-xl border px-3 py-3 text-left text-sm transition ${
+                    uploadMode === "full"
+                      ? "border-[var(--gd)] bg-[var(--gd)]/10 text-white"
+                      : "border-[#242424] bg-[#161616] text-[#c8c4bc]"
+                  }`}
+                >
+                  <div className="font-semibold">Full script</div>
+                  <div className="mt-1 text-[11px] text-[#909090]">
+                    Upload entire screenplay into Script Text
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUploadMode("scene-by-scene");
+                    setUploadedScenes([]);
+                    setUploadFileName("");
+                  }}
+                  className={`rounded-xl border px-3 py-3 text-left text-sm transition ${
+                    uploadMode === "scene-by-scene"
+                      ? "border-[var(--gd)] bg-[var(--gd)]/10 text-white"
+                      : "border-[#242424] bg-[#161616] text-[#c8c4bc]"
+                  }`}
+                >
+                  <div className="font-semibold">Scene by scene</div>
+                  <div className="mt-1 text-[11px] text-[#909090]">
+                    Upload file, then analyze scenes one by one
+                  </div>
+                </button>
+              </div>
+
+              <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[#333] bg-[#121212] px-4 py-6 text-center hover:border-[var(--gd)]/50">
+                {isReadingFile ? (
+                  <Loader size="sm" />
+                ) : (
+                  <Upload className="h-5 w-5 text-[var(--gd)]" />
+                )}
+                <span className="text-sm font-semibold text-white">
+                  {uploadFileName ||
+                    (uploadMode === "full"
+                      ? "Choose full script (TXT / PDF / Word)"
+                      : "Choose script file to split into scenes")}
+                </span>
+                <span className="text-[11px] text-[#606060]">
+                  {SCRIPT_UPLOAD_HINT} — text loads into Script Text below
+                </span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={SCRIPT_UPLOAD_ACCEPT}
+                  className="hidden"
+                  onChange={(e) => void handleUploadFile(e.target.files?.[0] || null)}
+                />
+              </label>
+
+              {uploadMode === "scene-by-scene" && uploadedScenes.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#606060]">
+                      Scenes ({uploadSceneIndex + 1} / {uploadedScenes.length})
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={uploadSceneIndex <= 0}
+                        onClick={() => loadUploadedScene(uploadSceneIndex - 1)}
+                      >
+                        Prev
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={uploadSceneIndex >= uploadedScenes.length - 1}
+                        onClick={() => loadUploadedScene(uploadSceneIndex + 1)}
+                      >
+                        Next scene
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="max-h-40 space-y-1 overflow-y-auto rounded-xl border border-[#242424] p-2">
+                    {uploadedScenes.map((scene, i) => (
+                      <button
+                        key={`${scene.title}-${i}`}
+                        type="button"
+                        onClick={() => loadUploadedScene(i)}
+                        className={`w-full rounded-lg px-2.5 py-2 text-left text-xs transition ${
+                          i === uploadSceneIndex
+                            ? "bg-[var(--gd)]/15 text-white"
+                            : "text-[#909090] hover:bg-[#1a1a1a]"
+                        }`}
+                      >
+                        <span className="block font-semibold line-clamp-1">{scene.title}</span>
+                        {scene.heading && (
+                          <span className="block text-[10px] text-[#606060] line-clamp-1">
+                            {scene.heading}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Select
-                label="Select Script Project"
+                label="Or select Script Project"
                 options={[
                   { label: "Choose a script...", value: "" },
                   ...scriptProjects.map((p) => ({ label: p.name, value: p.id })),
                 ]}
                 value={selectedProjectId}
-                onChange={(e) => setSelectedProjectId(e.target.value)}
+                onChange={(e) => {
+                  setUploadedScenes([]);
+                  setUploadFileName("");
+                  setSelectedProjectId(e.target.value);
+                }}
                 className="bg-zinc-950"
               />
               {selectedProjectId && (
@@ -308,14 +524,24 @@ export default function ScriptAnalyzerWorkspace({
             </div>
 
             <div className="space-y-4 border-t border-[#242424] pt-4">
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-[#909090]">
-                Script Text
-              </span>
+              <div className="flex items-center justify-between gap-2">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#909090]">
+                  Script Text
+                </span>
+                {uploadFileName && (
+                  <span className="text-[10px] text-[var(--gd)] truncate max-w-[60%]">
+                    From: {uploadFileName}
+                    {uploadedScenes.length > 0
+                      ? ` · ${uploadedScenes[uploadSceneIndex]?.title || ""}`
+                      : " · full script"}
+                  </span>
+                )}
+              </div>
               <Textarea
                 value={scriptText}
                 onChange={(e) => setScriptText(e.target.value)}
                 className="min-h-[300px] bg-zinc-950 leading-relaxed font-mono text-sm text-[#F0EBE0]"
-                placeholder="Paste or write screenplay text here..."
+                placeholder="Paste, write, or upload screenplay text here..."
               />
               <div className="flex gap-3 justify-end flex-wrap">
                 {selectedProjectId && selectedSceneId && (
@@ -340,7 +566,9 @@ export default function ScriptAnalyzerWorkspace({
               analysisMode,
               projectId: selectedProjectId,
               chapterId: selectedSceneId,
-              chapterTitle: selectedScene?.title || "",
+              chapterTitle: selectedScene?.title || uploadedScenes[uploadSceneIndex]?.title || "",
+              uploadMode,
+              uploadFileName,
             }}
           />
         </div>
@@ -386,7 +614,9 @@ export default function ScriptAnalyzerWorkspace({
                 {CATEGORY_META.map(({ key, label, weight }) => (
                   <div key={key} className="space-y-1">
                     <div className="flex justify-between text-[11px]">
-                      <span className="text-[#C0C0C0]">{label} <span className="text-[#606060]">({weight})</span></span>
+                      <span className="text-[#C0C0C0]">
+                        {label} <span className="text-[#606060]">({weight})</span>
+                      </span>
                       <span className="font-bold text-white">{result.scores[key]}/10</span>
                     </div>
                     <ProgressBar progress={(result.scores[key] / 10) * 100} />
@@ -420,7 +650,9 @@ export default function ScriptAnalyzerWorkspace({
                       </div>
                       <p className="text-[#909090]">{issue.detail}</p>
                       {issue.fix && (
-                        <p className="text-[#C0C0C0]"><span className="text-[var(--gd)]">Fix:</span> {issue.fix}</p>
+                        <p className="text-[#C0C0C0]">
+                          <span className="text-[var(--gd)]">Fix:</span> {issue.fix}
+                        </p>
                       )}
                     </div>
                   ))}
@@ -433,22 +665,23 @@ export default function ScriptAnalyzerWorkspace({
                     Line Notes
                   </span>
                   {result.line_notes.map((note, i) => (
-                    <div key={i} className="p-3 rounded-xl bg-[#141414] border border-[#242424] text-xs space-y-1">
-                      <code className="block text-[#F0EBE0] font-mono text-[11px]">{note.original}</code>
-                      <p className="text-[#909090]">{note.issue}</p>
-                      {note.suggestion && (
-                        <p className="text-[var(--gd)]">→ {note.suggestion}</p>
-                      )}
+                    <div key={i} className="p-3 rounded-xl bg-[#121212] border border-[#242424] text-xs space-y-1">
+                      <p className="font-mono text-[#C0C0C0]">{note.original}</p>
+                      <p className="text-orange-300">{note.issue}</p>
+                      <p className="text-[var(--gd)]">{note.suggestion}</p>
                     </div>
                   ))}
                 </div>
               )}
             </Card>
           ) : (
-            <Card hoverable={false} className="p-8 text-center min-h-[400px] flex flex-col justify-center items-center border border-dashed border-[#242424]">
-              <Clapperboard className="h-10 w-10 text-[#404040] mb-3" />
+            <Card
+              hoverable={false}
+              className="p-8 text-center space-y-3 min-h-[280px] flex flex-col justify-center items-center border-dashed"
+            >
+              <Clapperboard className="h-8 w-8 text-[#333]" />
               <p className="text-xs text-[#606060]">
-                Load script text and run analysis to see your pitch readiness report.
+                Upload a script or load a scene, then run analysis to see pitch readiness scores here.
               </p>
             </Card>
           )}

@@ -1,11 +1,113 @@
 .script-editor-toolbar {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   background: #161616;
   border: 1px solid #242424;
   border-radius: 12px;
+  padding: 10px;
+}
+
+.script-editor-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   padding: 8px;
+  border-radius: 10px;
+  border: 1px solid #1f1f1f;
+  background: #121212;
+}
+
+.script-editor-section-pagebg {
+  border-color: rgba(201, 168, 76, 0.25);
+  background: linear-gradient(180deg, #16140e 0%, #121212 100%);
+}
+
+.script-editor-section-history {
+  border-color: rgba(82, 152, 224, 0.28);
+  background: linear-gradient(180deg, #0e141c 0%, #121212 100%);
+}
+
+.script-editor-history-btn {
+  gap: 6px;
+  padding: 0 12px;
+  min-width: 88px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.script-editor-tool-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.script-editor-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+}
+
+.script-editor-section-hint {
+  font-size: 10px;
+  color: #606060;
+}
+
+.script-editor-element-help {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #a8a8a8;
+  padding: 0 2px;
+}
+
+.script-editor-element-help strong {
+  color: #c9a84c;
+}
+
+.script-editor-element-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.script-editor-element-legend-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #0f0f0f;
+  border: 1px solid #1a1a1a;
+}
+
+.script-editor-element-legend-name {
+  font-size: 10px;
+  font-weight: 700;
+  color: #f0ebe0;
+}
+
+.script-editor-element-legend-desc {
+  font-size: 10px;
+  line-height: 1.35;
+  color: #707070;
+}
+
+.script-editor-pagebg-preview {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid #444;
+}
+
+.script-editor-pagebg-hex {
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  color: #909090;
+  padding-left: 4px;
 }
 
 .script-editor-toolbar-row {
@@ -28,7 +130,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #606060;
-  padding: 0 6px;
+  padding: 0;
   flex-shrink: 0;
 }
 
@@ -102,11 +204,20 @@
   flex-shrink: 0;
 }
 
+.script-editor-color-swatch.selected {
+  outline: 2px solid var(--gd, #c9a84c);
+  outline-offset: 1px;
+}
+
 .script-editor-surface {
   font-family: "Courier New", Courier, monospace;
   font-size: 14px;
   line-height: 1.6;
   letter-spacing: 0.02em;
+}
+
+.script-editor-surface--light:empty::before {
+  color: #8a8a8a;
 }
 
 .script-editor-surface:empty::before {

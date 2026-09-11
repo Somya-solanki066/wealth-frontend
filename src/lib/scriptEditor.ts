@@ -6,13 +6,41 @@ export type ScriptElementKey =
   | "parenthetical"
   | "transition";
 
-export const SCRIPT_ELEMENTS: { key: ScriptElementKey; label: string }[] = [
-  { key: "scene", label: "Scene Heading" },
-  { key: "action", label: "Action" },
-  { key: "character", label: "Character" },
-  { key: "dialogue", label: "Dialogue" },
-  { key: "parenthetical", label: "Parenthetical" },
-  { key: "transition", label: "Transition" },
+export const SCRIPT_ELEMENTS: {
+  key: ScriptElementKey;
+  label: string;
+  description: string;
+}[] = [
+  {
+    key: "scene",
+    label: "Scene Heading",
+    description: "Slugline — location & time (e.g. INT. OFFICE - NIGHT).",
+  },
+  {
+    key: "action",
+    label: "Action",
+    description: "Narrative description of what happens on screen.",
+  },
+  {
+    key: "character",
+    label: "Character",
+    description: "Speaker name above dialogue (e.g. ARJUN).",
+  },
+  {
+    key: "dialogue",
+    label: "Dialogue",
+    description: "Spoken lines under the character name.",
+  },
+  {
+    key: "parenthetical",
+    label: "Parenthetical",
+    description: "Delivery note under character (e.g. whispers).",
+  },
+  {
+    key: "transition",
+    label: "Transition",
+    description: "Cut / fade markers (e.g. CUT TO:, FADE OUT).",
+  },
 ];
 
 export const SCRIPT_ELEMENT_CLASS: Record<ScriptElementKey, string> = {
@@ -34,6 +62,37 @@ export const TEXT_COLORS = [
   { label: "Purple", value: "#A855F7" },
   { label: "Yellow", value: "#FACC15" },
 ];
+
+/** Page background presets for the script surface (saved on the project). */
+export const PAGE_BACKGROUND_PRESETS = [
+  { label: "Pure Black", value: "#000000" },
+  { label: "Ink Black", value: "#080808" },
+  { label: "Charcoal", value: "#161616" },
+  { label: "Slate", value: "#1a1a1a" },
+  { label: "Warm Dark", value: "#1a1200" },
+  { label: "Navy Night", value: "#0a1020" },
+  { label: "Paper Cream", value: "#F4F1EA" },
+  { label: "White Page", value: "#FFFFFF" },
+];
+
+export const DEFAULT_SCRIPT_PAGE_BG = "#000000";
+
+export function isLightPageBackground(hex: string) {
+  const raw = String(hex || "").replace("#", "");
+  const full =
+    raw.length === 3
+      ? raw
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : raw;
+  if (full.length !== 6) return false;
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  // Perceived luminance
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.62;
+}
 
 function getEditorBlock(editor: HTMLElement, node: Node | null): HTMLElement | null {
   if (!node) return null;
