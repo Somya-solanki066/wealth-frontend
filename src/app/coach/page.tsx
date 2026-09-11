@@ -5,19 +5,10 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { User, Play, Users } from "lucide-react";
 import { useCoachPage } from "@/hooks/useCoachPage";
+import { resolveUploadUrl } from "@/lib/resolveUploadUrl";
 
 function resolveMediaUrl(url: string): string {
-  if (!url) return "";
-  if (url.startsWith("/")) return url;
-  try {
-    const parsed = new URL(url);
-    if (parsed.pathname.startsWith("/uploads/")) {
-      return parsed.pathname;
-    }
-  } catch {
-    // keep as-is
-  }
-  return url;
+  return resolveUploadUrl(url);
 }
 
 function openExternal(url: string) {

@@ -10,22 +10,13 @@ import {
   type LandingCourseId,
 } from "@/lib/landingCoursesDefaults";
 import type { WorldFlagshipCourse } from "@/lib/worldCoursesDefaults";
+import { resolveUploadUrl } from "@/lib/resolveUploadUrl";
 
 type CourseVariant = LandingCourseId;
 type CourseContent = LandingCourse | WorldFlagshipCourse;
 
 function resolveMediaUrl(url: string): string {
-  if (!url) return "";
-  if (url.startsWith("/")) return url;
-  try {
-    const parsed = new URL(url);
-    if (parsed.pathname.startsWith("/uploads/")) {
-      return parsed.pathname;
-    }
-  } catch {
-    // keep as-is
-  }
-  return url;
+  return resolveUploadUrl(url);
 }
 
 function AlsoFromDivider({ subtitle }: { subtitle: string }) {
@@ -298,6 +289,9 @@ function MyStudentBanner({ course }: { course: CourseContent }) {
               src={url}
               alt={heading}
               className="my-student-banner-img"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
             />
             {youtubeUrl ? (
               <span className="my-student-banner-play" aria-hidden>
